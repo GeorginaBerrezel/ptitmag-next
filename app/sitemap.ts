@@ -1,25 +1,26 @@
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from 'next';
 
-function siteUrl() {
-  const url = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!url) throw new Error("NEXT_PUBLIC_SITE_URL is required");
-  return url.replace(/\/+$/, "");
+function getSiteUrl() {
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+  return raw.replace(/\/+$/, '');
 }
 
-/**
- * lastModified stable:
- * - si Vercel injecte VERCEL_GIT_COMMIT_SHA, tu peux l'utiliser pour invalider lors d'un vrai deploy
- * - sinon on prend une date fixe (à ajuster si tu veux)
- */
-const LASTMOD = new Date("2026-01-28T00:00:00.000Z");
-
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = siteUrl();
+  const base = getSiteUrl();
 
+  // Routes statiques (ajuste si tu ajoutes d'autres pages)
   return [
-    { url: `${base}/fr`, lastModified: LASTMOD, changeFrequency: "weekly", priority: 1.0 },
-    { url: `${base}/en`, lastModified: LASTMOD, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/fr/contact`, lastModified: LASTMOD, changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/en/contact`, lastModified: LASTMOD, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/fr`, lastModified: new Date() },
+    { url: `${base}/fr/producers`, lastModified: new Date() },
+    { url: `${base}/fr/membership`, lastModified: new Date() },
+    { url: `${base}/fr/contact`, lastModified: new Date() },
+
+    { url: `${base}/en`, lastModified: new Date() },
+    { url: `${base}/en/producers`, lastModified: new Date() },
+    { url: `${base}/en/membership`, lastModified: new Date() },
+    { url: `${base}/en/contact`, lastModified: new Date() },
   ];
 }
