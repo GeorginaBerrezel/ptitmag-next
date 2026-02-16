@@ -42,14 +42,11 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
   const messages = await getMessages({locale});
 
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <Header locale={locale} />
-          <main id="main">{props.children}</main>
-          <Footer locale={locale} />
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <Header locale={locale} />
+      <main id="main">{props.children}</main>
+      <Footer locale={locale} />
+    </NextIntlClientProvider>
   );
+
 }
