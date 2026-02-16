@@ -45,20 +45,23 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
           </div>
         </div>
 
-        {/* Centre: logo */}
+        {/* Centre: marque */}
         <Link href="/" aria-label={t('homeAria')} className="header-brand" onClick={close}>
-          <img src="/logo-fako-surfschool.png" alt={t('brand')} />
+          <span className="brand-text">Le P’tit Mag</span>
         </Link>
 
         {/* Droite: nav desktop (mobile: cachée via CSS) */}
+        
+        
         <nav aria-label={t('aria')} className="site-nav-desktop">
           <ul>
-            <li><a href={`/${locale}/#cours`}>{t('courses')}</a></li>
-            <li><a href={`/${locale}/#tarifs`}>{t('pricing')}</a></li>
-            <li><a href={`/${locale}/#spot`}>{t('spot')}</a></li>
-            <li><Link href="/contact">{t('contact')}</Link></li>
+            <li><Link href="/producers" locale={locale}>{t('producers')}</Link></li>
+            <li><Link href="/membership" locale={locale}>{t('membership')}</Link></li>
+            <li><Link href="/contact" locale={locale}>{t('contact')}</Link></li>
           </ul>
         </nav>
+
+
 
         {/* Droite: burger (mobile/tablette via CSS) */}
         <button
@@ -94,14 +97,17 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
               ×
             </button>
 
+            
+            
             <div className="nav-mobile-body">
               <ul>
-                <li><a href={`/${locale}/#cours`} onClick={close}>{t('courses')}</a></li>
-                <li><a href={`/${locale}/#tarifs`} onClick={close}>{t('pricing')}</a></li>
-                <li><a href={`/${locale}/#spot`} onClick={close}>{t('spot')}</a></li>
-                <li><Link href="/contact" onClick={close}>{t('contact')}</Link></li>
+                <li><Link href="/producers" locale={locale} onClick={close}>{t('producers')}</Link></li>
+                <li><Link href="/membership" locale={locale} onClick={close}>{t('membership')}</Link></li>
+                <li><Link href="/contact" locale={locale} onClick={close}>{t('contact')}</Link></li>
               </ul>
             </div>
+
+
           </nav>
         </div>
       ) : null}

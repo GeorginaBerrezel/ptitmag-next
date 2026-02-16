@@ -1,121 +1,42 @@
-import {getTranslations} from 'next-intl/server';
-import {site} from '@/lib/site';
-import {toWaNumber} from '@/lib/phone';
+import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 
-export default async function Page() {
-  const t = await getTranslations();
-  const waHref = `https://wa.me/${toWaNumber(site.telephone)}`;
-
-  const bullets = t.raw('school.bullets') as string[];
-  const levels = t.raw('classes.levels') as {name: string; desc: string}[];
-  const rows = t.raw('pricing.rows') as {label: string; price: string}[];
-  const gallery = t.raw('gallery.items') as {alt: string; caption: string}[];
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ locale: 'fr' | 'en' }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale });
 
   return (
     <>
-      <section className="container" style={{paddingTop: '1.25rem'}}>
-        <h1>{t('hero.h1')}</h1>
-        <p>{t('hero.subtitle')}</p>
+      <section className="container" style={{ paddingTop: '2rem' }}>
+        <h1>{t('home.title')}</h1>
+        <p style={{ fontSize: '1.25rem', opacity: 0.8 }}>{t('home.subtitle')}</p>
+        <p style={{ marginTop: '1rem' }}>{t('home.intro')}</p>
 
-        <p style={{display:'flex', gap:'.75rem', flexWrap:'wrap'}}>
-          <a className="btn" href={waHref} target="_blank" rel="noopener noreferrer">
-            {t('hero.cta_whatsapp')}
-          </a>
-          <a className="btn btn-outline" href="#tarifs">
-            {t('pricing.title')}
-          </a>
-        </p>
-      </section>
-
-      <section className="container" aria-labelledby="school-title" style={{paddingTop:'1.5rem'}}>
-        <h2 id="school-title">{t('school.title')}</h2>
-        <p>{t('school.p1')}</p>
-        <p><strong>{t('school.bulletsTitle')}</strong></p>
-        <ul>
-          {bullets.map((b) => <li key={b}>{b}</li>)}
-        </ul>
-        <p>{t('school.p2')}</p>
-        <p>{t('school.p3')}</p>
-        <p>{t('school.p4')}</p>
-      </section>
-
-      <section id="cours" className="container" aria-labelledby="classes-title" style={{paddingTop:'1.5rem'}}>
-        <h2 id="classes-title">{t('classes.title')}</h2>
-        <p>{t('classes.intro')}</p>
-        <p><strong>{t('classes.goPro')}</strong></p>
-
-        <div style={{display:'grid', gap:'1rem', marginTop:'1rem'}}>
-          {levels.map((lvl) => (
-            <article key={lvl.name} className="card" style={{padding:'1rem'}}>
-              <h3 style={{marginTop:0}}>{lvl.name}</h3>
-              <p style={{marginBottom:0}}>{lvl.desc}</p>
-            </article>
-          ))}
+        <div
+          style={{
+            marginTop: '1.5rem',
+            display: 'flex',
+            gap: '1rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Link href="/membership" locale={locale} className="btn">
+            {t('nav.membership')}
+          </Link>
+          <Link href="/contact" locale={locale} className="btn btn-outline">
+            {t('nav.contact')}
+          </Link>
         </div>
       </section>
 
-      <section id="tarifs" className="container" aria-labelledby="pricing-title" style={{paddingTop:'1.5rem'}}>
-        <h2 id="pricing-title">{t('pricing.title')}</h2>
-
-        <div className="card" style={{padding:'1rem'}}>
-          <ul style={{listStyle:'none', padding:0, margin:0, display:'grid', gap:'.5rem'}}>
-            {rows.map((r) => (
-              <li key={r.label} style={{display:'flex', justifyContent:'space-between', gap:'1rem'}}>
-                <span>{r.label}</span>
-                <strong>{r.price}</strong>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <p>{t('pricing.note1')}</p>
-        <p>{t('pricing.note2')}</p>
-
-        <p>
-          <a className="btn" href={waHref} target="_blank" rel="noopener noreferrer">
-            {t('hero.cta_whatsapp')}
-          </a>
-        </p>
-      </section>
-
-      <section id="photos" className="container" aria-labelledby="gallery-title" style={{paddingTop:'1.5rem'}}>
-        <h2 id="gallery-title">{t('gallery.title')}</h2>
-        <p>{t('gallery.subtitle')}</p>
-
-        <div style={{display:'grid', gap:'1rem', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))'}}>
-          {gallery.map((it) => (
-            <figure key={it.caption} className="card" style={{padding:'1rem'}}>
-              {/* Remplace ces placeholders par tes vrais <Image src="..."> quand tu es prêt */}
-              <div style={{aspectRatio:'4 / 3', borderRadius:'.5rem', background:'rgba(255,255,255,.08)'}} aria-label={it.alt} />
-              <figcaption style={{marginTop:'.75rem'}}>{it.caption}</figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
-
-      <section id="spot" className="container" aria-labelledby="spot-title" style={{paddingTop:'1.5rem', paddingBottom:'2rem'}}>
-        <h2 id="spot-title">{t('spot.title')}</h2>
-        <p>{t('spot.text')}</p>
-
-        <p style={{display:'flex', gap:'.75rem', flexWrap:'wrap'}}>
-          <a className="btn btn-outline" href={site.surfReportUrl} target="_blank" rel="noopener noreferrer" title={t('spot.surfReportHint')}>
-            {t('spot.surfReportLabel')}
-          </a>
-          <a className="btn btn-outline" href={site.googleMapsLink} target="_blank" rel="noopener noreferrer">
-            Google Maps
-          </a>
-        </p>
-
-        <div className="card" style={{padding:0}}>
-          <iframe
-            title="Google Maps"
-            width="100%"
-            height="360"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            src={site.googleMapsEmbed}
-          />
-        </div>
+      <section className="container" style={{ paddingTop: '3rem' }}>
+        <h2>{t('home.concept_title')}</h2>
+        <p>{t('home.concept_text')}</p>
+        <p>{t('home.concept_extra')}</p>
       </section>
     </>
   );

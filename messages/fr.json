@@ -1,125 +1,109 @@
 {
   "seo": {
-    "title": "FAKO SURF SCHOOL — École de surf mobile",
-    "description": "Cours de surf à Vensac (Montalivet) : petits groupes, matériel inclus, coaching adapté à votre niveau."
-  },
-  "hero": {
-    "h1": "FAKO SURF SCHOOL",
-    "subtitle": "La première école de surf mobile",
-    "cta_whatsapp": "Contacter via WhatsApp"
-  },
-  "school": {
-    "title": "École",
-    "p1": "Aussi, fort de son savoir-faire, de ses connaissances du milieu et dans un souci de qualité, Etienne vous conseillera sur le choix des horaires des cours en fonction des vos disponibilités, de votre niveau de pratique ainsi que vos attentes afin de vous mettre dans les meilleures conditions possibles de réussite.",
-    "bulletsTitle": "À l’issue d’un stage ou même d’une séance, des notions vous seront apportées concernant :",
-    "bullets": [
-      "Les phénomènes de marées et les courants de « Baïnes »",
-      "L’attitude à adopter pour mieux appréhender l’océan et ses dangers",
-      "Choisir le bon « spot » ou banc de sable et évaluer les vagues en fonction de son niveau de pratique",
-      "Apprendre à respecter les règles de conduite et de priorité à l’eau pour les plus confirmés",
-      "Apprendre à choisir son matériel",
-      "Comment mieux gérer son effort physique avant et après une session de surf"
-    ],
-    "p2": "Chaque séance de surf est précédée d’un échauffement effectué sous forme d’une préparation physique ou d’une séance de « body surf ».",
-    "p3": "Si vous possédez déjà des bases techniques ou une expérience de pratique, laissez vous tenter par une remise à niveau, le temps d’une séance pour faire le bilan de vos compétences.",
-    "p4": "De plus de part sa proximité à l’océan, l’accès aux vagues avec les planches de surf n’est pas contraignant et cela vous assurera un temps de pratique optimisé."
-  },
-  "classes": {
-    "title": "Les cours",
-    "intro": "Les séances de surf se composent de 5 personnes max pour les particuliers mais, toujours dans une démarche de qualité, ces groupes peuvent être limités à 2 ou 3 personnes parfois ! En ce qui concerne les familles ou groupes, ce nombre peut être dépassé dans une limite max de 8 personnes.",
-    "goPro": "EXCLUSIF ! Etienne vous propose également d’être filmé avec une camera « GO PRO » si vous le souhaitez en fonction des conditions météorologiques (vagues et vent) et cela gratuitement !",
-    "levels": [
-      {
-        "name": "Débutant",
-        "desc": "Vous avez toujours voulu tenter l’expérience sans avoir osé franchir le pas ? Qu’importe ! Etienne saura vous mettre en confiance et effacera vos appréhensions en vous mettant dans les meilleures conditions de pratique."
-      },
-      {
-        "name": "Intermédiaire",
-        "desc": "Vous vous sentez en confiance dans les vagues de bord et vous désirez ramer plus au large dans les petites conditions (vagues – 1 m) pour prendre vos premières vagues lisses."
-      },
-      {
-        "name": "Confirmé",
-        "desc": "Vous vous levez sur des vagues lisses et vous voulez apprendre à tourner pour suivre le déferlement de la vague ou bien aller au large dans les vagues de + 1m en utilisant les « Baïnes » ? Dans ce cas, Etienne vous amènera plus au large par petit groupe et il vous donnera des repères pour toujours être au bon endroit au bon moment en gérant votre effort physique."
-      }
-    ]
-  },
-  "spot": {
-    "title": "Lieu",
-    "text": "Le surf se pratique sur la plage de VENSAC. Celle-ci se situe à 2km au nord de MONTALIVET les BAINS, commune de VENDAYS, en Gironde. La plage de VENSAC n’est qu’à une vingtaine de kilomètres au sud de SOULAC S/MER par la route D102 et à 1H30 à l’ouest de BORDEAUX. Elle est facile d’accès en voiture, à pied ou bien à vélo par les nombreuses pistes cyclables venant de MONTALIVET, VENSAC et GRAYAN et L’HÔPITAL.",
-    "surfReportLabel": "Voir le surf report",
-    "surfReportHint": "Ouvre le surf report dans un nouvel onglet."
-  },
-  "gallery": {
-    "title": "Photos",
-    "subtitle": "Quelques images pour voir l’ambiance et le type de cours.",
-    "items": [
-      { "alt": "Cours de surf — brief sur la plage", "caption": "Brief & sécurité" },
-      { "alt": "Cours de surf — mise à l’eau", "caption": "Mise à l’eau" },
-      { "alt": "Cours de surf — session dans les vagues", "caption": "Session" }
-    ]
-  },
-  "pricing": {
-    "title": "Tarifs",
-    "rows": [
-      {"label": "1× 1h30 — Adultes", "price": "35 EUR"},
-      {"label": "1× 1h30 — 11/14 ans", "price": "33 EUR"},
-      {"label": "1× 1h30 — 7/10 ans", "price": "30 EUR"},
-      {"label": "3× 1h30 — Adultes", "price": "95 EUR"},
-      {"label": "3× 1h30 — 11/14 ans", "price": "85 EUR"},
-      {"label": "3× 1h30 — 7/10 ans", "price": "75 EUR"},
-      {"label": "5× 1h30 — Adultes", "price": "145 EUR"},
-      {"label": "5× 1h30 — 11/14 ans", "price": "135 EUR"},
-      {"label": "5× 1h30 — 7/10 ans", "price": "120 EUR"},
-      {"label": "10× 1h30 — Adultes", "price": "250 EUR"},
-      {"label": "10× 1h30 — 11/14 ans", "price": "230 EUR"},
-      {"label": "10× 1h30 — 7/10 ans", "price": "200 EUR"},
-      {"label": "Cours privé — 1× 1h30", "price": "80 EUR / pers"}
-    ],
-    "note1": "Les cours incluent l’encadrement, l’assurance, le matériel, avec des combinaisons intégrales et des planches en mousse. Possibilité d‘apporter son matériel personnel.",
-    "note2": "Les cours peuvent être annulés ou reportés en raison de vent violent, forte houle, orage, ou autres facteurs mettant en danger la sécurité de la pratique de l’activité."
+    "title": "Le P’tit Mag — Association",
+    "description": "Magasin associatif sans but lucratif à St-Romain (Ayent). Produits locaux et bio au prix revendeur, sans marge."
   },
   "nav": {
-    "aria": "Navigation principale",
     "skip": "Aller au contenu",
     "homeAria": "Accueil",
-    "brand": "FAKO Surf School",
-    "courses": "Cours",
-    "pricing": "Tarifs",
-    "spot": "Spot",
-    "contact": "Contact",
-    "surfReport": "Surf report"
-  },
-  "days": {
-    "monday": "Lundi",
-    "tuesday": "Mardi",
-    "wednesday": "Mercredi",
-    "thursday": "Jeudi",
-    "friday": "Vendredi",
-    "saturday": "Samedi",
-    "sunday": "Dimanche"
-  },
-  "footer": {
-    "addressTitle": "Adresse",
-    "directions": "Itinéraire",
-    "linksTitle": "Liens utiles",
+    "brand": "Le P’tit Mag",
+    "aria": "Navigation principale",
     "home": "Accueil",
-    "courses": "Cours",
-    "pricing": "Tarifs",
-    "spot": "Spot",
+    "about": "À propos",
+    "producers": "Producteurs",
+    "membership": "Adhésion",
     "contact": "Contact",
-    "hoursTitle": "Horaires",
-    "closed": "Fermé",
-    "hoursDefaultLabel": "Jour {index}",
-    "hoursNote": "Horaires susceptibles d’évoluer les jours fériés."
+    "courses": "Fonctionnement",
+    "pricing": "Cotisations",
+    "spot": "Lieu"
+  },
+  "home": {
+    "title": "Le P’tit Mag consommer autrement, ensemble",
+    "subtitle": "Magasin associatif sans but lucratif — commandes groupées, prix revendeur, sans marge.",
+    "intro": "Le P’tit Mag, c’est un magasin associatif sans but lucratif qui permet à ses membres de faire l’entier de leur approvisionnement en produits alimentaires et ménagers :\n\n→ auprès de producteurs locaux\n→ et de grossistes en produits bio\n→ au prix revendeur, sans marge\n→ dans une ambiance conviviale\n\nCommandez depuis chez vous et retirez vos achats dans notre local à St-Romain, dans un environnement chaleureux, autour d’un café ou d’une bière.\n\nEnvie d’en savoir plus ?\nRetrouvez-nous à la rue de l’Église 2 à St-Romain (vendredi de 16h30 à 18h30 et samedi de 9h à 12h)\nAppelez Joël au 078 866 42 43\nÉcrivez à info@leptitmag.org",
+    "concept_title": "Comment ça marche",
+    "concept_text": "1) Adhérer à l’association (cotisation mensuelle par adulte du ménage).\n2) Commander via les listes de commande (producteurs locaux + grossistes bio).\n3) Retirer vos achats au local pendant les horaires d’ouverture.",
+    "concept_extra": "Objectif : faciliter une consommation locale et éthique, hors logique marchande, en favorisant circuits courts, transparence et entraide."
+  },
+  "membership": {
+    "title": "Adhésion",
+    "intro": "En adhérant à l’association, vous faites un pas vers votre souveraineté alimentaire et soutenez la production locale.",
+    "regular": "Cotisation ordinaire : CHF 30.- par mois et par adulte",
+    "soft": "Cotisation douce : CHF 15.- par mois et par adulte",
+    "don": "Don récurrent possible",
+    "charges": "Les charges s’élèvent à environ CHF 2000.- par mois (local et gestion des commandes).",
+    "payment": "Ordre permanent recommandé.",
+    "seoTitle": "Adhésion — Le P’tit Mag",
+    "seoDescription": "Rejoindre l’association Le P’tit Mag: cotisation, fonctionnement et objectifs.",
+    "whyTitle": "Pourquoi adhérer ?",
+    "why": {
+      "sovereigntyTitle": "Reprendre ma souveraineté",
+      "sovereigntyText": "Je fais ma part pour sortir l’alimentation du système marchand et je retire mon soutien à la grande distribution.",
+      "shortCircuitsTitle": "Circuits courts",
+      "shortCircuitsText": "Je valorise le travail des producteur·rices de la région et j’évite des kilomètres de transport inutiles.",
+      "ethicalTitle": "Production éthique",
+      "ethicalText": "Je profite d’une sélection de produits de qualité, en priorité régionale, complétée par des produits bio via grossistes.",
+      "wasteTitle": "Fin du gaspillage",
+      "wasteText": "Avec les commandes groupées, tout est déjà attribué: pas de sur-stock et moins de pertes.",
+      "fairPriceTitle": "Un prix juste",
+      "fairPriceText": "Sans marge, on accède à une meilleure qualité, souvent à prix comparable, sans sous-payer les producteur·rices.",
+      "transparencyTitle": "Transparence",
+      "transparencyText": "Association sans but lucratif: fonctionnement clair et finances expliquées.",
+      "participationTitle": "Participation",
+      "participationText": "Les membres peuvent proposer des producteur·rices, exprimer des besoins, et s’investir (livraisons, tenue du local, etc.).",
+      "communityTitle": "Entraide et communauté",
+      "communityText": "Créer du lien au village: échanges, entraide, moments conviviaux au local."
+    }
+  },
+  "producers": {
+    "title": "Producteurs & fournisseurs",
+    "intro": "Nos produits proviennent en priorité de producteurs locaux, complétés par des grossistes en produits bio.",
+    "local_title": "Producteurs locaux",
+    "wholesale_title": "Grossistes / fournisseurs bio",
+    "seoTitle": "Producteurs & fournisseurs — Le P’tit Mag",
+    "seoDescription": "Informations pour les producteurs et fournisseurs du P’tit Mag (Ayent).",
+    "howTitle": "Comment proposer vos produits",
+    "how1": "Contactez-nous via la page Contact (téléphone ou e-mail).",
+    "how2": "Indiquez vos catégories de produits, disponibilités et conditions (livraison/retrait, minimum de commande).",
+    "how3": "Nous reviendrons vers vous pour valider la mise en place et les modalités.",
+    "infoTitle": "Informations pratiques",
+    "infoText": "À compléter : jours de livraison, contraintes logistiques, documents nécessaires (facturation, provenance, labels)."
   },
   "contact": {
-    "seoTitle": "Contact — FAKO Surf School",
-    "seoDescription": "Contactez FAKO Surf School pour réserver un cours de surf.",
     "title": "Contact",
-    "intro": "Réservation et informations : contactez-nous directement.",
-    "whatsappPrefill": "Bonjour, je souhaiterais des informations.",
-    "phone": "Téléphone",
-    "email": "Email",
-    "formNote": "Le formulaire sera réintégré ensuite si nécessaire."
+    "address": "Rue de l'Église 2, 1966 St-Romain (Ayent)",
+    "phone": "078 866 42 43",
+    "email": "info@leptitmag.org",
+    "form": {
+      "name": "Nom complet",
+      "email": "E-mail",
+      "phone": "Téléphone (optionnel)",
+      "message": "Message",
+      "submit": "Envoyer"
+    },
+    "signal_info": "Un groupe Signal existe pour les membres. Laissez votre téléphone si vous souhaitez être ajouté ultérieurement.",
+    "consent": "J’accepte d’être contacté·e via Signal dans le cadre des activités de l’association.",
+    "seoTitle": "Contact — Le P’tit Mag",
+    "seoDescription": "Contactez l’association Le P’tit Mag (St-Romain, Ayent).",
+    "intro": "Passez au local aux horaires d’ouverture, appelez-nous ou écrivez-nous.",
+    "formNote": "Le formulaire arrivera ensuite. Pour l’instant, contactez-nous par téléphone ou par e-mail.",
+    "whatsappPrefill": "Bonjour, je vous contacte via le site Le P’tit Mag."
+  },
+  "footer": {
+    "legal": "Légal",
+    "terms": "Conditions d’utilisation",
+    "privacy": "Politique de confidentialité",
+    "addressTitle": "Adresse",
+    "directions": "Itinéraire",
+    "linksTitle": "Liens",
+    "home": "Accueil",
+    "courses": "Fonctionnement",
+    "pricing": "Cotisations",
+    "spot": "Lieu",
+    "contact": "Contact",
+    "hoursTitle": "Horaires",
+    "hoursDefaultLabel": "Ouverture {index}",
+    "closed": "Fermé",
+    "hoursNote": "Horaires habituels (susceptibles d’évoluer)."
   }
 }

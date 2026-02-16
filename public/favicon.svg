@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0E1726"/>
+  <!-- leaves -->
+  <path d="M30 10c3 2 4 6 2 10-3-2-4-6-2-10z" fill="#6E9B6D"/>
+  <path d="M36 8c3 3 3 8-1 12-3-3-3-8 1-12z" fill="#6E9B6D"/>
+  <path d="M42 10c2 4 1 8-3 10-2-4-1-8 3-10z" fill="#6E9B6D"/>
+  <!-- carrot -->
+  <path d="M38 22c0 16-10 30-14 30s-6-14-6-30c0-6 4-10 10-10s10 4 10 10z" fill="#D0822A"/>
+  <path d="M28 26c-1 0-2 1-2 2s1 2 2 2" stroke="#FDFDFE" stroke-width="2" fill="none" opacity=".35"/>
+</svg>

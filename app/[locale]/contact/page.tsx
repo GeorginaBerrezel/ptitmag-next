@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { site } from "@/lib/site";
-import { toWaNumber } from "@/lib/phone";
 
 export async function generateMetadata({
   params,
@@ -20,25 +19,24 @@ export default async function ContactPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "contact" });
 
-  const waHref = `https://wa.me/${toWaNumber(site.telephone)}?text=${encodeURIComponent(
-    t("whatsappPrefill")
-  )}`;
-
   return (
-    <section className="container" style={{ paddingTop: "1.25rem", paddingBottom: "2rem" }}>
+    <section
+      className="container"
+      style={{ paddingTop: "1.25rem", paddingBottom: "2rem" }}
+    >
       <h1>{t("title")}</h1>
       <p>{t("intro")}</p>
 
       <div className="card" style={{ padding: "1rem" }}>
         <p>
           <strong>{t("phone")}:</strong>{" "}
-          <a href={`tel:${site.telephone.replace(/\s/g, "")}`}>{site.telephone}</a>
-        </p>
-
-        <p style={{ marginTop: "0.75rem" }}>
-          <a className="btn btn-primary" href={waHref} target="_blank" rel="noopener noreferrer">
-            WhatsApp
+          <a href={`tel:${site.telephone.replace(/\s/g, "")}`}>
+            {site.telephone}
           </a>
+        </p>
+        <p style={{ marginTop: "0.75rem" }}>
+          <strong>{t("address")}:</strong> {site.address.streetAddress},{" "}
+          {site.address.postalCode} {site.address.addressLocality}
         </p>
       </div>
 

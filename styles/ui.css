@@ -9,7 +9,7 @@
   --text: #0E1726;
   --muted: rgba(14, 23, 38, 0.66);
 
-  --primary: #0E1726;
+  --primary: #245c2a;
   --primary-contrast: #FFFFFF;
 
   --radius: 18px;
@@ -164,3 +164,16 @@ iframe{
 /* Petites améliorations lisibilité */
 article.card h3{ margin-top: 0; }
 article.card p{ margin-bottom: 0; }
+
+/* Accent (carotte) */
+:root{
+  --accent: #245c2a;
+  --accent-hover: #D0822A;
+}
+
+/* Boutons: vert par défaut, orange au hover */
+.btn{ background: var(--accent); border-color: rgba(36,92,42,0.25); box-shadow: 0 10px 26px rgba(36,92,42,0.18); }
+.btn:hover{ box-shadow: 0 14px 34px rgba(36,92,42,0.22); }
+.btn.btn-outline{ background: transparent; color: var(--accent); border-color: rgba(36,92,42,0.35); }
+.btn.btn-outline:hover{ color: var(--accent-hover); border-color: rgba(208,130,42,0.55); }
+.btn.btn-primary:hover{ background: var(--accent-hover); border-color: rgba(208,130,42,0.55); box-shadow: 0 14px 34px rgba(208,130,42,0.22); }

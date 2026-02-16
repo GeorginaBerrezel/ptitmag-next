@@ -1,125 +1,109 @@
 {
   "seo": {
-    "title": "FAKO SURF SCHOOL — Mobile surf school",
-    "description": "Surf lessons in Vensac (Montalivet): small groups, equipment included, coaching adapted to your level."
-  },
-  "hero": {
-    "h1": "FAKO SURF SCHOOL",
-    "subtitle": "The first mobile surf school",
-    "cta_whatsapp": "Contact on WhatsApp"
-  },
-  "school": {
-    "title": "The FAKO surf school",
-    "p1": "As a result of all this experience, his knowledge of the marine environment and desire to provide top quality, Etienne will advise you on choosing the timing of your lessons in the light of your availability, your previous experience and your expectations in order to give your the best possible opportunity for successful learning.",
-    "bulletsTitle": "By the end of the course, or even a single session, you will know about:",
-    "bullets": [
-      "Tidal phenomena and the behaviour of the currents in the inlets along the Atlantic coast (the “Baïnes”)",
-      "The right approach for a better understanding of the ocean and its dangers",
-      "How to choose the right spot or sandbank and judge the waves in the light of your own level of expertise",
-      "How to respect the rules of good conduct and, for more advanced students, the rules of priority at sea",
-      "How to choose the right equipment",
-      "How to optimize your physical effort before and after a surf session"
-    ],
-    "p2": "Each surf session is preceded by a warm-up in the form physical warm-up or a “body surf” session.",
-    "p3": "If you already have some basic technical knowledge or practical experience, take advantage of the opportunity to refresh your skills for a session and take stock of your level of progress.",
-    "p4": "What is more, because the School is located right next to the ocean, getting to the waves with your surfboard is no problem and you therefore benefit from maximum practice time."
-  },
-  "classes": {
-    "title": "Classes",
-    "intro": "Surfing lessons are limited to a maximum of five people for individual students. However, in order to ensure top-quality instruction, these groups may sometimes be limited to just two or three people. In the case of families, this number can be extended to up to eight persons.",
-    "goPro": "EXCLUSIVE! Etienne can also arrange for you to be filmed with a “GO PRO” camera if the weather conditions (waves and wind) are favourable. What is more, this service is available free of charge!",
-    "levels": [
-      {
-        "name": "Beginner",
-        "desc": "Have you always wanted to try your hand at surfing but have never dared take the plunge? Don’t worry! Etienne will be able to put you at your ease and free you from any concerns by finding the best conditions for you to practice in."
-      },
-      {
-        "name": "Intermediate",
-        "desc": "You are confident in the waves close to the water’s edge but now you want to paddle out further to where the waves are still gentle (less than 1 m) and experience your first clean waves."
-      },
-      {
-        "name": "Advanced",
-        "desc": "You ride the clean waves and want to learn to carve and follow the waves as they break or go in search of waves of over 1m at the Baïnes. If that sounds like you, Etienne will take you further out in small groups and will give you the tips you need to be always in the right place at the right time, while also optimizing your physical effort."
-      }
-    ]
-  },
-  "spot": {
-    "title": "Spot",
-    "text": "Surfing takes place at Vensac beach. This is situated 2 km to the north of Montalivet-les-Bains in the commune of Vendays in the Gironde. Vensac beach is a mere 20 kilometres or so south of Soulac-sur-Mer on the D102 road and one and a half hours to the west of Bordeaux. It is easily accessible by car, on foot or by bike on one of the many cycling paths from Montalivet, Vensac and Grayan-et-L’Hôpital.",
-    "surfReportLabel": "Open surf report",
-    "surfReportHint": "Opens the surf report in a new tab."
-  },
-  "gallery": {
-    "title": "Photos",
-    "subtitle": "A few pictures to show the vibe and the lessons.",
-    "items": [
-      { "alt": "Surf lesson — beach briefing", "caption": "Briefing & safety" },
-      { "alt": "Surf lesson — entering the water", "caption": "Getting in" },
-      { "alt": "Surf lesson — surfing session", "caption": "Session" }
-    ]
-  },
-  "pricing": {
-    "title": "Prices",
-    "rows": [
-      {"label": "1× 1h30 — Adults", "price": "35 EUR"},
-      {"label": "1× 1h30 — 11/14 years", "price": "33 EUR"},
-      {"label": "1× 1h30 — 7/10 years", "price": "30 EUR"},
-      {"label": "3× 1h30 — Adults", "price": "95 EUR"},
-      {"label": "3× 1h30 — 11/14 years", "price": "85 EUR"},
-      {"label": "3× 1h30 — 7/10 years", "price": "75 EUR"},
-      {"label": "5× 1h30 — Adults", "price": "145 EUR"},
-      {"label": "5× 1h30 — 11/14 years", "price": "135 EUR"},
-      {"label": "5× 1h30 — 7/10 years", "price": "120 EUR"},
-      {"label": "10× 1h30 — Adults", "price": "250 EUR"},
-      {"label": "10× 1h30 — 11/14 years", "price": "230 EUR"},
-      {"label": "10× 1h30 — 7/10 years", "price": "200 EUR"},
-      {"label": "Private lesson — 1× 1h30", "price": "80 EUR / person"}
-    ],
-    "note1": "Lessons for private individuals are conducted in groups of a maximum of five students and include tuition, insurance, equipment, full-length wetsuits and foam surfboards. You can also bring your own equipment if you prefer.",
-    "note2": "Lessons may be postponed or cancelled due to very high winds, strong swells, storms or other factors making it dangerous to practice the activity."
+    "title": "Le P’tit Mag — Association",
+    "description": "Non-profit community grocery association in St-Romain (Ayent). Local and organic products at reseller price, with zero margin."
   },
   "nav": {
-    "aria": "Main navigation",
     "skip": "Skip to content",
     "homeAria": "Home",
-    "brand": "FAKO Surf School",
-    "courses": "Classes",
-    "pricing": "Prices",
-    "spot": "Spot",
+    "brand": "Le P’tit Mag",
+    "aria": "Main navigation",
+    "home": "Home",
+    "about": "About",
+    "producers": "Producers",
+    "membership": "Membership",
     "contact": "Contact",
-    "surfReport": "Surf report"
+    "courses": "How it works",
+    "pricing": "Contributions",
+    "spot": "Location"
   },
-  "days": {
-    "monday": "Monday",
-    "tuesday": "Tuesday",
-    "wednesday": "Wednesday",
-    "thursday": "Thursday",
-    "friday": "Friday",
-    "saturday": "Saturday",
-    "sunday": "Sunday"
+  "home": {
+    "title": "Le P’tit Mag — consuming differently, together",
+    "subtitle": "Non-profit member-run shop — group orders, reseller price, no margin.",
+    "intro": "Le P’tit Mag is a non-profit association shop enabling members to cover their food and household needs:\n\n→ from local producers\n→ and organic wholesalers\n→ at reseller price, without margin\n→ in a friendly atmosphere\n\nOrder from home and pick up in our St-Romain (Ayent) space — with a coffee or a beer.\n\nWant to know more?\nFind us at Rue de l’Église 2, St-Romain (Fri 16:30–18:30, Sat 09:00–12:00)\nCall Joël: 078 866 42 43\nEmail: info@leptitmag.org",
+    "concept_title": "How it works",
+    "concept_text": "1) Join the association (monthly fee per adult in the household).\n2) Order using the order sheets (local producers + organic wholesalers).\n3) Pick up during opening hours.",
+    "concept_extra": "Goal: support ethical, local consumption outside a market-driven logic, focusing on short supply chains, transparency and mutual aid."
+  },
+  "membership": {
+    "title": "Membership",
+    "intro": "By joining the association, you take a step toward food sovereignty and support local production.",
+    "regular": "Standard contribution: CHF 30.- per month and per adult",
+    "soft": "Reduced contribution: CHF 15.- per month and per adult",
+    "don": "Recurring donation possible",
+    "charges": "Monthly charges are approximately CHF 2000.- (local and order management).",
+    "payment": "Standing order recommended.",
+    "seoTitle": "Membership — Le P’tit Mag",
+    "seoDescription": "Join Le P’tit Mag: contributions, how it works, and purpose.",
+    "whyTitle": "Why join?",
+    "why": {
+      "sovereigntyTitle": "Food sovereignty",
+      "sovereigntyText": "I help move food out of a purely commercial system and reduce reliance on large retailers.",
+      "shortCircuitsTitle": "Short supply chains",
+      "shortCircuitsText": "I support local producers and avoid unnecessary transport miles.",
+      "ethicalTitle": "Ethical production",
+      "ethicalText": "I access quality products, prioritizing local supply and complementing with organic wholesalers when needed.",
+      "wasteTitle": "Less waste",
+      "wasteText": "Group orders are pre-assigned: less overstock and fewer losses.",
+      "fairPriceTitle": "Fair price",
+      "fairPriceText": "Zero margin: better quality, often comparable prices, while paying producers fairly.",
+      "transparencyTitle": "Transparency",
+      "transparencyText": "Non-profit association: clear operations and explained finances.",
+      "participationTitle": "Participation",
+      "participationText": "Members can suggest producers, share needs, and help (deliveries, shop shifts, etc.).",
+      "communityTitle": "Community & mutual aid",
+      "communityText": "Build local ties: help each other and enjoy a friendly atmosphere at the shop."
+    }
+  },
+  "producers": {
+    "title": "Producers & suppliers",
+    "intro": "Our products come primarily from local producers, complemented by organic wholesalers.",
+    "local_title": "Local producers",
+    "wholesale_title": "Organic wholesalers / suppliers",
+    "seoTitle": "Producers & suppliers — Le P’tit Mag",
+    "seoDescription": "Information for producers and suppliers of Le P’tit Mag (Ayent).",
+    "howTitle": "How to propose your products",
+    "how1": "Contact us via the Contact page (phone or email).",
+    "how2": "Share product categories, availability, and terms (delivery/pick-up, minimum order).",
+    "how3": "We will get back to confirm the setup and conditions.",
+    "infoTitle": "Practical information",
+    "infoText": "To be completed: delivery days, logistics constraints, required documents (invoicing, origin, labels)."
+  },
+  "contact": {
+    "title": "Contact",
+    "address": "Rue de l'Église 2, 1966 St-Romain (Ayent)",
+    "phone": "078 866 42 43",
+    "email": "info@leptitmag.org",
+    "form": {
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "message": "Message",
+      "submit": "Send"
+    },
+    "signal_info": "A Signal group exists for members. Leave your phone number if you wish to be added later.",
+    "consent": "I agree to be contacted via Signal within the context of the association.",
+    "seoTitle": "Contact — Le P’tit Mag",
+    "seoDescription": "Contact Le P’tit Mag association (St-Romain, Ayent).",
+    "intro": "Come during opening hours, call us, or email us.",
+    "formNote": "The form will come later. For now, contact us by phone or email.",
+    "whatsappPrefill": "Hello, I am contacting you via the Le P’tit Mag website."
   },
   "footer": {
+    "legal": "Legal",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
     "addressTitle": "Address",
     "directions": "Directions",
     "linksTitle": "Links",
     "home": "Home",
-    "courses": "Classes",
-    "pricing": "Prices",
-    "spot": "Spot",
+    "courses": "How it works",
+    "pricing": "Contributions",
+    "spot": "Location",
     "contact": "Contact",
-    "hoursTitle": "Hours",
+    "hoursTitle": "Opening hours",
+    "hoursDefaultLabel": "Opening {index}",
     "closed": "Closed",
-    "hoursDefaultLabel": "Day {index}",
-    "hoursNote": "Hours may change on public holidays."
-  },
-  "contact": {
-    "seoTitle": "Contact — FAKO Surf School",
-    "seoDescription": "Get in touch with FAKO Surf School to book a surf lesson.",
-    "title": "Contact",
-    "intro": "Booking and information: contact us directly.",
-    "whatsappPrefill": "Hello, I would like some information.",
-    "phone": "Phone",
-    "email": "Email",
-    "formNote": "The form can be re-added later if needed."
+    "hoursNote": "Usual opening hours (may change)."
   }
 }
