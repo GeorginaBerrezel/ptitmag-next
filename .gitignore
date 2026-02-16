@@ -31,3 +31,5 @@ node_modules/
 # local audit + env
 *.zip
 .env.local
+.vercel
+.env*.local
