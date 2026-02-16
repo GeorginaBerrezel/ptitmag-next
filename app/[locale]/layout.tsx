@@ -18,7 +18,7 @@ function getSiteUrl(): string {
     raw = vercel ? 'https://' + vercel : 'http://localhost:3000';
   }
 
-  return raw.replace(/\/+\$/, '');
+  return raw.replace(/\/+$/, '');
 }
 
 export const metadata: Metadata = {
