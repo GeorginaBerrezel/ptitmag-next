@@ -1,15 +1,14 @@
-import type { MetadataRoute } from "next";
-
-function siteUrl() {
-  const url = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!url) throw new Error("NEXT_PUBLIC_SITE_URL is required");
-  return url.replace(/\/+$/, "");
-}
+import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const base = siteUrl();
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'\)\;
+
+  const base = siteUrl.replace(/\/+$/, '');
+
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
+    rules: [{ userAgent: '*', allow: '/' }],
     sitemap: `${base}/sitemap.xml`,
   };
 }
