@@ -1,0 +1,21 @@
+/* Cursor enhancement — desktop only */
+@media (any-pointer: fine) {
+  html {
+    cursor: url("/cursor/carotte-cursor.svg") 0 0, auto;
+  }
+
+  a,
+  button,
+  [role="button"] {
+    cursor: url("/cursor/carotte-cursor.svg") 0 0, pointer;
+  }
+}
+
+/* Mobile fallback */
+@media (any-pointer: coarse) {
+  html,
+  a,
+  button {
+    cursor: auto;
+  }
+}
