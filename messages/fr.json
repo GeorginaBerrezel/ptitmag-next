@@ -18,12 +18,16 @@
     "spot": "Lieu"
   },
   "home": {
-    "title": "Le P’tit Mag consommer autrement, ensemble",
-    "subtitle": "Magasin associatif sans but lucratif — commandes groupées, prix revendeur, sans marge.",
-    "intro": "Le P’tit Mag, c’est un magasin associatif sans but lucratif qui permet à ses membres de faire l’entier de leur approvisionnement en produits alimentaires et ménagers :\n\n→ auprès de producteurs locaux\n→ et de grossistes en produits bio\n→ au prix revendeur, sans marge\n→ dans une ambiance conviviale\n\nCommandez depuis chez vous et retirez vos achats dans notre local à St-Romain, dans un environnement chaleureux, autour d’un café ou d’une bière.\n\nEnvie d’en savoir plus ?\nRetrouvez-nous à la rue de l’Église 2 à St-Romain (vendredi de 16h30 à 18h30 et samedi de 9h à 12h)\nAppelez Joël au 078 866 42 43\nÉcrivez à info@leptitmag.org",
-    "concept_title": "Comment ça marche",
-    "concept_text": "1) Adhérer à l’association (cotisation mensuelle par adulte du ménage).\n2) Commander via les listes de commande (producteurs locaux + grossistes bio).\n3) Retirer vos achats au local pendant les horaires d’ouverture.",
-    "concept_extra": "Objectif : faciliter une consommation locale et éthique, hors logique marchande, en favorisant circuits courts, transparence et entraide."
+    "title": "Le P’tit Mag : Consommer autrement, ensemble",
+    "subtitle": "Commandes groupées, prix revendeur, sans marge.",
+    "objective": "Objectif : faciliter une consommation locale et éthique, hors logique marchande, en favorisant circuits courts, transparence et entraide.",
+    "block1_title": "Magasin associatif sans but lucratif permettant à ses membres de faire l’entier de leur approvisionnement en produits alimentaires et ménagers :",
+    "block1_text": "Auprès de producteurs locaux → de grossistes bio → au prix revendeur, sans marge → dans une ambiance conviviale.",
+    "block2_text": "Commandez depuis chez vous et retirez vos achats dans notre local à St-Romain, dans un environnement chaleureux, autour d’un café ou d’une bière.",
+    "block3_title": "Envie d’en savoir plus ?",
+    "block3_text": "Rue de l’Église 2, St-Romain (vendredi 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
+    "how_title": "Comment ça marche",
+    "how_steps": "1) Adhérer à l’association. 2) Commander via les listes de commande. 3) Retirer vos achats au local."
   },
   "membership": {
     "title": "Adhésion",
