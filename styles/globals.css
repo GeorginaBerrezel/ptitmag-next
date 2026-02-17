@@ -10,7 +10,7 @@
   --header-fg: #FFFFFF;
   --header-fg-muted: rgba(255,255,255,0.78);
   --header-sep: rgba(255, 255, 255, 0.08);
-  --header-height: 176px;
+  --header-height: 72px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -838,7 +838,7 @@ time {
 
 /* langue à gauche */
 .header-actions{ justify-self:start; display:flex; align-items:center; }
-.lang-switch{ display:inline-flex; align-items:center; gap:.5rem; }
+.lang-switch{ display:inline-flex; align-items:center; /*gap:.5rem;*/ }
 
 /* logo centré */
 .header-brand{
@@ -918,6 +918,7 @@ time {
 /* Optionnel: évite le highlight iOS noir/bleu */
 .header a,
 .header button{
+  padding: 0.75rem 0.9rem;
   -webkit-tap-highlight-color: rgba(255,255,255,.25);
 }
 
@@ -926,7 +927,7 @@ time {
 .header-brand .brand-text{
   font-weight: 800;
   letter-spacing: -0.02em;
-  font-size: 1.1rem;
+  font-size: 1.35rem;
   line-height: 1;
   color: var(--header-fg);
   text-decoration: none;

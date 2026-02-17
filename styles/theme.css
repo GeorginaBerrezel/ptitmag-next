@@ -20,7 +20,7 @@
 .header-brand .brand-text{
   font-weight: 800;
   letter-spacing: -0.02em;
-  font-size: 1.1rem;
+  font-size: 1.36rem;
   line-height: 1;
   color: var(--header-fg);
   text-decoration: none;
@@ -31,7 +31,7 @@
   color: var(--header-fg);
   text-decoration: none;
   border-radius: 999px;
-  padding: .35rem .55rem;
+  padding: .6rem .9rem;
   transition: background-color .15s ease, box-shadow .15s ease;
 }
 .site-nav-desktop a:hover{

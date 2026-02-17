@@ -37,7 +37,7 @@ export default function Footer({ locale }: { locale: 'fr' | 'en' }) {
         </div>
       </div>
 
-      <div className="footer-bottom">
+      <div className="container footer-bottom">
         <p>© {new Date().getFullYear()} Association Le P’tit Mag – Sans but lucratif</p>
       </div>
     </footer>
