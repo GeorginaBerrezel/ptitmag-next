@@ -10,7 +10,7 @@
   --header-fg: #FFFFFF;
   --header-fg-muted: rgba(255,255,255,0.78);
   --header-sep: rgba(255, 255, 255, 0.08);
-  --header-height: 80px;
+  --header-height: 176px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -85,14 +85,7 @@ main {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-}
 
-/* container : centrage horizontal uniquement, pas de margin-top/bottom */
-.container {
-  width: 100%;
-  max-width: 72rem;
-  margin-inline: auto;
-  padding: 0 1rem;
 }
 
 /* ==== HEADER ==== */
