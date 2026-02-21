@@ -47,7 +47,7 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
 
         {/* Centre: marque */}
         <Link href="/" aria-label={t('homeAria')} className="header-brand" onClick={close}>
-          <span className="brand-text">Le P’tit Mag</span>
+          <span className="brand-text">Le p’tit mag</span>
         </Link>
 
         {/* Droite: nav desktop (mobile: cachée via CSS) */}

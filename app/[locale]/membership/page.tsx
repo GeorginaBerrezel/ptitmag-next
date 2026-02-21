@@ -7,6 +7,9 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "membership" });
+
+  type TryCard = { title: string; text: string };
+  const tryCards = t.raw("tryCards") as TryCard[];
   return { title: t("seoTitle"), description: t("seoDescription") };
 }
 
@@ -17,6 +20,9 @@ export default async function MembershipPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "membership" });
+
+  type TryCard = { title: string; text: string };
+  const tryCards = t.raw("tryCards") as TryCard[];
 
   return (
     <section className="container" style={{ paddingTop: "1.25rem", paddingBottom: "2rem" }}>

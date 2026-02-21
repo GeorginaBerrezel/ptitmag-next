@@ -1,12 +1,12 @@
 {
   "seo": {
-    "title": "Le P’tit Mag — Association",
+    "title": "Le p’tit mag — Association",
     "description": "Magasin associatif sans but lucratif à St-Romain (Ayent). Produits locaux et bio au prix revendeur, sans marge."
   },
   "nav": {
     "skip": "Aller au contenu",
     "homeAria": "Accueil",
-    "brand": "Le P’tit Mag",
+    "brand": "Le p’tit mag",
     "aria": "Navigation principale",
     "home": "Accueil",
     "about": "À propos",
@@ -18,16 +18,16 @@
     "spot": "Lieu"
   },
   "home": {
-    "title": "Le P’tit Mag : Consommer autrement, ensemble",
+    "title": "Le p’tit mag : Consommer autrement, ensemble",
     "subtitle": "Commandes groupées, prix revendeur, sans marge.",
     "objective": "Objectif : faciliter une consommation locale et éthique, hors logique marchande, en favorisant circuits courts, transparence et entraide.",
     "block1_title": "Magasin associatif sans but lucratif permettant à ses membres de faire l’entier de leur approvisionnement en produits alimentaires et ménagers :",
     "block1_text": "Auprès de producteurs locaux → de grossistes bio → au prix revendeur, sans marge → dans une ambiance conviviale.",
     "block2_text": "Commandez depuis chez vous et retirez vos achats dans notre local à St-Romain, dans un environnement chaleureux, autour d’un café ou d’une bière.",
     "block3_title": "Envie d’en savoir plus ?",
-    "block3_text": "Rue de l’Église 2, St-Romain (vendredi 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
+    "block3_text": "Rue de l’Église 2, St-Romain (mercredi 9h-12h, vendredi 9h-12h & 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
     "how_title": "Comment ça marche",
-    "how_steps": "1) Adhérer à l’association. 2) Commander via les listes de commande. 3) Retirer vos achats au local."
+    "how_steps": "1)Tester le fonctionnement, 2) Adhérer à l’association. 3) Commander via les listes de commande. 4) Retirer vos achats au local."
   },
   "membership": {
     "title": "Adhésion",
@@ -37,8 +37,23 @@
     "don": "Don récurrent possible",
     "charges": "Les charges s’élèvent à environ CHF 2000.- par mois (local et gestion des commandes).",
     "payment": "Ordre permanent recommandé.",
-    "seoTitle": "Adhésion — Le P’tit Mag",
-    "seoDescription": "Rejoindre l’association Le P’tit Mag: cotisation, fonctionnement et objectifs.",
+    "tryTitle": "Je veux essayer !",
+    "tryCards": [
+      {
+        "title": "En savoir plus",
+        "text": "Si tu as besoin d’informations supplémentaires sur le fonctionnement du p’tit mag, contacte-nous pour fixer un rendez-vous."
+      },
+      {
+        "title": "Tester",
+        "text": "Si tu en sais assez, tu peux tester ce système alternatif de distribution pendant 3 mois pour voir s’il te convient. Contacte-nous pour démarrer ta phase test."
+      },
+      {
+        "title": "Adhérer",
+        "text": "Convaincu·e ? Adhère à l’association en nous transmettant le PDF complété (ou via un formulaire). Tu recevras un e-mail de notre part avec la suite."
+      }
+    ],
+    "seoTitle": "Adhésion — Le p’tit mag",
+    "seoDescription": "Rejoindre l’association Le p’tit mag: cotisation, fonctionnement et objectifs.",
     "whyTitle": "Pourquoi adhérer ?",
     "why": {
       "sovereigntyTitle": "Reprendre ma souveraineté",
@@ -64,8 +79,8 @@
     "intro": "Nos produits proviennent en priorité de producteurs locaux, complétés par des grossistes en produits bio.",
     "local_title": "Producteurs locaux",
     "wholesale_title": "Grossistes / fournisseurs bio",
-    "seoTitle": "Producteurs & fournisseurs — Le P’tit Mag",
-    "seoDescription": "Informations pour les producteurs et fournisseurs du P’tit Mag (Ayent).",
+    "seoTitle": "Producteurs & fournisseurs — Le p’tit mag",
+    "seoDescription": "Informations pour les producteurs et fournisseurs du p’tit mag (Ayent).",
     "howTitle": "Comment proposer vos produits",
     "how1": "Contactez-nous via la page Contact (téléphone ou e-mail).",
     "how2": "Indiquez vos catégories de produits, disponibilités et conditions (livraison/retrait, minimum de commande).",
@@ -87,11 +102,11 @@
     },
     "signal_info": "Un groupe Signal existe pour les membres. Laissez votre téléphone si vous souhaitez être ajouté ultérieurement.",
     "consent": "J’accepte d’être contacté·e via Signal dans le cadre des activités de l’association.",
-    "seoTitle": "Contact — Le P’tit Mag",
-    "seoDescription": "Contactez l’association Le P’tit Mag (St-Romain, Ayent).",
+    "seoTitle": "Contact — Le p’tit mag",
+    "seoDescription": "Contactez l’association Le p’tit mag (St-Romain, Ayent).",
     "intro": "Passez au local aux horaires d’ouverture, appelez-nous ou écrivez-nous.",
     "formNote": "Le formulaire arrivera ensuite. Pour l’instant, contactez-nous par téléphone ou par e-mail.",
-    "whatsappPrefill": "Bonjour, je vous contacte via le site Le P’tit Mag."
+    "whatsappPrefill": "Bonjour, je vous contacte via le site Le p’tit mag."
   },
   "footer": {
     "legal": "Légal",

@@ -16,11 +16,11 @@ export default async function ProducersPage({
     "Grégory Sermier - Arbaz",
     "Brasseries d’Ayent - Ayent",
     "Chèrouche - Ayent",
-    "Oliv et Stéph - En là",
+    "Oliv et Stéph - Itravers",
     "Graines d’Avenir - Montana",
     "La Cave à levain - Champlan",
     "Vérène Melchior - Savièse",
-    "Evoleina Rhodiola - Outre",
+    "Evoleina Rhodiola - Evolène",
   ];
 
   const wholesalers = [

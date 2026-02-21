@@ -1,12 +1,12 @@
 {
   "seo": {
-    "title": "Le P’tit Mag — Association",
+    "title": "Le p’tit mag — Association",
     "description": "Non-profit community grocery association in St-Romain (Ayent). Local and organic products at reseller price, with zero margin."
   },
   "nav": {
     "skip": "Skip to content",
     "homeAria": "Home",
-    "brand": "Le P’tit Mag",
+    "brand": "Le p’tit mag",
     "aria": "Main navigation",
     "home": "Home",
     "about": "About",
@@ -18,16 +18,16 @@
     "spot": "Location"
   },
   "home": {
-    "title": "Le P’tit Mag : consuming differently, together",
+    "title": "Le p’tit mag : consuming differently, together",
     "subtitle": "Group orders, reseller price, no margin.",
     "objective": "Goal: support ethical, local consumption outside a market-driven logic, focusing on short supply chains, transparency and mutual aid.",
     "block1_title": "A non-profit association shop enabling members to cover their food and household needs:",
     "block1_text": "From local producers → organic wholesalers → at reseller price, without margin → in a friendly atmosphere.",
     "block2_text": "Order from home and pick up in our St-Romain (Ayent) space — with a coffee or a beer.",
     "block3_title": "Want to know more?",
-    "block3_text": "Rue de l’Église 2, St-Romain (Fri 16:30–18:30, Sat 09:00–12:00) | Call Joël: 078 866 42 43 | info@leptitmag.org",
+    "block3_text": "Rue de l’Église 2, St-Romain (Wed 9:00-12:00, Fri 9:00-12:00 & 16:30–18:30, Sat 09:00–12:00) | Call Joël: 078 866 42 43 | info@leptitmag.org",
     "how_title": "How it works",
-    "how_steps": "1) Join the association. 2) Order using the order sheets. 3) Pick up during opening hours."
+    "how_steps": "1) Test the system. 2) Join the association. 3) Place your order using the order lists. 4) Pick up your purchases at the premises."
   },
   "membership": {
     "title": "Membership",
@@ -37,8 +37,23 @@
     "don": "Recurring donation possible",
     "charges": "Monthly charges are approximately CHF 2000.- (local and order management).",
     "payment": "Standing order recommended.",
-    "seoTitle": "Membership — Le P’tit Mag",
-    "seoDescription": "Join Le P’tit Mag: contributions, how it works, and purpose.",
+    "tryTitle": "I want to try it!",
+    "tryCards": [
+      {
+        "title": "Learn more",
+        "text": "If you need more information about how Le p’tit mag works, contact us to book a meeting."
+      },
+      {
+        "title": "Test",
+        "text": "If you already know enough, you can test this alternative distribution system for 3 months to see if it suits you. Contact us to start your trial."
+      },
+      {
+        "title": "Join",
+        "text": "Convinced? Join the association by sending us the completed PDF (or via a form). You’ll receive an email from us with the next steps."
+      }
+    ],
+    "seoTitle": "Membership — Le p’tit mag",
+    "seoDescription": "Join Le p’tit mag: contributions, how it works, and purpose.",
     "whyTitle": "Why join?",
     "why": {
       "sovereigntyTitle": "Food sovereignty",
@@ -64,8 +79,8 @@
     "intro": "Our products come primarily from local producers, complemented by organic wholesalers.",
     "local_title": "Local producers",
     "wholesale_title": "Organic wholesalers / suppliers",
-    "seoTitle": "Producers & suppliers — Le P’tit Mag",
-    "seoDescription": "Information for producers and suppliers of Le P’tit Mag (Ayent).",
+    "seoTitle": "Producers & suppliers — Le p’tit mag",
+    "seoDescription": "Information for producers and suppliers of Le p’tit mag (Ayent).",
     "howTitle": "How to propose your products",
     "how1": "Contact us via the Contact page (phone or email).",
     "how2": "Share product categories, availability, and terms (delivery/pick-up, minimum order).",
@@ -87,11 +102,11 @@
     },
     "signal_info": "A Signal group exists for members. Leave your phone number if you wish to be added later.",
     "consent": "I agree to be contacted via Signal within the context of the association.",
-    "seoTitle": "Contact — Le P’tit Mag",
-    "seoDescription": "Contact Le P’tit Mag association (St-Romain, Ayent).",
+    "seoTitle": "Contact — Le p’tit mag",
+    "seoDescription": "Contact Le p’tit mag association (St-Romain, Ayent).",
     "intro": "Come during opening hours, call us, or email us.",
     "formNote": "The form will come later. For now, contact us by phone or email.",
-    "whatsappPrefill": "Hello, I am contacting you via the Le P’tit Mag website."
+    "whatsappPrefill": "Hello, I am contacting you via the Le p’tit mag website."
   },
   "footer": {
     "legal": "Legal",
