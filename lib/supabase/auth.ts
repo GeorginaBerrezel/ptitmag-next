@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 
 /**
  * Retourne l'utilisateur connecté côté serveur, ou null.
- * À utiliser dans les Server Components et layouts protégés.
  */
 export async function getUser() {
   const supabase = await createClient()
@@ -11,7 +10,7 @@ export async function getUser() {
 }
 
 /**
- * Retourne le profil complet de l'utilisateur connecté (table profiles).
+ * Retourne le profil complet de l'utilisateur connecté.
  */
 export async function getProfile() {
   const supabase = await createClient()
@@ -26,4 +25,48 @@ export async function getProfile() {
     .single()
 
   return profile
+}
+
+export type OrderWithItems = {
+  id: string
+  status: string
+  total: number
+  created_at: string
+  supplier: { name: string; type: string } | null
+  order_items: {
+    id: string
+    quantity: number
+    unit_price: number
+    product: { name: string; unit: string } | null
+  }[]
+}
+
+/**
+ * Retourne l'historique des commandes de l'utilisateur connecté.
+ */
+export async function getMyOrders(): Promise<OrderWithItems[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      id, status, total, created_at,
+      supplier:suppliers(name, type),
+      order_items(
+        id, quantity, unit_price,
+        product:products(name, unit)
+      )
+    `)
+    .eq('member_id', user.id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('getMyOrders error:', error.message)
+    return []
+  }
+
+  return (data ?? []) as OrderWithItems[]
 }
