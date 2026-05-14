@@ -15,7 +15,10 @@
     "contact": "Contact",
     "courses": "How it works",
     "pricing": "Contributions",
-    "spot": "Location"
+    "spot": "Location",
+    "monCompte": "My account",
+    "connexion": "Log in",
+    "deconnexion": "Log out"
   },
   "home": {
     "title": "Le p’tit mag : consuming differently, together",

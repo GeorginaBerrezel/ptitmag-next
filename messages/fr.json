@@ -15,7 +15,10 @@
     "contact": "Contact",
     "courses": "Fonctionnement",
     "pricing": "Cotisations",
-    "spot": "Lieu"
+    "spot": "Lieu",
+    "monCompte": "Mon compte",
+    "connexion": "Connexion",
+    "deconnexion": "Se déconnecter"
   },
   "home": {
     "title": "Le p’tit mag : Consommer autrement, ensemble",

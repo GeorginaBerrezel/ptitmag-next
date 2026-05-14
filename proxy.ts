@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 
 const handleI18nRouting = createIntlMiddleware({
@@ -7,12 +7,14 @@ const handleI18nRouting = createIntlMiddleware({
   defaultLocale: 'fr',
 })
 
+/** Routes qui nécessitent une session active. */
+const PROTECTED_PATHS = ['/mon-compte', '/commandes']
+
 export async function proxy(request: NextRequest) {
-  // 1. Routing des locales (redirige / → /fr, gère FR|EN)
+  // 1. Routing des locales
   const response = handleI18nRouting(request)
 
   // 2. Rafraîchissement de la session Supabase
-  // Les cookies sont appliqués à la réponse déjà construite par next-intl.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -33,12 +35,26 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // Ne pas écrire de logique entre createServerClient et getUser()
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // 3. Protection des routes membres
+  const pathname = request.nextUrl.pathname
+  const isProtected = PROTECTED_PATHS.some(path =>
+    pathname.includes(path)
+  )
+
+  if (isProtected && !user) {
+    // Détecte la locale depuis l'URL (ex: /fr/mon-compte → fr)
+    const locale = pathname.split('/')[1] ?? 'fr'
+    return NextResponse.redirect(
+      new URL(`/${locale}/connexion`, request.url)
+    )
+  }
 
   return response
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|.*\\..*).*)'],
+  // Exclut /api, /auth (callback Supabase), /_next et les fichiers statiques
+  matcher: ['/((?!api|auth|_next|.*\\..*).*)'],
 }
