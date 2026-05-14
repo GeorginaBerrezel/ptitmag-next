@@ -1,4 +1,5 @@
 import { getProfile } from '@/lib/supabase/auth'
+import { Link } from '@/i18n/navigation'
 import SignOutButton from './SignOutButton'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -55,8 +56,24 @@ export default async function MonComptePage() {
         </div>
 
         <div style={{ background: '#fff', border: '1px solid rgba(16,24,40,0.08)', borderRadius: 16, padding: '1.25rem' }}>
-          <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.1rem' }}>Mes commandes</h2>
-          <p style={{ margin: 0, opacity: 0.6 }}>Les commandes arriveront ici prochainement.</p>
+          <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.1rem' }}>Commander</h2>
+          <p style={{ margin: '0 0 1rem', opacity: 0.6 }}>
+            Consultez les produits disponibles et passez votre commande groupée.
+          </p>
+          <Link
+            href="/commandes"
+            style={{
+              display: 'inline-block',
+              background: '#DC7F00',
+              color: '#fff',
+              borderRadius: 8,
+              padding: '0.5rem 1.25rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Voir le catalogue →
+          </Link>
         </div>
       </div>
 
