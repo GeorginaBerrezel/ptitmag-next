@@ -3,6 +3,7 @@
 import {useEffect, useId, useState} from 'react';
 import {Link, usePathname} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
+import AuthLink from '@/components/AuthLink';
 
 export default function Header({locale}: {locale: 'fr' | 'en'}) {
   const t = useTranslations('nav');
@@ -58,6 +59,7 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
             <li><Link href="/producers" locale={locale}>{t('producers')}</Link></li>
             <li><Link href="/membership" locale={locale}>{t('membership')}</Link></li>
             <li><Link href="/contact" locale={locale}>{t('contact')}</Link></li>
+            <li><AuthLink locale={locale} /></li>
           </ul>
         </nav>
 
@@ -104,6 +106,7 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
                 <li><Link href="/producers" locale={locale} onClick={close}>{t('producers')}</Link></li>
                 <li><Link href="/membership" locale={locale} onClick={close}>{t('membership')}</Link></li>
                 <li><Link href="/contact" locale={locale} onClick={close}>{t('contact')}</Link></li>
+                <li onClick={close}><AuthLink locale={locale} /></li>
               </ul>
             </div>
 

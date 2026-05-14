@@ -10,10 +10,10 @@ export default function ConnexionPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; next?: string }>
 }) {
   const { locale } = use(params)
-  const { error: errorParam } = use(searchParams)
+  const { error: errorParam, next } = use(searchParams)
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,7 +38,7 @@ export default function ConnexionPage({
       return
     }
 
-    router.push(`/${locale}/mon-compte`)
+    router.push(next ?? `/${locale}/mon-compte`)
     router.refresh()
   }
 

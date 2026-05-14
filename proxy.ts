@@ -11,10 +11,26 @@ const handleI18nRouting = createIntlMiddleware({
 const PROTECTED_PATHS = ['/mon-compte', '/commandes']
 
 export async function proxy(request: NextRequest) {
-  // 1. Routing des locales
-  const response = handleI18nRouting(request)
+  const pathname = request.nextUrl.pathname
 
-  // 2. Rafraîchissement de la session Supabase
+  // 1. Routing des locales — si redirection nécessaire (/ → /fr), on l'applique directement
+  const intlResponse = handleI18nRouting(request)
+  if (intlResponse.status >= 300 && intlResponse.status < 400) {
+    return intlResponse
+  }
+
+  // 2. Transmet le pathname aux Server Components via un header de requête
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', pathname)
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
+
+  // Recopie les cookies posés par next-intl (locale, etc.)
+  intlResponse.cookies.getAll().forEach(cookie => {
+    response.cookies.set(cookie)
+  })
+
+  // 3. Rafraîchissement de la session Supabase
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -37,17 +53,16 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 3. Protection des routes membres
-  const pathname = request.nextUrl.pathname
-  const isProtected = PROTECTED_PATHS.some(path =>
-    pathname.includes(path)
-  )
+  // 4. Protection des routes membres — redirige avec ?next= pour revenir après connexion
+  const isProtected = PROTECTED_PATHS.some(path => pathname.includes(path))
 
   if (isProtected && !user) {
-    // Détecte la locale depuis l'URL (ex: /fr/mon-compte → fr)
     const locale = pathname.split('/')[1] ?? 'fr'
     return NextResponse.redirect(
-      new URL(`/${locale}/connexion`, request.url)
+      new URL(
+        `/${locale}/connexion?next=${encodeURIComponent(pathname)}`,
+        request.url
+      )
     )
   }
 
