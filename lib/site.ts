@@ -1,33 +1,36 @@
 export const site = {
-  name: "FAKO Surf School",
-  tagline: "École de surf mobile – Landes & Pays basque",
+  name: "Le p'tit mag",
+  tagline: "Magasin associatif sans but lucratif – St-Romain (Ayent)",
 
-  // numéro de test (format E.164)
-  telephone: "+33646010802",
+  // format E.164 — Suisse
+  telephone: "+41788664243",
 
-  // Pas d’email affiché sur le site (on garde la clé pour ne pas casser les imports)
-  email: "",
+  email: "info@leptitmag.org",
 
   address: {
-    streetAddress: "Plage Vensac Montalivet",
-    postalCode: "33590",
-    addressLocality: "Vensac Océan",
-    addressCountry: "France",
-    full: "Plage Vensac Montalivet, 33590 Vensac Océan, France",
+    streetAddress: "Rue de l'Église 2",
+    postalCode: "1966",
+    addressLocality: "St-Romain (Ayent)",
+    addressCountry: "CH",
+    full: "Rue de l'Église 2, 1966 St-Romain (Ayent), Suisse",
   },
 
-  // requis par components/Footer.tsx
   openingHours: [
     {
-      days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      ranges: [],
+      days: ["Wednesday"],
+      ranges: ["09:00-12:00"],
+    },
+    {
+      days: ["Friday"],
+      ranges: ["09:00-12:00", "16:30-18:30"],
+    },
+    {
+      days: ["Saturday"],
+      ranges: ["09:00-12:00"],
     },
   ],
 
-  // Maps (à remplacer ensuite par la vraie URL)
-  googleMapsEmbed: "https://www.google.com/maps/d/embed?mid=1CCEDWIa_6jFrrexFqm6_gp5wOZMXUH37&ll=45.3961131%2C-1.1592771000000446&z=17",
-  googleMapsLink: "https://www.google.com/maps/d/u/0/viewer?mid=1CCEDWIa_6jFrrexFqm6_gp5wOZMXUH37&ll=45.39611310000002%2C-1.1592771000000446&z=17",
-
-  // Surf report
-  surfReportUrl: "https://www.surf-report.com/",
+  // À compléter avec les vraies URLs Google Maps du local
+  googleMapsEmbed: "",
+  googleMapsLink: "",
 };
