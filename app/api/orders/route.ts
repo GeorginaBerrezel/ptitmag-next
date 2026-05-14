@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { CartItem } from '@/lib/cart/CartContext'
+import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -18,6 +19,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Le panier est vide.' }, { status: 400 })
   }
 
+  // Récupérer le prénom/nom depuis le profil pour personnaliser l'email
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, first_name, last_name')
+    .eq('id', user.id)
+    .single()
+
+  const memberName =
+    profile?.full_name ??
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') ||
+    null
+
   // Grouper les articles par fournisseur
   const bySupplier = items.reduce<Record<string, CartItem[]>>((acc, item) => {
     if (!acc[item.supplierId]) acc[item.supplierId] = []
@@ -26,6 +39,7 @@ export async function POST(request: NextRequest) {
   }, {})
 
   const createdOrders: string[] = []
+  const emailGroups: OrderEmailGroup[] = []
 
   for (const [supplierId, supplierItems] of Object.entries(bySupplier)) {
     const total = supplierItems.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
@@ -69,7 +83,32 @@ export async function POST(request: NextRequest) {
     }
 
     createdOrders.push(order.id)
+
+    // Préparer les données pour l'email
+    emailGroups.push({
+      orderId: order.id,
+      supplierName: supplierItems[0].supplierName,
+      supplierType: supplierItems[0].supplierType,
+      items: supplierItems.map(item => ({
+        productName: item.productName,
+        quantity: item.quantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+      })),
+      total: Math.round(total * 100) / 100,
+    })
   }
+
+  // Envoyer l'email de confirmation (fire-and-forget — n'échoue pas la requête)
+  const globalTotal = emailGroups.reduce((sum, g) => sum + g.total, 0)
+  sendOrderConfirmation({
+    memberEmail: user.email!,
+    memberName,
+    orders: emailGroups,
+    globalTotal: Math.round(globalTotal * 100) / 100,
+  }).catch(err => {
+    console.error('[email] Échec envoi confirmation commande :', err)
+  })
 
   return NextResponse.json({
     success: true,
