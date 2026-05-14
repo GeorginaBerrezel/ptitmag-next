@@ -6,6 +6,7 @@ import {getMessages, setRequestLocale} from 'next-intl/server';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { CartProvider } from '@/lib/cart/CartContext';
 
 const LOCALES = ['fr', 'en'] as const;
 type Locale = (typeof LOCALES)[number];
@@ -43,9 +44,11 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <Header locale={locale} />
-      <main id="main">{props.children}</main>
-      <Footer locale={locale} />
+      <CartProvider>
+        <Header locale={locale} />
+        <main id="main">{props.children}</main>
+        <Footer locale={locale} />
+      </CartProvider>
     </NextIntlClientProvider>
   );
 
