@@ -38,7 +38,7 @@ export default function ConnexionPage({
       return
     }
 
-    router.push(next ?? `/${locale}/mon-compte`)
+    router.push((next ?? `/${locale}/mon-compte`) as never)
     router.refresh()
   }
 
