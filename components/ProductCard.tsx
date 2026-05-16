@@ -54,8 +54,22 @@ export default function ProductCard({ product }: { product: Product }) {
     }}>
       {/* Infos produit */}
       <div>
-        <p style={{ margin: '0 0 0.2rem', fontWeight: 600 }}>{product.name}</p>
+        <p style={{ margin: '0 0 0.15rem', fontWeight: 700, fontSize: '0.95rem' }}>{product.name}</p>
+        {product.description && (
+          <p style={{ margin: '0 0 0.35rem', fontSize: '0.8rem', opacity: 0.58, lineHeight: 1.4 }}>
+            {product.description}
+          </p>
+        )}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {product.category && (
+            <span style={{
+              fontSize: '0.73rem', fontWeight: 600,
+              background: '#f0f4ff', color: '#3b4fa8',
+              borderRadius: 999, padding: '0.1rem 0.5rem',
+            }}>
+              {product.category}
+            </span>
+          )}
           {product.supplier && (
             <span style={{ fontSize: '0.8rem', opacity: 0.55 }}>
               {product.supplier.name}

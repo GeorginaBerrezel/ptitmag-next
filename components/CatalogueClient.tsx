@@ -90,7 +90,10 @@ export default function CatalogueClient({ products }: Props) {
   const totalVisible = filtered.length
 
   return (
-    <>
+    // Le marginTop négatif annule le padding-top: 1rem du <main> global,
+    // pour que la CartBar soit collée au header sans espace parasite.
+    // Même principe que le layout admin avec sa barre sticky.
+    <div style={{ marginTop: 'calc(-1 * 1rem)' }}>
       <CartBar />
       <div className="container" style={{ paddingTop: '1.25rem', paddingBottom: '5rem' }}>
 
@@ -291,6 +294,6 @@ export default function CatalogueClient({ products }: Props) {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }
