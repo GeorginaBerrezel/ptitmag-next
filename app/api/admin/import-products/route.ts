@@ -12,6 +12,8 @@ type CsvRow = {
   date_limite_commande: string
   fournisseur_nom: string
   fournisseur_type: string
+  // Optionnel : "true" / "1" / "oui" pour marquer un produit éphémère
+  is_featured?: string
 }
 
 function parseCsv(text: string): CsvRow[] {
@@ -107,6 +109,9 @@ export async function POST(request: NextRequest) {
       }
 
       // 2. Préparer les données produit
+      const isFeatured = ['true', '1', 'oui', 'yes'].includes(
+        (row.is_featured ?? '').toLowerCase().trim()
+      )
       const productData = {
         name: row.nom,
         description: row.description || null,
@@ -117,6 +122,7 @@ export async function POST(request: NextRequest) {
         order_deadline: row.date_limite_commande || null,
         supplier_id: supplierId,
         active: true,
+        is_featured: isFeatured,
       }
 
       // 3. Upsert du produit (mise à jour si même nom + fournisseur, sinon création)

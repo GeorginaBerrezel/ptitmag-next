@@ -43,7 +43,9 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <div style={{
       background: expired ? '#fafafa' : '#fff',
-      border: '1px solid rgba(16,24,40,0.08)',
+      border: product.is_featured
+        ? '2px solid #DC7F00'
+        : '1px solid rgba(16,24,40,0.08)',
       borderRadius: 12,
       padding: '0.875rem 1rem',
       display: 'grid',
@@ -54,9 +56,25 @@ export default function ProductCard({ product }: { product: Product }) {
     }}>
       {/* Infos produit */}
       <div>
-        <p style={{ margin: '0 0 0.15rem', fontWeight: 700, fontSize: '0.95rem' }}>{product.name}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem', flexWrap: 'wrap' }}>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{product.name}</p>
+          {product.is_featured && (
+            <span style={{
+              background: '#DC7F00',
+              color: '#fff',
+              fontSize: '0.67rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              padding: '0.15rem 0.5rem',
+              borderRadius: 999,
+            }}>
+              ⏳ Éphémère
+            </span>
+          )}
+        </div>
         {product.description && (
-          <p style={{ margin: '0 0 0.35rem', fontSize: '0.8rem', opacity: 0.58, lineHeight: 1.4 }}>
+          <p style={{ margin: '0.1rem 0 0.35rem', fontSize: '0.8rem', opacity: 0.58, lineHeight: 1.4 }}>
             {product.description}
           </p>
         )}

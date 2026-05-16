@@ -16,6 +16,7 @@ export type Product = {
   unit_price: number | null
   min_quantity: number
   order_deadline: string | null
+  is_featured: boolean
   supplier: Supplier | null
 }
 
@@ -29,10 +30,11 @@ export async function getProducts(): Promise<Product[]> {
     .from('products')
     .select(`
       id, name, description, category,
-      unit, unit_price, min_quantity, order_deadline,
+      unit, unit_price, min_quantity, order_deadline, is_featured,
       supplier:suppliers(id, name, website, type)
     `)
     .eq('active', true)
+    .order('is_featured', { ascending: false })
     .order('category')
     .order('name')
 

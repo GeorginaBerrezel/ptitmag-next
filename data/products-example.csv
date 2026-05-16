@@ -1,42 +1,45 @@
-nom,description,categorie,unite,prix_unitaire,quantite_min,date_limite_commande,fournisseur_nom,fournisseur_type
-Huile d'olive vierge extra bio,500 ml – bouteille en verre,Epicerie,bouteille,8.50,1,2026-06-30,Biopartner,grossiste_bio
-Farine de blé T65 bio,1 kg – farine de blé tendre,Epicerie,sac,3.20,2,2026-06-30,Biopartner,grossiste_bio
-Pâtes spaghetti bio,500 g – blé dur complet,Epicerie,paquet,3.80,2,2026-06-30,Biopartner,grossiste_bio
-Riz basmati bio,1 kg – riz blanc parfumé,Epicerie,sac,4.50,1,2026-06-30,Biopartner,grossiste_bio
-Lentilles vertes bio,500 g,Epicerie,paquet,3.10,2,2026-06-30,Biopartner,grossiste_bio
-Chocolat noir 70% bio,100 g – tablette,Epicerie,tablette,2.90,3,2026-06-30,Biopartner,grossiste_bio
-Café moulu bio équitable,250 g,Boissons,paquet,7.20,1,2026-06-30,Biopartner,grossiste_bio
-Lait d'avoine bio,1 litre,Boissons,brick,2.80,3,2026-06-30,Biopartner,grossiste_bio
-Savon solide bio lavande,100 g,Hygiène,pièce,5.50,2,2026-06-30,Biopartner,grossiste_bio
-Lessive liquide bio,1 litre – concentrée,Entretien,bouteille,9.80,1,2026-06-30,Biopartner,grossiste_bio
-Oeufs frais plein air,Boîte de 6 oeufs – poules élevées en plein air,Frais,boîte,4.50,1,2026-06-15,La Fermette à Didi,local
-Lait cru entier,1 litre – livraison hebdomadaire,Frais,bouteille,1.80,2,2026-06-15,La Fermette à Didi,local
-Beurre fermier demi-sel,250 g,Frais,plaquette,4.20,1,2026-06-15,La Fermette à Didi,local
-Fromage frais nature,200 g – faisselle maison,Frais,pot,3.80,1,2026-06-15,La Fermette à Didi,local
-Légumes du moment (panier S),Panier de saison 3-4 légumes – selon disponibilité,Légumes,panier,12.00,1,2026-06-08,La Fermette à Didi,local
-Carottes bio,1 kg – carottes de saison,Légumes,kg,3.50,1,2026-06-15,Bioterroir,local
-Pommes de terre Charlotte,2 kg – variété à chair ferme,Légumes,sac,5.00,1,2026-06-15,Bioterroir,local
-Courgettes bio,1 kg,Légumes,kg,4.20,1,2026-06-15,Bioterroir,local
-Tomates cerises bio,500 g – barquette,Légumes,barquette,4.80,1,2026-06-15,Bioterroir,local
-Salade mesclun bio,150 g – sachet,Légumes,sachet,3.20,1,2026-06-08,Les Dailles,local
-Épinards frais bio,300 g,Légumes,sachet,3.80,1,2026-06-08,Les Dailles,local
-Herbes aromatiques (pot),Basilic ou persil ou coriandre – selon saison,Légumes,pot,3.00,1,2026-06-08,Les Dailles,local
-Vin rouge AOP Valais,75 cl – Pinot Noir,Boissons,bouteille,14.00,1,2026-06-30,Domaine de la Préfecture,local
-Vin blanc AOP Valais,75 cl – Fendant,Boissons,bouteille,13.50,1,2026-06-30,Domaine de la Préfecture,local
-Vin rosé AOP Valais,75 cl – Oeil de Perdrix,Boissons,bouteille,14.50,1,2026-06-30,Domaine de la Préfecture,local
-Bière blonde artisanale,33 cl – brassée à Ayent,Boissons,bouteille,3.50,6,2026-06-20,Brasseries d'Ayent,local
-Bière ambrée artisanale,33 cl – brassée à Ayent,Boissons,bouteille,3.80,6,2026-06-20,Brasseries d'Ayent,local
-Bière brune artisanale,33 cl – brassée à Ayent,Boissons,bouteille,4.00,6,2026-06-20,Brasseries d'Ayent,local
-Pain au levain complet,800 g – cuisson le jeudi,Boulangerie,pain,7.50,1,2026-06-12,La Cave à levain,local
-Pain de seigle au levain,600 g,Boulangerie,pain,7.00,1,2026-06-12,La Cave à levain,local
-Granola maison bio,300 g – avoine céréales fruits secs,Boulangerie,sachet,8.50,1,2026-06-12,La Cave à levain,local
-Miel de montagne,250 g – récolte locale,Epicerie,pot,12.00,1,2026-06-30,Grégory Sermier,local
-Miel de fleurs,500 g,Epicerie,pot,18.00,1,2026-06-30,Grégory Sermier,local
-Miel de thym,250 g – fleurs sauvages,Epicerie,pot,14.00,1,2026-06-30,Grégory Sermier,local
-Huile essentielle lavande bio,10 ml,Bien-être,flacon,12.50,1,2026-06-30,Aromacos,grossiste_bio
-Huile essentielle tea tree bio,10 ml,Bien-être,flacon,11.00,1,2026-06-30,Aromacos,grossiste_bio
-Tisane mélange sommeil bio,40 g – sachet vrac,Boissons,sachet,6.80,1,2026-06-30,Aromacos,grossiste_bio
-Vitamine D3 bio 2000 UI,60 gélules,Compléments,boîte,18.50,1,2026-06-30,Novoma,grossiste_bio
-Magnésium marin,90 gélules,Compléments,boîte,22.00,1,2026-06-30,Novoma,grossiste_bio
-Spiruline bio en poudre,200 g,Compléments,sachet,16.80,1,2026-06-30,Algorigin,grossiste_bio
-Chlorelle bio en comprimés,120 comprimés,Compléments,boîte,19.50,1,2026-06-30,Algorigin,grossiste_bio
+nom,description,categorie,unite,prix_unitaire,quantite_min,date_limite_commande,fournisseur_nom,fournisseur_type,is_featured
+Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,200g,10.00,1,2026-05-20 20:00:00,Mondralèche,local,true
+Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,400g,20.00,1,2026-05-20 20:00:00,Mondralèche,local,true
+Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,800g,30.00,1,2026-05-20 20:00:00,Mondralèche,local,true
+Huile d'olive vierge extra bio,500 ml – bouteille en verre,Epicerie,bouteille,8.50,1,2026-06-30,Biopartner,grossiste_bio,
+Farine de blé T65 bio,1 kg – farine de blé tendre,Epicerie,sac,3.20,2,2026-06-30,Biopartner,grossiste_bio,
+Pâtes spaghetti bio,500 g – blé dur complet,Epicerie,paquet,3.80,2,2026-06-30,Biopartner,grossiste_bio,
+Riz basmati bio,1 kg – riz blanc parfumé,Epicerie,sac,4.50,1,2026-06-30,Biopartner,grossiste_bio,
+Lentilles vertes bio,500 g,Epicerie,paquet,3.10,2,2026-06-30,Biopartner,grossiste_bio,
+Chocolat noir 70% bio,100 g – tablette,Epicerie,tablette,2.90,3,2026-06-30,Biopartner,grossiste_bio,
+Café moulu bio équitable,250 g,Boissons,paquet,7.20,1,2026-06-30,Biopartner,grossiste_bio,
+Lait d'avoine bio,1 litre,Boissons,brick,2.80,3,2026-06-30,Biopartner,grossiste_bio,
+Savon solide bio lavande,100 g,Hygiène,pièce,5.50,2,2026-06-30,Biopartner,grossiste_bio,
+Lessive liquide bio,1 litre – concentrée,Entretien,bouteille,9.80,1,2026-06-30,Biopartner,grossiste_bio,
+Oeufs frais plein air,Boîte de 6 oeufs – poules élevées en plein air,Frais,boîte,4.50,1,2026-06-15,La Fermette à Didi,local,
+Lait cru entier,1 litre – livraison hebdomadaire,Frais,bouteille,1.80,2,2026-06-15,La Fermette à Didi,local,
+Beurre fermier demi-sel,250 g,Frais,plaquette,4.20,1,2026-06-15,La Fermette à Didi,local,
+Fromage frais nature,200 g – faisselle maison,Frais,pot,3.80,1,2026-06-15,La Fermette à Didi,local,
+Légumes du moment (panier S),Panier de saison 3-4 légumes – selon disponibilité,Légumes,panier,12.00,1,2026-06-08,La Fermette à Didi,local,
+Carottes bio,1 kg – carottes de saison,Légumes,kg,3.50,1,2026-06-15,Bioterroir,local,
+Pommes de terre Charlotte,2 kg – variété à chair ferme,Légumes,sac,5.00,1,2026-06-15,Bioterroir,local,
+Courgettes bio,1 kg,Légumes,kg,4.20,1,2026-06-15,Bioterroir,local,
+Tomates cerises bio,500 g – barquette,Légumes,barquette,4.80,1,2026-06-15,Bioterroir,local,
+Salade mesclun bio,150 g – sachet,Légumes,sachet,3.20,1,2026-06-08,Les Dailles,local,
+Épinards frais bio,300 g,Légumes,sachet,3.80,1,2026-06-08,Les Dailles,local,
+Herbes aromatiques (pot),Basilic ou persil ou coriandre – selon saison,Légumes,pot,3.00,1,2026-06-08,Les Dailles,local,
+Vin rouge AOP Valais,75 cl – Pinot Noir,Boissons,bouteille,14.00,1,2026-06-30,Domaine de la Préfecture,local,
+Vin blanc AOP Valais,75 cl – Fendant,Boissons,bouteille,13.50,1,2026-06-30,Domaine de la Préfecture,local,
+Vin rosé AOP Valais,75 cl – Oeil de Perdrix,Boissons,bouteille,14.50,1,2026-06-30,Domaine de la Préfecture,local,
+Bière blonde artisanale,33 cl – brassée à Ayent,Boissons,bouteille,3.50,6,2026-06-20,Brasseries d'Ayent,local,
+Bière ambrée artisanale,33 cl – brassée à Ayent,Boissons,bouteille,3.80,6,2026-06-20,Brasseries d'Ayent,local,
+Bière brune artisanale,33 cl – brassée à Ayent,Boissons,bouteille,4.00,6,2026-06-20,Brasseries d'Ayent,local,
+Pain au levain complet,800 g – cuisson le jeudi,Boulangerie,pain,7.50,1,2026-06-12,La Cave à levain,local,
+Pain de seigle au levain,600 g,Boulangerie,pain,7.00,1,2026-06-12,La Cave à levain,local,
+Granola maison bio,300 g – avoine céréales fruits secs,Boulangerie,sachet,8.50,1,2026-06-12,La Cave à levain,local,
+Miel de montagne,250 g – récolte locale,Epicerie,pot,12.00,1,2026-06-30,Grégory Sermier,local,
+Miel de fleurs,500 g,Epicerie,pot,18.00,1,2026-06-30,Grégory Sermier,local,
+Miel de thym,250 g – fleurs sauvages,Epicerie,pot,14.00,1,2026-06-30,Grégory Sermier,local,
+Huile essentielle lavande bio,10 ml,Bien-être,flacon,12.50,1,2026-06-30,Aromacos,grossiste_bio,
+Huile essentielle tea tree bio,10 ml,Bien-être,flacon,11.00,1,2026-06-30,Aromacos,grossiste_bio,
+Tisane mélange sommeil bio,40 g – sachet vrac,Boissons,sachet,6.80,1,2026-06-30,Aromacos,grossiste_bio,
+Vitamine D3 bio 2000 UI,60 gélules,Compléments,boîte,18.50,1,2026-06-30,Novoma,grossiste_bio,
+Magnésium marin,90 gélules,Compléments,boîte,22.00,1,2026-06-30,Novoma,grossiste_bio,
+Spiruline bio en poudre,200 g,Compléments,sachet,16.80,1,2026-06-30,Algorigin,grossiste_bio,
+Chlorelle bio en comprimés,120 comprimés,Compléments,boîte,19.50,1,2026-06-30,Algorigin,grossiste_bio,

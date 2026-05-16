@@ -152,5 +152,15 @@
     "hoursDefaultLabel": "Ouverture {index}",
     "closed": "Fermé",
     "hoursNote": "Horaires habituels (susceptibles d’évoluer)."
+  },
+  "featured": {
+    "title": "⏳ Produits éphémères",
+    "subtitle": "Des produits rares, disponibles pour quelques jours seulement. Commandez vite !",
+    "deadline": "Commande jusqu'au",
+    "order_btn": "Commander",
+    "login_btn": "Se connecter pour commander",
+    "login_hint": "Créez un compte gratuit pour accéder au catalogue et passer commande.",
+    "empty": "Aucun produit éphémère en ce moment. Revenez bientôt !",
+    "unit_label": "l'unité"
   }
 }

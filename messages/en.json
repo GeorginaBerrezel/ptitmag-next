@@ -152,5 +152,15 @@
     "hoursDefaultLabel": "Opening {index}",
     "closed": "Closed",
     "hoursNote": "Usual opening hours (may change)."
+  },
+  "featured": {
+    "title": "⏳ Ephemeral products",
+    "subtitle": "Rare products, available for a few days only. Order fast!",
+    "deadline": "Order by",
+    "order_btn": "Order",
+    "login_btn": "Log in to order",
+    "login_hint": "Create a free account to access the catalogue and place an order.",
+    "empty": "No ephemeral products right now. Check back soon!",
+    "unit_label": "per unit"
   }
 }
