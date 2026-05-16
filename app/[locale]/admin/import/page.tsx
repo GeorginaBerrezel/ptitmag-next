@@ -50,7 +50,19 @@ export default function ImportPage({
   }
 
   return (
-    <main className="container" style={{ paddingTop: '2.5rem', paddingBottom: '4rem', maxWidth: 680 }}>
+    <main className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem', maxWidth: 680 }}>
+
+      {/* Fil d'ariane */}
+      <nav aria-label="Fil d'ariane" style={{
+        display: 'flex', alignItems: 'center', gap: '0.4rem',
+        fontSize: '0.8rem', marginBottom: '1.5rem',
+        color: 'rgba(16,24,40,0.4)',
+      }}>
+        <span>Admin</span>
+        <span aria-hidden>›</span>
+        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Import produits</span>
+      </nav>
+
       <h1 style={{ marginBottom: '0.25rem' }}>Import produits CSV</h1>
       <p style={{ opacity: 0.65, marginBottom: '2rem' }}>
         Importez ou mettez à jour les produits du catalogue depuis un fichier CSV.

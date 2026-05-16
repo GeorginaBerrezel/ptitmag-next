@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/supabase/auth'
-import { Link } from '@/i18n/navigation'
+import AdminNav from '@/components/AdminNav'
 
 const ADMIN_EMAILS = [
   'info@leptitmag.org',
@@ -31,30 +31,20 @@ export default async function AdminLayout({
 
   return (
     <div>
+      {/* Barre de navigation admin — sticky sous le header du site */}
       <div style={{
         position: 'sticky',
         top: 'var(--header-height)',
         zIndex: 80,
         background: '#0f1729',
         color: '#fff',
-        padding: '0.45rem 1.25rem',
-        fontSize: '0.8rem',
+        height: 44,
         display: 'flex',
-        gap: '1.5rem',
-        alignItems: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <span style={{ fontWeight: 700, opacity: 0.9, letterSpacing: '0.03em' }}>⚙ Admin</span>
-        <Link href="/admin/commandes" locale={locale} style={{ color: '#DC7F00', textDecoration: 'none', fontWeight: 600 }}>
-          Commandes
-        </Link>
-        <Link href="/admin/import" locale={locale} style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontWeight: 500 }}>
-          Import produits
-        </Link>
-        <Link href="/mon-compte" locale={locale} style={{ color: 'rgba(255,255,255,0.45)', textDecoration: 'none', marginLeft: 'auto' }}>
-          ← Retour au site
-        </Link>
+        <AdminNav locale={locale} />
       </div>
+
       {children}
     </div>
   )

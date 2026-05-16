@@ -225,7 +225,18 @@ export default function AdminCommandesPage({
   // ── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="container" style={{ paddingTop: '2.5rem', paddingBottom: '5rem', maxWidth: 920 }}>
+    <main className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem', maxWidth: 920 }}>
+
+      {/* Fil d'ariane */}
+      <nav aria-label="Fil d'ariane" style={{
+        display: 'flex', alignItems: 'center', gap: '0.4rem',
+        fontSize: '0.8rem', marginBottom: '1.5rem',
+        color: 'rgba(16,24,40,0.4)',
+      }}>
+        <span>Admin</span>
+        <span aria-hidden>›</span>
+        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Commandes</span>
+      </nav>
 
       {/* En-tête */}
       <div style={{

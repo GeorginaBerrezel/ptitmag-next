@@ -1,0 +1,125 @@
+'use client'
+
+import { useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
+
+const NAV_LINKS = [
+  { href: '/admin/commandes' as const, label: 'Commandes' },
+  { href: '/admin/import'    as const, label: 'Import produits' },
+]
+
+export default function AdminNav({ locale }: { locale: string }) {
+  const pathname = usePathname()
+  const [hovered, setHovered] = useState<string | null>(null)
+
+  return (
+    <nav
+      aria-label="Navigation admin"
+      style={{
+        display: 'flex',
+        alignItems: 'stretch',
+        height: '100%',
+        width: '100%',
+      }}
+    >
+      {/* Logo / titre section */}
+      <span style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 1.1rem 0 1.25rem',
+        fontWeight: 700,
+        fontSize: '0.78rem',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        opacity: 0.85,
+        borderRight: '1px solid rgba(255,255,255,0.1)',
+        whiteSpace: 'nowrap',
+        userSelect: 'none',
+      }}>
+        ⚙ Admin
+      </span>
+
+      {/* Liens de navigation */}
+      {NAV_LINKS.map(link => {
+        const isActive  = pathname.includes(link.href)
+        const isHovered = hovered === link.href
+
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            locale={locale}
+            onMouseEnter={() => setHovered(link.href)}
+            onMouseLeave={() => setHovered(null)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 1.1rem',
+              textDecoration: 'none',
+              fontSize: '0.82rem',
+              fontWeight: isActive ? 700 : 500,
+              color: isActive
+                ? '#fff'
+                : isHovered
+                  ? 'rgba(255,255,255,0.85)'
+                  : 'rgba(255,255,255,0.45)',
+              // Indicateur actif : trait orange en bas
+              borderBottom: isActive
+                ? '2px solid #DC7F00'
+                : isHovered
+                  ? '2px solid rgba(255,255,255,0.2)'
+                  : '2px solid transparent',
+              // Fond subtil au hover
+              background: isHovered && !isActive
+                ? 'rgba(255,255,255,0.05)'
+                : 'transparent',
+              transition: 'color 0.15s, border-color 0.15s, background 0.15s',
+              position: 'relative',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {link.label}
+            {/* Point indicateur en haut à droite si actif */}
+            {isActive && (
+              <span style={{
+                position: 'absolute',
+                top: 8,
+                right: 6,
+                width: 5,
+                height: 5,
+                borderRadius: '50%',
+                background: '#DC7F00',
+              }} />
+            )}
+          </Link>
+        )
+      })}
+
+      {/* Retour au site — aligné à droite */}
+      <Link
+        href="/mon-compte"
+        locale={locale}
+        onMouseEnter={() => setHovered('back')}
+        onMouseLeave={() => setHovered(null)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginLeft: 'auto',
+          padding: '0 1.25rem',
+          textDecoration: 'none',
+          fontSize: '0.79rem',
+          color: hovered === 'back'
+            ? 'rgba(255,255,255,0.75)'
+            : 'rgba(255,255,255,0.35)',
+          borderLeft: '1px solid rgba(255,255,255,0.08)',
+          transition: 'color 0.15s',
+          whiteSpace: 'nowrap',
+          gap: '0.3rem',
+        }}
+      >
+        ← Retour au site
+      </Link>
+    </nav>
+  )
+}
