@@ -35,6 +35,14 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await avatarFile.arrayBuffer()
 
     const adminClient = createAdminClient()
+
+    // Créer le bucket s'il n'existe pas encore
+    const { data: buckets } = await adminClient.storage.listBuckets()
+    const bucketExists = buckets?.some(b => b.name === 'avatars')
+    if (!bucketExists) {
+      await adminClient.storage.createBucket('avatars', { public: true })
+    }
+
     const { error: uploadError } = await adminClient.storage
       .from('avatars')
       .upload(path, arrayBuffer, {
