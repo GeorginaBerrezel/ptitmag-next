@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
     const { data: buckets } = await adminClient.storage.listBuckets()
     const bucketExists = buckets?.some(b => b.name === 'avatars')
     if (!bucketExists) {
-      await adminClient.storage.createBucket('avatars', { public: true })
+      const { error: bucketError } = await adminClient.storage.createBucket('avatars', { public: true })
+      if (bucketError) {
+        return NextResponse.json({ error: `Impossible de créer le bucket : ${bucketError.message}` }, { status: 500 })
+      }
     }
 
     const { error: uploadError } = await adminClient.storage
@@ -55,7 +58,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: urlData } = adminClient.storage.from('avatars').getPublicUrl(path)
-    updates.avatar_url = `${urlData.publicUrl}?t=${Date.now()}`
+    // Cache buster pour forcer le rechargement de l'image
+    updates.avatar_url = `${urlData.publicUrl}?v=${Date.now()}`
   }
 
   if (Object.keys(updates).length === 0) {

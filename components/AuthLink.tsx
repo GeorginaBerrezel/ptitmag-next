@@ -54,12 +54,14 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
         href="/mon-compte"
         locale={locale}
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: '0.5rem',
+          gap: '0.45rem',
           textDecoration: 'none',
           fontWeight: 600,
           color: 'inherit',
+          verticalAlign: 'middle',
+          lineHeight: 1,
         }}
       >
         <Avatar
@@ -67,9 +69,9 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
           name={profile.full_name ?? profile.username}
           email={profile.email}
           userId={profile.id}
-          size={28}
+          size={26}
         />
-        <span>{displayName}</span>
+        <span style={{ verticalAlign: 'middle' }}>{displayName}</span>
       </Link>
     )
   }

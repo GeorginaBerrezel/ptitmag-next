@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { useState } from 'react'
 
 // Palette de couleurs chaleureuses — une couleur unique par utilisateur
 const AVATAR_COLORS = [
@@ -45,49 +45,49 @@ export default function Avatar({
   onClick,
   editable = false,
 }: AvatarProps) {
+  const [imgError, setImgError] = useState(false)
+
   const initials = getInitials(name, email)
   const bg = getColor(userId ?? email ?? name ?? '?')
   const fontSize = Math.round(size * 0.38)
-
-  const containerStyle: React.CSSProperties = {
-    width: size,
-    height: size,
-    borderRadius: '50%',
-    flexShrink: 0,
-    position: 'relative',
-    cursor: onClick ? 'pointer' : 'default',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    userSelect: 'none',
-  }
+  const showImage = src && !imgError
 
   return (
-    <div style={containerStyle} onClick={onClick} title={name ?? email ?? undefined}>
-      {src ? (
-        <Image
+    <div
+      onClick={onClick}
+      title={name ?? email ?? undefined}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        flexShrink: 0,
+        position: 'relative',
+        cursor: onClick ? 'pointer' : 'default',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        userSelect: 'none',
+        background: bg,
+      }}
+    >
+      {showImage ? (
+        <img
           src={src}
           alt={name ?? 'avatar'}
-          width={size}
-          height={size}
-          style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+          onError={() => setImgError(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
       ) : (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          background: bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+        <span style={{
           color: '#fff',
           fontSize,
           fontWeight: 700,
           letterSpacing: '0.02em',
+          lineHeight: 1,
         }}>
           {initials}
-        </div>
+        </span>
       )}
 
       {/* Overlay "modifier" au survol */}
@@ -112,7 +112,7 @@ export default function Avatar({
         </div>
       )}
       {editable && (
-        <style>{`.avatar-overlay { opacity: 0; } *:hover > .avatar-overlay { opacity: 1; }`}</style>
+        <style>{`.avatar-overlay { opacity: 0 } div:hover > .avatar-overlay { opacity: 1 }`}</style>
       )}
     </div>
   )
