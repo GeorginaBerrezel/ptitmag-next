@@ -30,7 +30,29 @@
     "block3_title": "Envie d’en savoir plus ?",
     "block3_text": "Rue de l’Église 2, St-Romain (mercredi 9h-12h, vendredi 9h-12h & 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
     "how_title": "Comment ça marche",
-    "how_steps": "1)Tester le fonctionnement, 2) Adhérer à l’association. 3) Commander via les listes de commande. 4) Retirer vos achats au local."
+    "how_steps": "1)Tester le fonctionnement, 2) Adhérer à l’association. 3) Commander via les listes de commande. 4) Retirer vos achats au local.",
+    "how_steps_detail": [
+      {
+        "title": "Découvrez le catalogue",
+        "desc": "Parcourez les produits disponibles sur ce site avant même de créer un compte : producteurs locaux, grossistes bio, prix affichés."
+      },
+      {
+        "title": "Créez votre compte gratuitement",
+        "desc": "Inscription en 30 secondes. Vous bénéficiez de 3 mois d'essai complet — sans engagement, sans carte bancaire."
+      },
+      {
+        "title": "Commandez en ligne",
+        "desc": "Connectez-vous, ajoutez vos produits au panier et validez votre commande groupée. Tout se passe sur le site."
+      },
+      {
+        "title": "Retirez au local",
+        "desc": "Venez chercher vos achats à St-Romain (mer., ven., sam.) dans une ambiance conviviale — café ou bière offert·e !"
+      }
+    ],
+    "trial_title": "Essayez gratuitement — 3 mois, sans engagement",
+    "trial_text": "Créez votre compte, parcourez le catalogue en ligne, passez vos premières commandes groupées. Si ça ne vous convient pas : supprimez votre compte en un clic. Aucun risque.",
+    "trial_cta": "Je crée mon compte →",
+    "trial_note": "✓ Gratuit  ·  ✓ Sans carte bancaire  ·  ✓ 3 mois d'essai  ·  ✓ Suppression possible à tout moment"
   },
   "membership": {
     "title": "Adhésion",
@@ -75,7 +97,10 @@
       "participationText": "Les membres peuvent proposer des producteur·rices, exprimer des besoins, et s’investir (livraisons, tenue du local, etc.).",
       "communityTitle": "Entraide et communauté",
       "communityText": "Créer du lien au village: échanges, entraide, moments conviviaux au local."
-    }
+    },
+    "cta_title": "Commencez dès maintenant",
+    "cta_text": "Inscrivez-vous gratuitement sur le site, parcourez le catalogue et passez vos premières commandes. 3 mois d'essai — suppression du compte possible à tout moment.",
+    "cta_button": "Créer mon compte →"
   },
   "producers": {
     "title": "Producteurs & fournisseurs",

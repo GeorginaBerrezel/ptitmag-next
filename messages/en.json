@@ -30,7 +30,29 @@
     "block3_title": "Want to know more?",
     "block3_text": "Rue de l’Église 2, St-Romain (Wed 9:00-12:00, Fri 9:00-12:00 & 16:30–18:30, Sat 09:00–12:00) | Call Joël: 078 866 42 43 | info@leptitmag.org",
     "how_title": "How it works",
-    "how_steps": "1) Test the system. 2) Join the association. 3) Place your order using the order lists. 4) Pick up your purchases at the premises."
+    "how_steps": "1) Test the system. 2) Join the association. 3) Place your order using the order lists. 4) Pick up your purchases at the premises.",
+    "how_steps_detail": [
+      {
+        "title": "Browse the catalogue",
+        "desc": "Explore available products on this site before even creating an account: local producers, organic wholesalers, prices listed."
+      },
+      {
+        "title": "Sign up for free",
+        "desc": "Register in 30 seconds. You get a full 3-month trial — no commitment, no credit card required."
+      },
+      {
+        "title": "Order online",
+        "desc": "Log in, add products to your cart and confirm your group order. Everything happens on the website."
+      },
+      {
+        "title": "Pick up at the store",
+        "desc": "Collect your purchases in St-Romain (Wed, Fri, Sat) in a friendly atmosphere — coffee or beer on us!"
+      }
+    ],
+    "trial_title": "Try it free — 3 months, no commitment",
+    "trial_text": "Create your account, browse the online catalogue, place your first group orders. If it's not for you: delete your account in one click. Zero risk.",
+    "trial_cta": "Create my account →",
+    "trial_note": "✓ Free  ·  ✓ No credit card  ·  ✓ 3-month trial  ·  ✓ Cancel anytime"
   },
   "membership": {
     "title": "Membership",
@@ -75,7 +97,10 @@
       "participationText": "Members can suggest producers, share needs, and help (deliveries, shop shifts, etc.).",
       "communityTitle": "Community & mutual aid",
       "communityText": "Build local ties: help each other and enjoy a friendly atmosphere at the shop."
-    }
+    },
+    "cta_title": "Start right now",
+    "cta_text": "Sign up for free on the website, browse the catalogue and place your first orders. 3-month trial — delete your account anytime.",
+    "cta_button": "Create my account →"
   },
   "producers": {
     "title": "Producers & suppliers",

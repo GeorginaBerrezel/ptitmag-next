@@ -197,15 +197,26 @@ export default async function MembershipPage({
         padding: 'clamp(1.5rem, 4vw, 2.25rem)',
         border: '1px solid #e8e8e8',
       }}>
-        <h2 style={{ margin: '0 0 1.5rem', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
+        <h2 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
           {t('tryTitle')}
         </h2>
+
+        {/* Note essai gratuit */}
+        <p style={{
+          margin: '0 0 1.5rem',
+          fontSize: '0.9rem',
+          color: 'rgba(16,24,40,0.65)',
+          lineHeight: 1.65,
+          maxWidth: 540,
+        }}>
+          {t('cta_text')}
+        </p>
 
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: '1rem',
-          marginBottom: '1.5rem',
+          marginBottom: '1.75rem',
         }}>
           {tryCards.map((card, i) => (
             <div
@@ -240,9 +251,10 @@ export default async function MembershipPage({
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        {/* Boutons CTA : inscription directe + contact */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link
-            href="/contact"
+            href="/inscription"
             locale={locale}
             style={{
               display: 'inline-flex',
@@ -250,11 +262,30 @@ export default async function MembershipPage({
               gap: '0.4rem',
               background: '#DC7F00',
               color: '#fff',
-              padding: '0.75rem 2rem',
+              padding: '0.8rem 2rem',
               borderRadius: 10,
               textDecoration: 'none',
               fontWeight: 700,
-              fontSize: '0.95rem',
+              fontSize: '0.97rem',
+            }}
+          >
+            {t('cta_button')}
+          </Link>
+          <Link
+            href="/contact"
+            locale={locale}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: 'transparent',
+              color: '#0E1726',
+              border: '2px solid #0E1726',
+              padding: '0.8rem 2rem',
+              borderRadius: 10,
+              textDecoration: 'none',
+              fontWeight: 700,
+              fontSize: '0.97rem',
             }}
           >
             Nous contacter →

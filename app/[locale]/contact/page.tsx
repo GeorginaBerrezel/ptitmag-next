@@ -94,26 +94,26 @@ export default async function ContactPage({
             Nous joindre
           </h2>
 
-          {/* Téléphone — grand, cliquable */}
+          {/* Téléphone — grand, orange, toutes les couleurs forcées pour dark mode */}
           <a
             href={`tel:${site.telephone}`}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.85rem',
-              background: '#0E1726',
+              background: '#DC7F00',
               color: '#fff',
               borderRadius: 12,
               padding: '1rem 1.25rem',
               textDecoration: 'none',
             }}
           >
-            <span style={{ fontSize: '1.5rem' }}>📞</span>
+            <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0 }}>📞</span>
             <div>
-              <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, letterSpacing: '0.02em' }}>
+              <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, letterSpacing: '0.02em', color: '#fff' }}>
                 {displayPhone}
               </p>
-              <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.6, marginTop: '0.1rem' }}>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', marginTop: '0.1rem' }}>
                 Joël — appeler ou SMS
               </p>
             </div>

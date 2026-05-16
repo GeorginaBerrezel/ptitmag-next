@@ -1,22 +1,18 @@
 import { Link } from '@/i18n/navigation';
 import styles from './Hero.module.css';
+import type { StepDetail, TrialContent } from '@/app/[locale]/page';
 
-// Emojis associés aux 4 étapes du parcours adhérent
-const STEP_EMOJIS = ['🔍', '📋', '🛒', '📦'];
+const STEP_EMOJIS = ['🔍', '📝', '🛒', '📦'];
 
 type HeroProps = {
   locale: 'fr' | 'en';
   t: (key: string) => string;
+  stepsDetail: StepDetail[];
+  trialContent: TrialContent;
 };
 
-export function Hero({ locale, t }: HeroProps) {
+export function Hero({ locale, t, stepsDetail, trialContent }: HeroProps) {
   const infos = t('home.block3_text').split(' | ');
-
-  // Découpe la chaîne de traduction "1)Step one, 2) Step two..." en tableau propre
-  const steps = t('home.how_steps')
-    .split(/\d+\)\s*/)
-    .filter(Boolean)
-    .map(s => s.replace(/^[,.\s]+|[,.\s]+$/g, '').trim());
 
   return (
     <section className={`container ${styles.hero}`}>
@@ -75,13 +71,32 @@ export function Hero({ locale, t }: HeroProps) {
         <h2 className={styles.howTitle}>{t('home.how_title')}</h2>
 
         <div className={styles.stepsGrid}>
-          {steps.map((step, i) => (
+          {stepsDetail.map((step, i) => (
             <div key={i} className={styles.stepCard}>
-              <div className={styles.stepNumber}>{i + 1}</div>
-              <div className={styles.stepEmoji}>{STEP_EMOJIS[i] ?? '→'}</div>
-              <p className={styles.stepText}>{step}</p>
+              <div className={styles.stepHeader}>
+                <div className={styles.stepNumber}>{i + 1}</div>
+                <span className={styles.stepEmoji}>{STEP_EMOJIS[i] ?? '→'}</span>
+              </div>
+              <p className={styles.stepTitle}>{step.title}</p>
+              <p className={styles.stepDesc}>{step.desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* ── Bannière CTA essai gratuit ── */}
+        <div className={styles.trialBanner}>
+          <div className={styles.trialContent}>
+            <p className={styles.trialTitle}>{trialContent.title}</p>
+            <p className={styles.trialText}>{trialContent.text}</p>
+            <p className={styles.trialNote}>{trialContent.note}</p>
+          </div>
+          <Link
+            href="/inscription"
+            locale={locale}
+            className={styles.trialBtn}
+          >
+            {trialContent.cta}
+          </Link>
         </div>
       </section>
 

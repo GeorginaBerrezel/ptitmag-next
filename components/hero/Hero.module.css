@@ -174,36 +174,110 @@
   border-radius: 14px;
   padding: 1.1rem 1.25rem;
   display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.2rem;
 }
 
 .stepNumber {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #0E1726;
   color: #cda867;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 800;
   flex-shrink: 0;
 }
 
 .stepEmoji {
-  font-size: 1.3rem;
-  flex-shrink: 0;
-  margin-top: 0.05rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
-.stepText {
+.stepTitle {
   margin: 0;
-  font-size: 0.93rem;
-  line-height: 1.55;
-  color: rgba(16, 24, 40, 0.82);
-  padding-top: 0.1rem;
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: #0E1726;
+  line-height: 1.35;
+}
+
+.stepDesc {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(16, 24, 40, 0.68);
+}
+
+/* ── Bannière CTA essai gratuit ──────────────────────────────────────────── */
+
+.trialBanner {
+  margin-top: 1.5rem;
+  background: linear-gradient(135deg, #DC7F00 0%, #c97000 100%);
+  border-radius: 16px;
+  padding: 1.6rem 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trialContent {
+  display: grid;
+  gap: 0.3rem;
+  flex: 1 1 280px;
+}
+
+.trialTitle {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: #fff;
+  line-height: 1.3;
+}
+
+.trialText {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.trialNote {
+  margin: 0;
+  font-size: 0.77rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.trialBtn {
+  display: inline-block;
+  background: #ffffff;
+  color: #c97000;
+  padding: 0.8rem 1.6rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 800;
+  white-space: nowrap;
+  font-size: 0.97rem;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.trialBtn:hover {
+  opacity: 0.9;
 }
 
 /* ── Responsive desktop ──────────────────────────────────────────────────── */
