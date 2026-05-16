@@ -103,30 +103,28 @@ export default async function MonComptePage() {
                     {/* En-tête cliquable */}
                     <summary style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      gap: '0.75rem',
+                      flexDirection: 'column',
+                      gap: '0.5rem',
                       padding: '0.75rem 1rem',
                       cursor: 'pointer',
                       listStyle: 'none',
                       background: '#fafafa',
-                      flexWrap: 'wrap',
                     }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <span style={{ fontWeight: 600 }}>
-                          {order.supplier?.name ?? 'Fournisseur inconnu'}
-                        </span>
-                        <span style={{ marginLeft: '0.5rem', opacity: 0.5, fontSize: '0.8rem' }}>
+                      {/* Ligne 1 : fournisseur + type */}
+                      <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+                        {order.supplier?.name ?? 'Fournisseur inconnu'}
+                        <span style={{ marginLeft: '0.5rem', opacity: 0.5, fontSize: '0.78rem', fontWeight: 400 }}>
                           · {SUPPLIER_TYPE_LABELS[order.supplier?.type ?? ''] ?? ''}
                         </span>
-                        <br />
-                        <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>
-                          {new Date(order.created_at).toLocaleDateString('fr-CH', {
-                            day: 'numeric', month: 'long', year: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+                      </span>
+                      {/* Ligne 2 : date */}
+                      <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>
+                        {new Date(order.created_at).toLocaleDateString('fr-CH', {
+                          day: 'numeric', month: 'long', year: 'numeric',
+                        })}
+                      </span>
+                      {/* Ligne 3 : statut + total */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{
                           background: st.bg,
                           color: st.color,
@@ -138,7 +136,7 @@ export default async function MonComptePage() {
                         }}>
                           {st.label}
                         </span>
-                        <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontWeight: 700 }}>
                           CHF {order.total.toFixed(2)}
                         </span>
                       </div>
