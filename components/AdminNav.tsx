@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: '/admin/import'    as const, label: 'Import produits' },
 ]
 
-export default function AdminNav({ locale }: { locale: string }) {
+export default function AdminNav({ locale, confirmedCount = 0 }: { locale: string; confirmedCount?: number }) {
   const pathname = usePathname()
   const [hovered, setHovered] = useState<string | null>(null)
 
@@ -80,8 +80,30 @@ export default function AdminNav({ locale }: { locale: string }) {
             }}
           >
             {link.label}
-            {/* Point indicateur en haut à droite si actif */}
-            {isActive && (
+
+            {/* Badge : nombre de commandes confirmées en attente */}
+            {link.href === '/admin/commandes' && confirmedCount > 0 && (
+              <span style={{
+                marginLeft: 6,
+                background: '#DC7F00',
+                color: '#fff',
+                borderRadius: 999,
+                padding: '0 5px',
+                minWidth: 18,
+                height: 18,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                lineHeight: 1,
+              }}>
+                {confirmedCount > 99 ? '99+' : confirmedCount}
+              </span>
+            )}
+
+            {/* Point indicateur en haut à droite si actif (sans badge) */}
+            {isActive && confirmedCount === 0 && (
               <span style={{
                 position: 'absolute',
                 top: 8,

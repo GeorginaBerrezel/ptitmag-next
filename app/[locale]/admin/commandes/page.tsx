@@ -71,6 +71,9 @@ export default function AdminCommandesPage({
   const [orders, setOrders]           = useState<AdminOrder[]>([])
   const [loading, setLoading]         = useState(true)
   const [error, setError]             = useState<string | null>(null)
+  // Mode : 'action' = commandes à traiter (confirmed par défaut)
+  //        'history' = tout l'historique avec filtres libres
+  const [mode, setMode]               = useState<'action' | 'history'>('action')
   const [filterStatus, setFilterStatus]     = useState('')
   const [filterSupplier, setFilterSupplier] = useState('')
   const [filterDate, setFilterDate]         = useState('')
@@ -101,7 +104,12 @@ export default function AdminCommandesPage({
   ) as string[]
 
   const filtered = orders.filter(o => {
-    if (filterStatus && o.status !== filterStatus) return false
+    // En mode "action" : on n'affiche que les commandes confirmées (à traiter)
+    if (mode === 'action' && o.status !== 'confirmed') return false
+    // En mode "history" : les filtres manuels s'appliquent
+    if (mode === 'history') {
+      if (filterStatus && o.status !== filterStatus) return false
+    }
     if (filterSupplier && o.supplier?.name !== filterSupplier) return false
     if (filterDate) {
       const d = new Date(o.created_at).toISOString().slice(0, 10)
@@ -111,6 +119,20 @@ export default function AdminCommandesPage({
   })
 
   const hasFilters = filterStatus || filterSupplier || filterDate
+
+  function switchToHistory() {
+    setMode('history')
+    setFilterStatus('')
+    setFilterSupplier('')
+    setFilterDate('')
+  }
+
+  function switchToAction() {
+    setMode('action')
+    setFilterStatus('')
+    setFilterSupplier('')
+    setFilterDate('')
+  }
 
   // ── Statistiques ─────────────────────────────────────────────────────────
 
@@ -244,7 +266,16 @@ export default function AdminCommandesPage({
         alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap',
         marginBottom: '0.35rem',
       }}>
-        <h1 style={{ margin: 0 }}>Gestion des commandes</h1>
+        <div>
+          <h1 style={{ margin: '0 0 0.2rem' }}>
+            {mode === 'action' ? 'Commandes à traiter' : 'Historique des commandes'}
+          </h1>
+          <p style={{ opacity: 0.55, margin: 0, fontSize: '0.85rem' }}>
+            {mode === 'action'
+              ? 'Commandes en attente de traitement. Marque-les "Livrée" après distribution ou "Annulée" si besoin.'
+              : 'Historique complet — utilise les filtres pour retrouver une commande passée.'}
+          </p>
+        </div>
         <button
           onClick={exportCSV}
           disabled={filtered.length === 0 || loading}
@@ -261,30 +292,26 @@ export default function AdminCommandesPage({
           ↓ Exporter CSV{filtered.length > 0 ? ` (${filtered.length})` : ''}
         </button>
       </div>
-      <p style={{ opacity: 0.6, marginBottom: '2rem', fontSize: '0.9rem' }}>
-        Vue globale de toutes les commandes passées par les adhérents.
-      </p>
 
-      {/* Statistiques */}
+      {/* Statistiques — adaptées au mode */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-        gap: '0.75rem', marginBottom: '2rem',
+        gap: '0.75rem', marginBottom: '1.5rem', marginTop: '1.5rem',
       }}>
-        {[
-          { label: 'Total',      value: stats.total,       color: '#1a1a2e' },
-          { label: 'Confirmées', value: stats.confirmed,   color: '#DC7F00' },
-          { label: 'Livrées',    value: stats.delivered,   color: '#1565c0' },
-          { label: 'Annulées',   value: stats.cancelled,   color: '#c0392b' },
-          {
-            label: 'Montant total',
-            value: `CHF ${stats.totalAmount.toFixed(2)}`,
-            color: '#2e7d32',
-          },
-        ].map(s => (
+        {(mode === 'action' ? [
+          { label: 'À traiter',   value: stats.confirmed,   color: '#DC7F00', highlight: true },
+          { label: 'CA semaine',  value: `CHF ${stats.totalAmount.toFixed(2)}`, color: '#2e7d32' },
+        ] : [
+          { label: 'Total',       value: stats.total,       color: '#1a1a2e' },
+          { label: 'Confirmées',  value: stats.confirmed,   color: '#DC7F00' },
+          { label: 'Livrées',     value: stats.delivered,   color: '#1565c0' },
+          { label: 'Annulées',    value: stats.cancelled,   color: '#c0392b' },
+          { label: 'CA total',    value: `CHF ${stats.totalAmount.toFixed(2)}`, color: '#2e7d32' },
+        ]).map(s => (
           <div key={s.label} style={{
             background: '#fff',
-            border: '1px solid rgba(16,24,40,0.08)',
+            border: `1px solid ${'highlight' in s && s.highlight ? '#DC7F00' : 'rgba(16,24,40,0.08)'}`,
             borderRadius: 12, padding: '0.9rem 1rem',
             textAlign: 'center',
           }}>
@@ -298,26 +325,62 @@ export default function AdminCommandesPage({
         ))}
       </div>
 
-      {/* Barre de filtres */}
+      {/* Bascule de mode + filtres */}
       <div style={{
         display: 'flex', gap: '0.6rem', flexWrap: 'wrap',
         background: '#f8f9fa', borderRadius: 10,
-        padding: '0.75rem 1rem', marginBottom: '1.5rem',
-        border: '1px solid #e8e8e8',
+        padding: '0.65rem 1rem', marginBottom: '1.25rem',
+        border: '1px solid #e8e8e8', alignItems: 'center',
       }}>
-        {/* Filtre statut */}
-        <select
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
-          style={selectStyle}
-        >
-          <option value="">Tous les statuts</option>
-          <option value="confirmed">Confirmées</option>
-          <option value="delivered">Livrées</option>
-          <option value="cancelled">Annulées</option>
-        </select>
+        {/* Onglets À traiter / Historique */}
+        <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
+          {([
+            { key: 'action',  label: '⚡ À traiter' },
+            { key: 'history', label: '📋 Historique' },
+          ] as const).map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => tab.key === 'action' ? switchToAction() : switchToHistory()}
+              style={{
+                padding: '0.38rem 0.9rem',
+                border: 'none',
+                background: mode === tab.key ? '#1a1a2e' : '#fff',
+                color: mode === tab.key ? '#fff' : '#555',
+                fontWeight: mode === tab.key ? 700 : 400,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-        {/* Filtre fournisseur */}
+        {/* Filtres supplémentaires (en mode historique seulement) */}
+        {mode === 'history' && (
+          <>
+            <select
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value)}
+              style={selectStyle}
+            >
+              <option value="">Tous les statuts</option>
+              <option value="confirmed">Confirmées</option>
+              <option value="delivered">Livrées</option>
+              <option value="cancelled">Annulées</option>
+            </select>
+
+            <input
+              type="date"
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+              style={{ ...selectStyle, fontFamily: 'inherit' }}
+            />
+          </>
+        )}
+
+        {/* Filtre fournisseur (disponible dans les deux modes) */}
         <select
           value={filterSupplier}
           onChange={e => setFilterSupplier(e.target.value)}
@@ -327,29 +390,17 @@ export default function AdminCommandesPage({
           {suppliers.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
-        {/* Filtre date */}
-        <input
-          type="date"
-          value={filterDate}
-          onChange={e => setFilterDate(e.target.value)}
-          style={{ ...selectStyle, fontFamily: 'inherit' }}
-        />
-
-        {/* Bouton réinitialiser */}
-        {hasFilters && (
+        {/* Bouton réinitialiser filtres */}
+        {hasFilters && mode === 'history' && (
           <button
             onClick={() => { setFilterStatus(''); setFilterSupplier(''); setFilterDate('') }}
-            style={{
-              ...selectStyle,
-              background: '#fff', color: '#c0392b',
-              border: '1px solid #ddd', cursor: 'pointer',
-            }}
+            style={{ ...selectStyle, background: '#fff', color: '#c0392b', border: '1px solid #ddd', cursor: 'pointer' }}
           >
             ✕ Réinitialiser
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: '0.83rem', opacity: 0.55, alignSelf: 'center' }}>
+        <span style={{ marginLeft: 'auto', fontSize: '0.83rem', opacity: 0.5, whiteSpace: 'nowrap' }}>
           {loading ? 'Chargement…' : `${filtered.length} commande${filtered.length !== 1 ? 's' : ''}`}
         </span>
       </div>
@@ -377,9 +428,26 @@ export default function AdminCommandesPage({
       )}
 
       {!loading && !error && filtered.length === 0 && (
-        <p style={{ textAlign: 'center', opacity: 0.5, padding: '4rem 0' }}>
-          {hasFilters ? 'Aucune commande ne correspond à ces filtres.' : 'Aucune commande pour le moment.'}
-        </p>
+        <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+          <p style={{ fontSize: '2rem', margin: '0 0 0.5rem' }}>
+            {mode === 'action' ? '✓' : '📭'}
+          </p>
+          <p style={{ opacity: 0.5, margin: '0 0 1rem' }}>
+            {mode === 'action'
+              ? 'Aucune commande en attente — tout est à jour !'
+              : hasFilters
+                ? 'Aucune commande ne correspond à ces filtres.'
+                : "Aucune commande dans l'historique."}
+          </p>
+          {mode === 'action' && (
+            <button
+              onClick={switchToHistory}
+              style={{ ...selectStyle, cursor: 'pointer', color: '#1a1a2e', borderColor: '#1a1a2e' }}
+            >
+              Voir l&apos;historique complet
+            </button>
+          )}
+        </div>
       )}
 
       {/* Liste des commandes */}
