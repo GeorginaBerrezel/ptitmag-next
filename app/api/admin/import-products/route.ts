@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 
 type CsvRow = {
@@ -33,10 +34,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 })
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL ?? 'info@leptitmag.org'
-  if (user.email !== adminEmail && user.email !== 'georgina.berrezel@gmail.com') {
+  const adminEmails = [process.env.ADMIN_EMAIL ?? 'info@leptitmag.org', 'georgina.berrezel@gmail.com']
+  if (!adminEmails.includes(user.email ?? '')) {
     return NextResponse.json({ error: 'Accès réservé à l\'administrateur.' }, { status: 403 })
   }
+
+  // Client admin (service_role) qui bypasse les politiques RLS
+  const supabaseAdmin = createAdminClient()
 
   // Lire le fichier CSV depuis le body multipart
   const formData = await request.formData()
@@ -72,7 +76,7 @@ export async function POST(request: NextRequest) {
       let supplierId = supplierCache.get(row.fournisseur_nom)
 
       if (!supplierId) {
-        const { data: existingSupplier } = await supabase
+        const { data: existingSupplier } = await supabaseAdmin
           .from('suppliers')
           .select('id')
           .eq('name', row.fournisseur_nom)
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
           const validTypes = ['local', 'grossiste_bio', 'autre']
           const supplierType = validTypes.includes(row.fournisseur_type) ? row.fournisseur_type : 'autre'
 
-          const { data: newSupplier, error: supplierError } = await supabase
+          const { data: newSupplier, error: supplierError } = await supabaseAdmin
             .from('suppliers')
             .insert({ name: row.fournisseur_nom, type: supplierType, active: true })
             .select('id')
@@ -116,7 +120,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 3. Upsert du produit (mise à jour si même nom + fournisseur, sinon création)
-      const { data: existingProduct } = await supabase
+      const { data: existingProduct } = await supabaseAdmin
         .from('products')
         .select('id')
         .eq('name', row.nom)
@@ -124,13 +128,13 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (existingProduct) {
-        await supabase
+        await supabaseAdmin
           .from('products')
           .update(productData)
           .eq('id', existingProduct.id)
         productsUpdated++
       } else {
-        const { error: productError } = await supabase
+        const { error: productError } = await supabaseAdmin
           .from('products')
           .insert(productData)
 
