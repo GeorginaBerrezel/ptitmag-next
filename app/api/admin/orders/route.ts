@@ -145,8 +145,8 @@ export async function PATCH(request: NextRequest) {
 
         if (profile?.email) {
           const memberName = (profile.full_name as string | null) || (profile.username as string | null) || null
-          const supplierName = (order.supplier as { name: string } | null)?.name ?? 'Fournisseur'
-          const items = (order.order_items as Array<{
+          const supplierName = (order.supplier as unknown as { name: string } | null)?.name ?? 'Fournisseur'
+          const items = (order.order_items as unknown as Array<{
             quantity: number
             unit_price: number
             product: { name: string; unit: string } | null
