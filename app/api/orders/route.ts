@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     .single()
 
   const memberName =
-    profile?.full_name ??
+    profile?.full_name ||
     [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') ||
     null
 
