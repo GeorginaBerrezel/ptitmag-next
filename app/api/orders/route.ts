@@ -99,16 +99,18 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  // Envoyer l'email de confirmation (fire-and-forget — n'échoue pas la requête)
+  // Envoyer l'email de confirmation (attendu avant la réponse pour Vercel serverless)
   const globalTotal = emailGroups.reduce((sum, g) => sum + g.total, 0)
-  sendOrderConfirmation({
-    memberEmail: user.email!,
-    memberName,
-    orders: emailGroups,
-    globalTotal: Math.round(globalTotal * 100) / 100,
-  }).catch(err => {
+  try {
+    await sendOrderConfirmation({
+      memberEmail: user.email!,
+      memberName,
+      orders: emailGroups,
+      globalTotal: Math.round(globalTotal * 100) / 100,
+    })
+  } catch (err) {
     console.error('[email] Échec envoi confirmation commande :', err)
-  })
+  }
 
   return NextResponse.json({
     success: true,
