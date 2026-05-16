@@ -4,18 +4,21 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 
-// Chaque lien peut avoir un badge optionnel avec sa propre couleur
+// Chaque lien peut avoir un badge optionnel avec sa propre couleur.
+// "exact" force une correspondance exacte de fin de chemin (ex: /admin seul).
 type NavLink = {
-  href: '/admin/commandes' | '/admin/membres' | '/admin/import'
+  href: '/admin' | '/admin/commandes' | '/admin/membres' | '/admin/import'
   label: string
+  exact: boolean
   badgeKey: 'confirmed' | 'trial' | null
   badgeColor: string
 }
 
 const NAV_LINKS: NavLink[] = [
-  { href: '/admin/commandes', label: 'Commandes',     badgeKey: 'confirmed', badgeColor: '#DC7F00' },
-  { href: '/admin/membres',   label: 'Membres',       badgeKey: 'trial',     badgeColor: '#5c6bc0' },
-  { href: '/admin/import',    label: 'Import produits', badgeKey: null,      badgeColor: '' },
+  { href: '/admin',           label: 'Tableau de bord', exact: true,  badgeKey: null,        badgeColor: '' },
+  { href: '/admin/commandes', label: 'Commandes',        exact: false, badgeKey: 'confirmed', badgeColor: '#DC7F00' },
+  { href: '/admin/membres',   label: 'Membres',          exact: false, badgeKey: 'trial',     badgeColor: '#5c6bc0' },
+  { href: '/admin/import',    label: 'Import produits',  exact: false, badgeKey: null,        badgeColor: '' },
 ]
 
 export default function AdminNav({
@@ -65,7 +68,11 @@ export default function AdminNav({
 
       {/* Liens de navigation */}
       {NAV_LINKS.map(link => {
-        const isActive    = pathname.includes(link.href)
+        // Pour le lien /admin (tableau de bord), on vérifie que le chemin
+        // se termine exactement par "/admin" (sans sous-page derrière).
+        const isActive = link.exact
+          ? /\/admin$/.test(pathname)
+          : pathname.includes(link.href)
         const isHovered   = hovered === link.href
         const badgeCount  = getBadgeCount(link.badgeKey)
         const hasBadge    = badgeCount > 0
