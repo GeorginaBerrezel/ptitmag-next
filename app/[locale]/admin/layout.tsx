@@ -31,12 +31,19 @@ export default async function AdminLayout({
     redirect(`/${locale}`)
   }
 
-  // Comptage des commandes "à traiter" pour le badge dans la nav
+  // Badges de la nav : commandes à traiter + membres en phase d'essai
+  // Les deux requêtes tournent en parallèle pour ne pas ralentir le chargement.
   const admin = createAdminClient()
-  const { count: confirmedCount } = await admin
-    .from('orders')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'confirmed')
+  const [{ count: confirmedCount }, { count: trialCount }] = await Promise.all([
+    admin
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'confirmed'),
+    admin
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'trial'),
+  ])
 
   return (
     // Le margin-top négatif annule le padding-top: 1rem de la règle globale "main",
@@ -53,7 +60,7 @@ export default async function AdminLayout({
         display: 'flex',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <AdminNav locale={locale} confirmedCount={confirmedCount ?? 0} />
+        <AdminNav locale={locale} confirmedCount={confirmedCount ?? 0} trialCount={trialCount ?? 0} />
       </div>
 
       {children}
