@@ -26,7 +26,17 @@ export default async function MonComptePage() {
   const [profile, orders] = await Promise.all([getProfile(), getMyOrders()])
 
   return (
-    <main className="container" style={{ paddingTop: '3rem', paddingBottom: '3rem', maxWidth: 680 }}>
+    <main className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem', maxWidth: 680 }}>
+      {/* Fil d'ariane */}
+      <nav aria-label="Fil d'ariane" style={{
+        display: 'flex', alignItems: 'center', gap: '0.4rem',
+        fontSize: '0.8rem', color: 'rgba(16,24,40,0.4)', marginBottom: '1.5rem',
+      }}>
+        <span>Accueil</span>
+        <span aria-hidden>›</span>
+        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Mon compte</span>
+      </nav>
+
       <h1 style={{ marginBottom: '0.25rem' }}>Mon compte</h1>
       <p style={{ opacity: 0.7, marginBottom: '1.5rem' }}>Espace adhérent — Le p&apos;tit mag</p>
 

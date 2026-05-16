@@ -90,7 +90,14 @@ export default function PanierPage({
 
   if (items.length === 0) {
     return (
-      <main className="container" style={{ paddingTop: '3rem', paddingBottom: '3rem', maxWidth: 600 }}>
+      <main className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem', maxWidth: 600 }}>
+        <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
+          <span>Accueil</span>
+          <span aria-hidden>›</span>
+          <span>Catalogue</span>
+          <span aria-hidden>›</span>
+          <span style={crumbActiveStyle}>Panier</span>
+        </nav>
         <h1 style={{ marginBottom: '0.5rem' }}>Mon panier</h1>
         <p style={{ opacity: 0.6 }}>Votre panier est vide.</p>
         <Link
@@ -115,6 +122,15 @@ export default function PanierPage({
 
   return (
     <main className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem', maxWidth: 720 }}>
+      {/* Fil d'ariane */}
+      <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
+        <span>Accueil</span>
+        <span aria-hidden>›</span>
+        <span>Catalogue</span>
+        <span aria-hidden>›</span>
+        <span style={crumbActiveStyle}>Panier</span>
+      </nav>
+
       {/* En-tête */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <h1 style={{ margin: 0 }}>Mon panier</h1>
@@ -281,4 +297,20 @@ export default function PanierPage({
       </div>
     </main>
   )
+}
+
+import type { CSSProperties } from 'react'
+
+const breadcrumbStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+  fontSize: '0.8rem',
+  color: 'rgba(16,24,40,0.4)',
+  marginBottom: '1.5rem',
+}
+
+const crumbActiveStyle: CSSProperties = {
+  color: 'rgba(16,24,40,0.75)',
+  fontWeight: 600,
 }
