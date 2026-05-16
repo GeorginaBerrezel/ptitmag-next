@@ -1,7 +1,11 @@
 nom,description,categorie,unite,prix_unitaire,quantite_min,date_limite_commande,fournisseur_nom,fournisseur_type,is_featured
-Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,200g,10.00,1,2026-05-20 20:00:00,Mondralèche,local,true
-Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,400g,20.00,1,2026-05-20 20:00:00,Mondralèche,local,true
-Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,800g,30.00,1,2026-05-20 20:00:00,Mondralèche,local,true
+Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,200g,10.00,1,2026-05-25 20:00:00,Mondralèche,local,true
+Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,400g,20.00,1,2026-05-25 20:00:00,Mondralèche,local,true
+Fondue Mondralèche,Recette traditionnelle valaisanne — quantité limitée,Fromage,800g,30.00,1,2026-05-25 20:00:00,Mondralèche,local,true
+Truffes noires du Valais,Récolte sauvage — stock très limité,Épicerie fine,10g,25.00,1,2026-05-21 18:00:00,La Truffe Valaisanne,local,true
+Truffes noires du Valais,Récolte sauvage — stock très limité,Épicerie fine,25g,55.00,1,2026-05-21 18:00:00,La Truffe Valaisanne,local,true
+Ricotta fraîche artisanale bio,Préparée le jour même — livraison unique cette semaine,Frais,250g,6.50,1,2026-05-23 12:00:00,La Ferme du Rhône,local,true
+Ricotta fraîche artisanale bio,Préparée le jour même — livraison unique cette semaine,Frais,500g,11.00,1,2026-05-23 12:00:00,La Ferme du Rhône,local,true
 Huile d'olive vierge extra bio,500 ml – bouteille en verre,Epicerie,bouteille,8.50,1,2026-06-30,Biopartner,grossiste_bio,
 Farine de blé T65 bio,1 kg – farine de blé tendre,Epicerie,sac,3.20,2,2026-06-30,Biopartner,grossiste_bio,
 Pâtes spaghetti bio,500 g – blé dur complet,Epicerie,paquet,3.80,2,2026-06-30,Biopartner,grossiste_bio,

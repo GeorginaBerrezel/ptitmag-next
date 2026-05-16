@@ -68,8 +68,9 @@ export default async function FeaturedProducts({ locale }: Props) {
 
   return (
     <section style={{
-      background: '#1a0e00',
+      background: '#fff8ed',
       borderTop: '3px solid #DC7F00',
+      borderBottom: '1px solid #f0e0c8',
     }}>
       <div className="container" style={{
         paddingTop: '1.25rem',
@@ -88,24 +89,24 @@ export default async function FeaturedProducts({ locale }: Props) {
             margin: 0,
             fontSize: '1.05rem',
             fontWeight: 800,
-            color: '#fff',
+            color: '#0E1726',
             whiteSpace: 'nowrap',
           }}>
             {t('title')}
           </h2>
           <p style={{
             margin: 0,
-            color: 'rgba(255,255,255,0.6)',
+            color: 'rgba(16,24,40,0.55)',
             fontSize: '0.85rem',
             flex: '1 1 180px',
           }}>
             {t('subtitle')}
           </p>
 
-          {/* CTA inline */}
+          {/* CTA inline — pointe sur la vue filtrée éphémères */}
           {isLoggedIn ? (
             <Link
-              href="/commandes"
+              href="/commandes?ephemere=1"
               locale={locale}
               style={{
                 display: 'inline-flex',
@@ -238,7 +239,7 @@ export default async function FeaturedProducts({ locale }: Props) {
           <p style={{
             margin: '0.75rem 0 0',
             fontSize: '0.8rem',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'rgba(16,24,40,0.45)',
           }}>
             {t('login_hint')}
           </p>

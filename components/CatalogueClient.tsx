@@ -15,12 +15,16 @@ const TYPE_ORDER = ['local', 'grossiste_bio', 'autre']
 
 type Props = {
   products: Product[]
+  initialEphemere?: boolean
 }
 
-export default function CatalogueClient({ products }: Props) {
+export default function CatalogueClient({ products, initialEphemere = false }: Props) {
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string>('tous')
   const [selectedSupplier, setSelectedSupplier] = useState<string>('tous')
+  const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
+
+  const hasFeatured = useMemo(() => products.some(p => p.is_featured), [products])
 
   // Tous les fournisseurs disponibles
   const suppliers = useMemo(() => {
@@ -39,12 +43,13 @@ export default function CatalogueClient({ products }: Props) {
     return suppliers.filter(s => s.type === selectedType)
   }, [suppliers, selectedType])
 
-  // Produits filtrés par recherche + type + fournisseur
+  // Produits filtrés par recherche + type + fournisseur + éphémères
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
     return products.filter(p => {
-      if (selectedType !== 'tous' && p.supplier?.type !== selectedType) return false
-      if (selectedSupplier !== 'tous' && p.supplier?.id !== selectedSupplier) return false
+      if (ephemereOnly && !p.is_featured) return false
+      if (!ephemereOnly && selectedType !== 'tous' && p.supplier?.type !== selectedType) return false
+      if (!ephemereOnly && selectedSupplier !== 'tous' && p.supplier?.id !== selectedSupplier) return false
       if (q) {
         const haystack = [
           p.name,
@@ -56,7 +61,7 @@ export default function CatalogueClient({ products }: Props) {
       }
       return true
     })
-  }, [products, search, selectedType, selectedSupplier])
+  }, [products, search, selectedType, selectedSupplier, ephemereOnly])
 
   // Grouper les produits filtrés par fournisseur
   const bySupplier = useMemo(() => {
@@ -84,6 +89,13 @@ export default function CatalogueClient({ products }: Props) {
 
   function handleTypeClick(type: string) {
     setSelectedType(type)
+    setSelectedSupplier('tous')
+    setEphemereOnly(false)
+  }
+
+  function handleEphemereClick() {
+    setEphemereOnly(v => !v)
+    setSelectedType('tous')
     setSelectedSupplier('tous')
   }
 
@@ -149,6 +161,30 @@ export default function CatalogueClient({ products }: Props) {
 
         {/* Filtres par type */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+          {/* Filtre éphémères — affiché seulement s'il y en a */}
+          {hasFeatured && (
+            <button
+              onClick={handleEphemereClick}
+              style={{
+                padding: '0.4rem 1rem',
+                borderRadius: 999,
+                border: '1.5px solid',
+                borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
+                background: ephemereOnly ? '#DC7F00' : '#fff',
+                color: ephemereOnly ? '#fff' : '#1a1a2e',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              ⏳ Éphémères
+              <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
+                {products.filter(p => p.is_featured).length}
+              </span>
+            </button>
+          )}
+
           {['tous', ...TYPE_ORDER].map(type => {
             const count = type === 'tous'
               ? products.length
@@ -222,6 +258,39 @@ export default function CatalogueClient({ products }: Props) {
                 {s.name}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Bandeau contexte éphémères */}
+        {ephemereOnly && (
+          <div style={{
+            background: '#fff8ed',
+            border: '1.5px solid #DC7F00',
+            borderRadius: 10,
+            padding: '0.65rem 1rem',
+            marginBottom: '1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            fontSize: '0.88rem',
+            color: '#92400e',
+            fontWeight: 600,
+          }}>
+            <span>⏳</span>
+            <span>Produits éphémères — quantités limitées, commandez avant la date limite !</span>
+            <button
+              onClick={() => setEphemereOnly(false)}
+              style={{
+                marginLeft: 'auto',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                opacity: 0.5,
+                padding: '0 0.25rem',
+              }}
+              aria-label="Retirer le filtre"
+            >×</button>
           </div>
         )}
 
