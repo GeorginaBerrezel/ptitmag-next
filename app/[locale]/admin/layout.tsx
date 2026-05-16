@@ -22,7 +22,7 @@ export default async function AdminLayout({
   const user = await getUser()
 
   if (!user) {
-    redirect(`/${locale}/connexion?next=/${locale}/admin/import`)
+    redirect(`/${locale}/connexion?next=/${locale}/admin/commandes`)
   }
 
   if (!ADMIN_EMAILS.includes(user.email ?? '')) {
@@ -45,10 +45,13 @@ export default async function AdminLayout({
         borderBottom: '1px solid rgba(255,255,255,0.1)',
       }}>
         <span style={{ fontWeight: 700, opacity: 0.9, letterSpacing: '0.03em' }}>⚙ Admin</span>
-        <Link href="/admin/import" locale={locale} style={{ color: '#DC7F00', textDecoration: 'none', fontWeight: 600 }}>
+        <Link href="/admin/commandes" locale={locale} style={{ color: '#DC7F00', textDecoration: 'none', fontWeight: 600 }}>
+          Commandes
+        </Link>
+        <Link href="/admin/import" locale={locale} style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontWeight: 500 }}>
           Import produits
         </Link>
-        <Link href="/mon-compte" locale={locale} style={{ color: 'rgba(255,255,255,0.55)', textDecoration: 'none', marginLeft: 'auto' }}>
+        <Link href="/mon-compte" locale={locale} style={{ color: 'rgba(255,255,255,0.45)', textDecoration: 'none', marginLeft: 'auto' }}>
           ← Retour au site
         </Link>
       </div>
