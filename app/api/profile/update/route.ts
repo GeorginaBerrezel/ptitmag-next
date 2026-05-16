@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
     const path = `${user.id}/avatar.${ext}`
     const arrayBuffer = await avatarFile.arrayBuffer()
 
-    const { error: uploadError } = await supabase.storage
+    const adminClient = createAdminClient()
+    const { error: uploadError } = await adminClient.storage
       .from('avatars')
       .upload(path, arrayBuffer, {
         contentType: avatarFile.type,
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Upload échoué : ${uploadError.message}` }, { status: 500 })
     }
 
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+    const { data: urlData } = adminClient.storage.from('avatars').getPublicUrl(path)
     updates.avatar_url = `${urlData.publicUrl}?t=${Date.now()}`
   }
 
