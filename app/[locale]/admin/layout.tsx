@@ -39,8 +39,10 @@ export default async function AdminLayout({
     .eq('status', 'confirmed')
 
   return (
-    <div>
-      {/* Barre de navigation admin — sticky sous le header du site */}
+    // Le margin-top négatif annule le padding-top: 1rem de la règle globale "main",
+    // pour que la barre admin soit collée au header fixe sans espace parasite.
+    <div style={{ marginTop: 'calc(-1 * 1rem)' }}>
+      {/* Barre de navigation admin — sticky juste sous le header du site */}
       <div style={{
         position: 'sticky',
         top: 'var(--header-height)',

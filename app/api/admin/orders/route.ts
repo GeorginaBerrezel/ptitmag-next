@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
+import { sendDeliveryNotification } from '@/lib/email/sendDeliveryNotification'
 
 const ADMIN_EMAILS = [
   'info@leptitmag.org',
@@ -115,6 +116,60 @@ export async function PATCH(request: NextRequest) {
   if (error) {
     console.error('[admin/orders PATCH] Supabase error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // ── Email automatique quand l'admin marque une commande comme livrée ─────
+  if (status === 'delivered') {
+    try {
+      // Récupérer les détails de la commande (fournisseur + produits)
+      const { data: order } = await admin
+        .from('orders')
+        .select(`
+          total, member_id,
+          supplier:suppliers(name),
+          order_items(
+            quantity, unit_price,
+            product:products(name, unit)
+          )
+        `)
+        .eq('id', orderId)
+        .single()
+
+      if (order) {
+        // Récupérer le profil du membre (email + nom)
+        const { data: profile } = await admin
+          .from('profiles')
+          .select('email, full_name, username')
+          .eq('id', order.member_id)
+          .single()
+
+        if (profile?.email) {
+          const memberName = (profile.full_name as string | null) || (profile.username as string | null) || null
+          const supplierName = (order.supplier as { name: string } | null)?.name ?? 'Fournisseur'
+          const items = (order.order_items as Array<{
+            quantity: number
+            unit_price: number
+            product: { name: string; unit: string } | null
+          }>).map(item => ({
+            productName: item.product?.name ?? '—',
+            quantity:    item.quantity,
+            unit:        item.product?.unit ?? '',
+            unitPrice:   item.unit_price,
+          }))
+
+          await sendDeliveryNotification({
+            memberEmail: profile.email as string,
+            memberName,
+            supplierName,
+            items,
+            total: order.total as number,
+          })
+        }
+      }
+    } catch (err) {
+      // L'email échoue silencieusement — la mise à jour du statut reste valide
+      console.error('[admin/orders PATCH] Delivery notification failed:', err)
+    }
   }
 
   return NextResponse.json({ success: true })
