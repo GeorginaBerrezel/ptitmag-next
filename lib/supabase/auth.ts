@@ -68,5 +68,5 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
     return []
   }
 
-  return (data ?? []) as OrderWithItems[]
+  return (data ?? []) as unknown as OrderWithItems[]
 }

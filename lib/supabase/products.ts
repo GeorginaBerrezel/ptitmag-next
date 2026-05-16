@@ -41,7 +41,7 @@ export async function getProducts(): Promise<Product[]> {
     return []
   }
 
-  return (data ?? []) as Product[]
+  return (data ?? []) as unknown as Product[]
 }
 
 /**
