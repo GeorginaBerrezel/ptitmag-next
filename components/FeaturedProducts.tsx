@@ -8,20 +8,13 @@ type Props = {
   locale: 'fr' | 'en'
 }
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
 function formatDeadline(iso: string, locale: string): string {
   const d = new Date(iso)
-  const datePart = d.toLocaleDateString(locale === 'fr' ? 'fr-CH' : 'en-GB', {
-    weekday: 'long', day: 'numeric', month: 'long',
+  return d.toLocaleDateString(locale === 'fr' ? 'fr-CH' : 'en-GB', {
+    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
   })
-  const timePart = d.toLocaleTimeString(locale === 'fr' ? 'fr-CH' : 'en-GB', {
-    hour: '2-digit', minute: '2-digit',
-  })
-  return `${datePart} à ${timePart}`
 }
 
-// Groupe les variantes d'un même produit (même nom + même fournisseur) ensemble
 function groupByProduct(products: FeaturedProduct[]): FeaturedProduct[][] {
   const groups = new Map<string, FeaturedProduct[]>()
   for (const p of products) {
@@ -33,18 +26,14 @@ function groupByProduct(products: FeaturedProduct[]): FeaturedProduct[][] {
   return Array.from(groups.values())
 }
 
-// ─── composant ───────────────────────────────────────────────────────────────
-
 export default async function FeaturedProducts({ locale }: Props) {
-  const t  = await getTranslations({ locale, namespace: 'featured' })
-  const admin  = createAdminClient()
+  const t        = await getTranslations({ locale, namespace: 'featured' })
+  const admin    = createAdminClient()
   const supabase = await createClient()
 
-  // Vérifie si l'utilisateur est connecté
   const { data: { user } } = await supabase.auth.getUser()
   const isLoggedIn = !!user
 
-  // Récupère les produits éphémères actifs (deadline non dépassée)
   const now = new Date().toISOString()
   const { data, error } = await admin
     .from('products')
@@ -77,110 +66,149 @@ export default async function FeaturedProducts({ locale }: Props) {
 
   const groups = groupByProduct(products)
 
-  // Deadline la plus proche parmi tous les produits éphémères
-  const nearestDeadline = products
-    .map(p => p.order_deadline)
-    .filter(Boolean)
-    .sort()[0]
-
   return (
     <section style={{
-      background: 'linear-gradient(135deg, #1a0e00 0%, #2d1a00 100%)',
-      padding: 'clamp(2rem, 5vw, 3rem) 0',
-      marginTop: '0',
+      background: '#1a0e00',
+      borderTop: '3px solid #DC7F00',
     }}>
-      <div className="container">
+      <div className="container" style={{
+        paddingTop: '1.25rem',
+        paddingBottom: '1.25rem',
+      }}>
 
-        {/* En-tête */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        {/* En-tête compact sur une ligne */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '0.75rem',
+          marginBottom: '1rem',
+        }}>
           <h2 style={{
-            margin: '0 0 0.4rem',
-            fontSize: 'clamp(1.4rem, 4vw, 1.9rem)',
+            margin: 0,
+            fontSize: '1.05rem',
             fontWeight: 800,
             color: '#fff',
+            whiteSpace: 'nowrap',
           }}>
             {t('title')}
           </h2>
-          <p style={{ margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+          <p style={{
+            margin: 0,
+            color: 'rgba(255,255,255,0.6)',
+            fontSize: '0.85rem',
+            flex: '1 1 180px',
+          }}>
             {t('subtitle')}
           </p>
 
-          {/* Compte à rebours — date limite la plus proche */}
-          {nearestDeadline && (
-            <p style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              marginTop: '0.75rem',
-              background: '#DC7F00',
-              color: '#fff',
-              padding: '0.35rem 0.85rem',
-              borderRadius: 20,
-              fontSize: '0.83rem',
-              fontWeight: 700,
-            }}>
-              ⏰ {t('deadline')} {formatDeadline(nearestDeadline, locale)}
-            </p>
+          {/* CTA inline */}
+          {isLoggedIn ? (
+            <Link
+              href="/commandes"
+              locale={locale}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: '#DC7F00',
+                color: '#fff',
+                padding: '0.45rem 1.1rem',
+                borderRadius: 8,
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              🛒 {t('order_btn')}
+            </Link>
+          ) : (
+            <Link
+              href="/connexion"
+              locale={locale}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: '#DC7F00',
+                color: '#fff',
+                padding: '0.45rem 1.1rem',
+                borderRadius: 8,
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              🔐 {t('login_btn')}
+            </Link>
           )}
         </div>
 
-        {/* Grille des groupes de produits */}
+        {/* Cartes produits — scroll horizontal sur mobile */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '1rem',
-          marginBottom: '1.75rem',
+          display: 'flex',
+          gap: '0.75rem',
+          overflowX: 'auto',
+          paddingBottom: '0.5rem',
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#DC7F00 transparent',
         }}>
           {groups.map((variants, gi) => {
             const first = variants[0]
             return (
               <div key={gi} style={{
                 background: '#fff',
-                borderRadius: 16,
+                borderRadius: 12,
                 overflow: 'hidden',
+                flexShrink: 0,
+                width: 'clamp(200px, 40vw, 260px)',
                 display: 'flex',
                 flexDirection: 'column',
               }}>
-                {/* Badge éphémère */}
+                {/* Bandeau orange */}
                 <div style={{
                   background: '#DC7F00',
                   color: '#fff',
-                  padding: '0.3rem 0.85rem',
-                  fontSize: '0.72rem',
+                  padding: '0.25rem 0.75rem',
+                  fontSize: '0.68rem',
                   fontWeight: 700,
                   letterSpacing: '0.06em',
                   textTransform: 'uppercase',
                 }}>
-                  ⏳ Éphémère · {first.supplier_name}
+                  ⏳ {first.supplier_name}
                 </div>
 
-                <div style={{ padding: '1rem 1.1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  <p style={{ margin: 0, fontWeight: 800, fontSize: '1.05rem', color: '#0E1726' }}>
+                <div style={{ padding: '0.75rem 0.9rem', display: 'flex', flexDirection: 'column', gap: '0.45rem', flex: 1 }}>
+                  <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: '#0E1726' }}>
                     {first.name}
                   </p>
 
                   {first.description && (
-                    <p style={{ margin: 0, fontSize: '0.83rem', color: 'rgba(16,24,40,0.65)', lineHeight: 1.5 }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(16,24,40,0.55)', lineHeight: 1.4 }}>
                       {first.description}
                     </p>
                   )}
 
-                  {/* Variantes (formats / prix) */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.2rem' }}>
+                  {/* Variantes */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                     {variants.map(v => (
                       <span key={v.id} style={{
-                        background: '#f0f4f8',
+                        background: '#f8f9fa',
                         border: '1px solid #e2e8f0',
-                        borderRadius: 8,
-                        padding: '0.3rem 0.6rem',
-                        fontSize: '0.82rem',
+                        borderRadius: 6,
+                        padding: '0.2rem 0.5rem',
+                        fontSize: '0.78rem',
                         fontWeight: 600,
                         color: '#0E1726',
                         whiteSpace: 'nowrap',
                       }}>
                         {v.unit}
                         {v.unit_price != null && (
-                          <span style={{ color: '#DC7F00', marginLeft: '0.35rem' }}>
+                          <span style={{ color: '#DC7F00', marginLeft: '0.3rem' }}>
                             CHF {v.unit_price.toFixed(2)}
                           </span>
                         )}
@@ -188,11 +216,11 @@ export default async function FeaturedProducts({ locale }: Props) {
                     ))}
                   </div>
 
-                  {/* Deadline du groupe */}
+                  {/* Deadline */}
                   {first.order_deadline && (
                     <p style={{
                       margin: 0,
-                      fontSize: '0.78rem',
+                      fontSize: '0.73rem',
                       color: '#b45309',
                       fontWeight: 600,
                     }}>
@@ -205,63 +233,15 @@ export default async function FeaturedProducts({ locale }: Props) {
           })}
         </div>
 
-        {/* CTA selon état de connexion */}
-        {isLoggedIn ? (
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <Link
-              href="/commandes"
-              locale={locale}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                background: '#DC7F00',
-                color: '#fff',
-                padding: '0.85rem 2.25rem',
-                borderRadius: 12,
-                textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: '1rem',
-              }}
-            >
-              🛒 {t('order_btn')}
-            </Link>
-          </div>
-        ) : (
-          <div style={{
-            background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: 14,
-            padding: '1.25rem 1.5rem',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+        {/* Aide pour non connectés */}
+        {!isLoggedIn && (
+          <p style={{
+            margin: '0.75rem 0 0',
+            fontSize: '0.8rem',
+            color: 'rgba(255,255,255,0.5)',
           }}>
-            <p style={{ margin: 0, color: 'rgba(255,255,255,0.85)', fontSize: '0.93rem', lineHeight: 1.55, flex: '1 1 240px' }}>
-              {t('login_hint')}
-            </p>
-            <Link
-              href="/connexion"
-              locale={locale}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                background: '#DC7F00',
-                color: '#fff',
-                padding: '0.75rem 1.75rem',
-                borderRadius: 10,
-                textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                flexShrink: 0,
-              }}
-            >
-              🔐 {t('login_btn')}
-            </Link>
-          </div>
+            {t('login_hint')}
+          </p>
         )}
 
       </div>

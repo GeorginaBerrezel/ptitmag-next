@@ -23,11 +23,11 @@ export default async function Page({
 
   return (
     <>
-      {/* Section produits éphémères — s'affiche seulement s'il y en a */}
-      <FeaturedProducts locale={locale} />
-
       {/* Hero principal */}
       <Hero locale={locale} t={t} stepsDetail={stepsDetail} trialContent={trialContent} />
+
+      {/* Produits éphémères — bandeau compact, uniquement s'il y en a */}
+      <FeaturedProducts locale={locale} />
     </>
   );
 }

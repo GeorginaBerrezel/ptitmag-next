@@ -125,12 +125,14 @@ export async function POST(request: NextRequest) {
         is_featured: isFeatured,
       }
 
-      // 3. Upsert du produit (mise à jour si même nom + fournisseur, sinon création)
+      // 3. Upsert du produit (même nom + fournisseur + unité = même produit)
+      // L'unité est incluse pour permettre plusieurs variantes (200g, 400g, 800g…)
       const { data: existingProduct } = await supabaseAdmin
         .from('products')
         .select('id')
         .eq('name', row.nom)
         .eq('supplier_id', supplierId)
+        .eq('unit', row.unite || 'pièce')
         .single()
 
       if (existingProduct) {
