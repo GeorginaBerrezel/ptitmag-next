@@ -11,12 +11,13 @@ export default async function MembersLayout({
   params,
 }: {
   children: React.ReactNode
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }) {
+  const { locale } = await params
   const user = await getUser()
 
   if (!user) {
-    redirect(`/${params.locale}/connexion`)
+    redirect(`/${locale}/connexion`)
   }
 
   return <>{children}</>
