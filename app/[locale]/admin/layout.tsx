@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/supabase/auth'
+import { Link } from '@/i18n/navigation'
 
 const ADMIN_EMAILS = [
   'info@leptitmag.org',
@@ -31,21 +32,25 @@ export default async function AdminLayout({
   return (
     <div>
       <div style={{
-        background: '#1a1a2e',
+        position: 'sticky',
+        top: 'var(--header-height)',
+        zIndex: 80,
+        background: '#0f1729',
         color: '#fff',
-        padding: '0.5rem 1rem',
+        padding: '0.45rem 1.25rem',
         fontSize: '0.8rem',
         display: 'flex',
         gap: '1.5rem',
         alignItems: 'center',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
       }}>
-        <span style={{ fontWeight: 700, opacity: 0.9 }}>⚙ Admin</span>
-        <a href={`/${locale}/admin/import`} style={{ color: '#DC7F00', textDecoration: 'none', fontWeight: 600 }}>
+        <span style={{ fontWeight: 700, opacity: 0.9, letterSpacing: '0.03em' }}>⚙ Admin</span>
+        <Link href="/admin/import" locale={locale} style={{ color: '#DC7F00', textDecoration: 'none', fontWeight: 600 }}>
           Import produits
-        </a>
-        <a href={`/${locale}/mon-compte`} style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', marginLeft: 'auto' }}>
+        </Link>
+        <Link href="/mon-compte" locale={locale} style={{ color: 'rgba(255,255,255,0.55)', textDecoration: 'none', marginLeft: 'auto' }}>
           ← Retour au site
-        </a>
+        </Link>
       </div>
       {children}
     </div>

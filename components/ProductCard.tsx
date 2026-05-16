@@ -45,11 +45,11 @@ export default function ProductCard({ product }: { product: Product }) {
       background: expired ? '#fafafa' : '#fff',
       border: '1px solid rgba(16,24,40,0.08)',
       borderRadius: 12,
-      padding: '1rem 1.25rem',
+      padding: '0.875rem 1rem',
       display: 'grid',
       gridTemplateColumns: '1fr auto',
-      gap: '0.75rem',
-      alignItems: 'center',
+      gap: '0.5rem',
+      alignItems: 'start',
       opacity: expired ? 0.5 : 1,
     }}>
       {/* Infos produit */}
@@ -79,7 +79,7 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       {/* Prix + contrôles */}
-      <div style={{ display: 'grid', gap: '0.4rem', minWidth: 180, textAlign: 'right' }}>
+      <div style={{ display: 'grid', gap: '0.4rem', minWidth: 0, textAlign: 'right' }}>
         {product.unit_price != null && (
           <p style={{ margin: 0, fontWeight: 700 }}>
             CHF {product.unit_price.toFixed(2)}
@@ -88,7 +88,7 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
 
         {!expired && (
-          <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
             <input
               type="number"
               value={qty}
@@ -96,15 +96,15 @@ export default function ProductCard({ product }: { product: Product }) {
               step={product.min_quantity}
               onChange={e => setQty(Math.max(product.min_quantity, Number(e.target.value)))}
               style={{
-                width: 64,
-                padding: '0.3rem 0.4rem',
+                width: 56,
+                padding: '0.3rem 0.35rem',
                 border: '1px solid rgba(16,24,40,0.15)',
                 borderRadius: 6,
                 textAlign: 'center',
-                fontSize: '0.9rem',
+                fontSize: '0.875rem',
               }}
             />
-            <span style={{ fontSize: '0.8rem', opacity: 0.55 }}>{product.unit}</span>
+            <span style={{ fontSize: '0.78rem', opacity: 0.55 }}>{product.unit}</span>
             <button
               onClick={handleAdd}
               style={{
@@ -112,15 +112,18 @@ export default function ProductCard({ product }: { product: Product }) {
                 color: '#fff',
                 border: 'none',
                 borderRadius: 6,
-                padding: '0.35rem 0.75rem',
+                padding: '0.35rem 0.65rem',
                 cursor: 'pointer',
-                fontSize: '0.85rem',
+                fontSize: '0.82rem',
                 fontWeight: 600,
                 transition: 'background 0.2s',
                 whiteSpace: 'nowrap',
               }}
             >
-              {added ? '✓ Ajouté' : inCart ? 'Modifier' : '+ Panier'}
+              {added ? '✓' : inCart ? '✎' : '+'}
+              <span style={{ marginLeft: '0.25rem' }}>
+                {added ? 'Ajouté' : inCart ? 'Modifier' : 'Panier'}
+              </span>
             </button>
           </div>
         )}

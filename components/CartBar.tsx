@@ -14,21 +14,22 @@ export default function CartBar() {
   return (
     <div style={{
       position: 'sticky',
-      top: 0,
-      zIndex: 100,
+      top: 'var(--header-height)',
+      zIndex: 90,
       background: '#1a1a2e',
       color: '#fff',
-      padding: '0.75rem 1.5rem',
+      padding: '0.6rem 1.25rem',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      gap: '1rem',
+      gap: '0.75rem',
+      flexWrap: 'wrap',
     }}>
-      <span style={{ fontWeight: 500 }}>
-        🛒 {totalItems} produit{totalItems > 1 ? 's' : ''} dans le panier
+      <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>
+        🛒 <span>{totalItems} produit{totalItems > 1 ? 's' : ''}</span>
       </span>
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <span style={{ fontWeight: 700 }}>
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginLeft: 'auto' }}>
+        <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
           CHF {globalTotal.toFixed(2)}
         </span>
         <Link
@@ -38,10 +39,11 @@ export default function CartBar() {
             background: '#DC7F00',
             color: '#fff',
             borderRadius: 6,
-            padding: '0.35rem 1rem',
+            padding: '0.35rem 0.9rem',
             fontWeight: 600,
             textDecoration: 'none',
-            fontSize: '0.9rem',
+            fontSize: '0.85rem',
+            whiteSpace: 'nowrap',
           }}
         >
           Voir le panier →
