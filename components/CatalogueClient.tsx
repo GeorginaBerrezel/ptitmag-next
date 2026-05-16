@@ -92,7 +92,17 @@ export default function CatalogueClient({ products }: Props) {
   return (
     <>
       <CartBar />
-      <main className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem' }}>
+      <div className="container" style={{ paddingTop: '1.25rem', paddingBottom: '5rem' }}>
+
+        {/* Fil d'ariane — placé ici, après la CartBar, avant le contenu */}
+        <nav aria-label="Fil d'ariane" style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
+          fontSize: '0.8rem', color: 'rgba(16,24,40,0.4)', marginBottom: '1.25rem',
+        }}>
+          <span>Accueil</span>
+          <span aria-hidden>›</span>
+          <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Catalogue</span>
+        </nav>
 
         {/* En-tête */}
         <h1 style={{ marginBottom: '0.25rem' }}>Catalogue de commande</h1>
@@ -280,7 +290,7 @@ export default function CatalogueClient({ products }: Props) {
             })}
           </div>
         )}
-      </main>
+      </div>
     </>
   )
 }

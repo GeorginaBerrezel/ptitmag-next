@@ -56,7 +56,7 @@ export default function PanierPage({
 
   if (confirmed) {
     return (
-      <main className="container" style={{ paddingTop: '3rem', paddingBottom: '3rem', maxWidth: 600 }}>
+      <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
         <div style={{
           background: '#e8f5e9',
           borderRadius: 16,
@@ -84,13 +84,13 @@ export default function PanierPage({
             Retour à mon compte
           </Link>
         </div>
-      </main>
+      </div>
     )
   }
 
   if (items.length === 0) {
     return (
-      <main className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem', maxWidth: 600 }}>
+      <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
         <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
           <span>Accueil</span>
           <span aria-hidden>›</span>
@@ -116,12 +116,12 @@ export default function PanierPage({
         >
           Voir le catalogue
         </Link>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem', maxWidth: 720 }}>
+    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 720 }}>
       {/* Fil d'ariane */}
       <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
         <span>Accueil</span>
@@ -295,7 +295,7 @@ export default function PanierPage({
             : `Confirmer ${supplierCount > 1 ? `les ${supplierCount} commandes` : 'la commande'} — CHF ${globalTotal.toFixed(2)}`}
         </button>
       </div>
-    </main>
+    </div>
   )
 }
 

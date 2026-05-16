@@ -26,7 +26,7 @@ export default async function MonComptePage() {
   const [profile, orders] = await Promise.all([getProfile(), getMyOrders()])
 
   return (
-    <main className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem', maxWidth: 680 }}>
+    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 680 }}>
       {/* Fil d'ariane */}
       <nav aria-label="Fil d'ariane" style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem',
@@ -205,6 +205,6 @@ export default async function MonComptePage() {
       <div style={{ marginTop: '2rem' }}>
         <SignOutButton />
       </div>
-    </main>
+    </div>
   )
 }

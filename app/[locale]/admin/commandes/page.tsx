@@ -247,7 +247,7 @@ export default function AdminCommandesPage({
   // ── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem', maxWidth: 920 }}>
+    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem', maxWidth: 920 }}>
 
       {/* Fil d'ariane */}
       <nav aria-label="Fil d'ariane" style={{
@@ -612,7 +612,7 @@ export default function AdminCommandesPage({
           })}
         </div>
       )}
-    </main>
+    </div>
   )
 }
 

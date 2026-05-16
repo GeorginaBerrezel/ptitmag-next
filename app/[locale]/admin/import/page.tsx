@@ -50,7 +50,7 @@ export default function ImportPage({
   }
 
   return (
-    <main className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem', maxWidth: 680 }}>
+    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 680 }}>
 
       {/* Fil d'ariane */}
       <nav aria-label="Fil d'ariane" style={{
@@ -211,6 +211,6 @@ export default function ImportPage({
           )}
         </div>
       )}
-    </main>
+    </div>
   )
 }
