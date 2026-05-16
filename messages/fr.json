@@ -26,7 +26,7 @@
     "objective": "Objectif : faciliter une consommation locale et éthique, hors logique marchande, en favorisant circuits courts, transparence et entraide.",
     "block1_title": "Magasin associatif sans but lucratif permettant à ses membres de faire l’entier de leur approvisionnement en produits alimentaires et ménagers :",
     "block1_text": "Auprès de producteurs locaux → de grossistes bio → au prix revendeur, sans marge → dans une ambiance conviviale.",
-    "block2_text": "Commandez depuis chez vous et retirez vos achats dans notre local à St-Romain, dans un environnement chaleureux, autour d’un café ou d’une bière.",
+    "block2_text": "Commandez depuis chez vous et retirez vos achats dans notre local à St-Romain. On se retrouve, on discute, on joue aux cartes — un vrai moment de vie associative !",
     "block3_title": "Envie d’en savoir plus ?",
     "block3_text": "Rue de l’Église 2, St-Romain (mercredi 9h-12h, vendredi 9h-12h & 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
     "how_title": "Comment ça marche",
@@ -38,21 +38,21 @@
       },
       {
         "title": "Créez votre compte gratuitement",
-        "desc": "Inscription en 30 secondes. Vous bénéficiez de 3 mois d'essai complet — sans engagement, sans carte bancaire."
+        "desc": "Inscription en 30 secondes. Pendant 3 mois, vous commandez sans cotisation pour tester si ça vous convient. Aucun engagement, suppression possible à tout moment."
       },
       {
         "title": "Commandez en ligne",
-        "desc": "Connectez-vous, ajoutez vos produits au panier et validez votre commande groupée. Tout se passe sur le site."
+        "desc": "Connectez-vous, ajoutez vos produits au panier et validez. Vous recevez un email de confirmation et toutes les étapes sont visibles dans votre compte personnel."
       },
       {
         "title": "Retirez au local",
-        "desc": "Venez chercher vos achats à St-Romain (mer., ven., sam.) dans une ambiance conviviale — café ou bière offert·e !"
+        "desc": "Venez chercher vos achats à St-Romain (mer., ven., sam.). On se retrouve, on discute, on joue aux cartes — bien plus qu'un simple retrait !"
       }
     ],
-    "trial_title": "Essayez gratuitement — 3 mois, sans engagement",
-    "trial_text": "Créez votre compte, parcourez le catalogue en ligne, passez vos premières commandes groupées. Si ça ne vous convient pas : supprimez votre compte en un clic. Aucun risque.",
+    "trial_title": "Testez sans cotisation pendant 3 mois",
+    "trial_text": "Créez votre compte gratuitement, parcourez le catalogue et passez vos premières commandes. Si ça vous plaît, vous adhérez à l'association. Sinon, vous supprimez votre compte en un clic — sans frais, sans prise de tête.",
     "trial_cta": "Je crée mon compte →",
-    "trial_note": "✓ Gratuit  ·  ✓ Sans carte bancaire  ·  ✓ 3 mois d'essai  ·  ✓ Suppression possible à tout moment"
+    "trial_note": "✓ Inscription gratuite  ·  ✓ Pas de cotisation pendant 3 mois  ·  ✓ Adhésion libre ensuite"
   },
   "membership": {
     "title": "Adhésion",
@@ -99,7 +99,7 @@
       "communityText": "Créer du lien au village: échanges, entraide, moments conviviaux au local."
     },
     "cta_title": "Commencez dès maintenant",
-    "cta_text": "Inscrivez-vous gratuitement sur le site, parcourez le catalogue et passez vos premières commandes. 3 mois d'essai — suppression du compte possible à tout moment.",
+    "cta_text": "Créez votre compte gratuitement, parcourez le catalogue et passez vos premières commandes sans cotisation pendant 3 mois. Si ça vous convient, vous adhérez à l'association. Sinon, vous supprimez votre compte — aucune obligation.",
     "cta_button": "Créer mon compte →"
   },
   "producers": {

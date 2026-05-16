@@ -26,7 +26,7 @@
     "objective": "Goal: support ethical, local consumption outside a market-driven logic, focusing on short supply chains, transparency and mutual aid.",
     "block1_title": "A non-profit association shop enabling members to cover their food and household needs:",
     "block1_text": "From local producers → organic wholesalers → at reseller price, without margin → in a friendly atmosphere.",
-    "block2_text": "Order from home and pick up in our St-Romain (Ayent) space — with a coffee or a beer.",
+    "block2_text": "Order from home and pick up at our St-Romain location. We chat, play cards and share good moments — it's more than just a pick-up point!",
     "block3_title": "Want to know more?",
     "block3_text": "Rue de l’Église 2, St-Romain (Wed 9:00-12:00, Fri 9:00-12:00 & 16:30–18:30, Sat 09:00–12:00) | Call Joël: 078 866 42 43 | info@leptitmag.org",
     "how_title": "How it works",
@@ -38,21 +38,21 @@
       },
       {
         "title": "Sign up for free",
-        "desc": "Register in 30 seconds. You get a full 3-month trial — no commitment, no credit card required."
+        "desc": "Register in 30 seconds. For 3 months, you can order without paying a membership contribution to test whether it suits you. No commitment, delete your account anytime."
       },
       {
         "title": "Order online",
-        "desc": "Log in, add products to your cart and confirm your group order. Everything happens on the website."
+        "desc": "Log in, add products to your cart and confirm your order. You receive a confirmation email and every step is trackable in your personal account."
       },
       {
         "title": "Pick up at the store",
-        "desc": "Collect your purchases in St-Romain (Wed, Fri, Sat) in a friendly atmosphere — coffee or beer on us!"
+        "desc": "Come pick up your purchases in St-Romain (Wed, Fri, Sat). We chat, play cards and share good moments — much more than just a pick-up!"
       }
     ],
-    "trial_title": "Try it free — 3 months, no commitment",
-    "trial_text": "Create your account, browse the online catalogue, place your first group orders. If it's not for you: delete your account in one click. Zero risk.",
+    "trial_title": "Try it for 3 months — no membership fee",
+    "trial_text": "Create your account for free, browse the catalogue and place your first orders. If you like it, you join the association. If not, delete your account in one click — no cost, no hassle.",
     "trial_cta": "Create my account →",
-    "trial_note": "✓ Free  ·  ✓ No credit card  ·  ✓ 3-month trial  ·  ✓ Cancel anytime"
+    "trial_note": "✓ Free registration  ·  ✓ No membership fee for 3 months  ·  ✓ Join freely afterwards"
   },
   "membership": {
     "title": "Membership",
@@ -99,7 +99,7 @@
       "communityText": "Build local ties: help each other and enjoy a friendly atmosphere at the shop."
     },
     "cta_title": "Start right now",
-    "cta_text": "Sign up for free on the website, browse the catalogue and place your first orders. 3-month trial — delete your account anytime.",
+    "cta_text": "Create your account for free, browse the catalogue and place your first orders without a membership fee for 3 months. If it suits you, join the association. If not, delete your account — no obligation.",
     "cta_button": "Create my account →"
   },
   "producers": {
