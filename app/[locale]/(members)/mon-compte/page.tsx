@@ -40,8 +40,8 @@ export default async function MonComptePage() {
               <dd style={{ margin: 0, fontWeight: 500 }}>{profile?.full_name ?? '—'}</dd>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <dt style={{ opacity: 0.6, minWidth: 120 }}>E-mail</dt>
-              <dd style={{ margin: 0 }}>{profile?.email ?? '—'}</dd>
+              <dt style={{ opacity: 0.6, minWidth: 120, flexShrink: 0 }}>E-mail</dt>
+              <dd style={{ margin: 0, wordBreak: 'break-all' }}>{profile?.email ?? '—'}</dd>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <dt style={{ opacity: 0.6, minWidth: 120 }}>Statut</dt>
@@ -102,16 +102,17 @@ export default async function MonComptePage() {
                   }}>
                     {/* En-tête cliquable */}
                     <summary style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr auto auto',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
                       gap: '0.75rem',
-                      alignItems: 'center',
                       padding: '0.75rem 1rem',
                       cursor: 'pointer',
                       listStyle: 'none',
                       background: '#fafafa',
+                      flexWrap: 'wrap',
                     }}>
-                      <div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <span style={{ fontWeight: 600 }}>
                           {order.supplier?.name ?? 'Fournisseur inconnu'}
                         </span>
@@ -125,25 +126,27 @@ export default async function MonComptePage() {
                           })}
                         </span>
                       </div>
-                      <span style={{
-                        background: st.bg,
-                        color: st.color,
-                        borderRadius: 999,
-                        padding: '0.2rem 0.65rem',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {st.label}
-                      </span>
-                      <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
-                        CHF {order.total.toFixed(2)}
-                      </span>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+                        <span style={{
+                          background: st.bg,
+                          color: st.color,
+                          borderRadius: 999,
+                          padding: '0.2rem 0.65rem',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {st.label}
+                        </span>
+                        <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          CHF {order.total.toFixed(2)}
+                        </span>
+                      </div>
                     </summary>
 
                     {/* Détail des produits */}
-                    <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(16,24,40,0.06)' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                    <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(16,24,40,0.06)', overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', minWidth: 320 }}>
                         <thead>
                           <tr style={{ opacity: 0.5 }}>
                             <th style={{ textAlign: 'left', fontWeight: 500, paddingBottom: '0.4rem' }}>Produit</th>
