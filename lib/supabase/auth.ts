@@ -9,10 +9,19 @@ export async function getUser() {
   return user
 }
 
+export type Profile = {
+  id: string
+  email?: string | null
+  full_name?: string | null
+  username?: string | null
+  avatar_url?: string | null
+  status?: string | null
+}
+
 /**
  * Retourne le profil complet de l'utilisateur connecté.
  */
-export async function getProfile() {
+export async function getProfile(): Promise<Profile | null> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -20,11 +29,11 @@ export async function getProfile() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, email, full_name, username, avatar_url, status')
     .eq('id', user.id)
     .single()
 
-  return profile
+  return profile as Profile | null
 }
 
 export type OrderWithItems = {

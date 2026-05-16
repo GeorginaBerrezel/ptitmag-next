@@ -1,6 +1,7 @@
 import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import SignOutButton from './SignOutButton'
+import ProfileHeader from './ProfileHeader'
 
 const STATUS_LABELS: Record<string, string> = {
   trial: "Période d'essai (3 mois)",
@@ -27,9 +28,12 @@ export default async function MonComptePage() {
   return (
     <main className="container" style={{ paddingTop: '3rem', paddingBottom: '3rem', maxWidth: 680 }}>
       <h1 style={{ marginBottom: '0.25rem' }}>Mon compte</h1>
-      <p style={{ opacity: 0.7, marginBottom: '2rem' }}>Espace adhérent — Le p&apos;tit mag</p>
+      <p style={{ opacity: 0.7, marginBottom: '1.5rem' }}>Espace adhérent — Le p&apos;tit mag</p>
 
       <div style={{ display: 'grid', gap: '1.25rem' }}>
+
+        {/* Header profil — avatar + pseudo */}
+        <ProfileHeader profile={profile} />
 
         {/* Informations personnelles */}
         <div style={{ background: '#fff', border: '1px solid rgba(16,24,40,0.08)', borderRadius: 16, padding: '1.25rem' }}>
