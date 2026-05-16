@@ -28,11 +28,11 @@ export async function GET() {
     .from('orders')
     .select(`
       id, status, total, created_at,
-      member:profiles(full_name, email, username),
-      supplier:suppliers(name, type),
+      member:profiles!member_id(full_name, email, username),
+      supplier:suppliers!supplier_id(name, type),
       order_items(
         id, quantity, unit_price,
-        product:products(name, unit)
+        product:products!product_id(name, unit)
       )
     `)
     .order('created_at', { ascending: false })
