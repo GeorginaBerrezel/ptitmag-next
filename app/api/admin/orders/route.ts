@@ -28,27 +28,40 @@ export async function GET() {
 
   const admin = createAdminClient()
 
-  // ── Étape 1 : toutes les commandes avec fournisseur + lignes produits ──────
-  const { data: orders, error: ordersError } = await admin
-    .from('orders')
-    .select(`
+  // ── Étape 1 : toutes les commandes (pagination : PostgREST limite à 1000 lignes par défaut)
+  const PAGE = 1000
+  const selectPayload = `
       id, status, total, created_at, member_id,
       supplier:suppliers(name, type),
       order_items(
         id, quantity, unit_price,
         product:products(name, unit)
       )
-    `)
-    .order('created_at', { ascending: false })
+    `
 
-  if (ordersError) {
-    console.error('[admin/orders GET] Supabase error:', ordersError)
-    return NextResponse.json({ error: ordersError.message }, { status: 500 })
+  const orders: Record<string, unknown>[] = []
+  let from = 0
+  for (;;) {
+    const { data: batch, error: ordersError } = await admin
+      .from('orders')
+      .select(selectPayload)
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE - 1)
+
+    if (ordersError) {
+      console.error('[admin/orders GET] Supabase error:', ordersError)
+      return NextResponse.json({ error: ordersError.message }, { status: 500 })
+    }
+
+    const chunk = batch ?? []
+    orders.push(...chunk)
+    if (chunk.length < PAGE) break
+    from += PAGE
   }
 
   // ── Étape 2 : profils des membres concernés ───────────────────────────────
   const memberIds = [
-    ...new Set((orders ?? []).map((o: Record<string, unknown>) => o.member_id as string).filter(Boolean)),
+    ...new Set(orders.map((o: Record<string, unknown>) => o.member_id as string).filter(Boolean)),
   ]
 
   const profilesMap: Record<string, { full_name: string | null; email: string | null; username: string | null }> = {}
@@ -73,7 +86,7 @@ export async function GET() {
   }
 
   // ── Étape 3 : assembler et renvoyer ──────────────────────────────────────
-  const result = (orders ?? []).map((order: Record<string, unknown>) => ({
+  const result = orders.map((order: Record<string, unknown>) => ({
     id:          order.id,
     status:      order.status,
     total:       order.total,
