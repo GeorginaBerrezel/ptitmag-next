@@ -29,6 +29,13 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
   const [selectedType, setSelectedType] = useState<string>('tous')
   const [selectedSupplier, setSelectedSupplier] = useState<string>('tous')
   const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
+  /** Incrémenté périodiquement pour recalculer visibilité / deadlines sans recharger la page. */
+  const [deadlineTick, setDeadlineTick] = useState(0)
+
+  useEffect(() => {
+    const id = window.setInterval(() => setDeadlineTick(t => t + 1), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
 
   // Masquer tout un fournisseur si aucun de ses produits n'est encore commandable (souhait Joel)
   const visibleProducts = useMemo(() => {
@@ -37,7 +44,13 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
       const siblings = products.filter(x => x.supplier?.id === p.supplier!.id)
       return siblings.some(productOrderable)
     })
-  }, [products])
+  }, [products, deadlineTick])
+
+  /** Produits encore commandables — utilisé pour les totaux des filtres (pas les lignes « fermées »). */
+  const orderableVisible = useMemo(
+    () => visibleProducts.filter(productOrderable),
+    [visibleProducts],
+  )
 
   const hasFeatured = useMemo(() => visibleProducts.some(p => p.is_featured), [visibleProducts])
 
@@ -202,15 +215,15 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
             >
               ⏳ Éphémères
               <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
-                {visibleProducts.filter(p => p.is_featured).length}
+                {orderableVisible.filter(p => p.is_featured).length}
               </span>
             </button>
           )}
 
           {['tous', ...TYPE_ORDER].map(type => {
             const count = type === 'tous'
-              ? visibleProducts.length
-              : visibleProducts.filter(p => p.supplier?.type === type).length
+              ? orderableVisible.length
+              : orderableVisible.filter(p => p.supplier?.type === type).length
             if (type !== 'tous' && count === 0) return null
             return (
               <button
