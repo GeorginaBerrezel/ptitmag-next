@@ -16,7 +16,8 @@
     "next-intl": "^4.7.0",
     "nodemailer": "^7.0.10",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "latest",

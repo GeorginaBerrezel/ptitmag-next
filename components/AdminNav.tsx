@@ -7,7 +7,7 @@ import { Link } from '@/i18n/navigation'
 // Chaque lien peut avoir un badge optionnel avec sa propre couleur.
 // "exact" force une correspondance exacte de fin de chemin (ex: /admin seul).
 type NavLink = {
-  href: '/admin' | '/admin/commandes' | '/admin/membres' | '/admin/import'
+  href: '/admin' | '/admin/commandes' | '/admin/membres' | '/admin/import' | '/admin/fournisseurs'
   label: string
   exact: boolean
   badgeKey: 'confirmed' | 'trial' | null
@@ -15,10 +15,11 @@ type NavLink = {
 }
 
 const NAV_LINKS: NavLink[] = [
-  { href: '/admin',           label: 'Tableau de bord', exact: true,  badgeKey: null,        badgeColor: '' },
-  { href: '/admin/commandes', label: 'Commandes',        exact: false, badgeKey: 'confirmed', badgeColor: '#DC7F00' },
-  { href: '/admin/membres',   label: 'Membres',          exact: false, badgeKey: 'trial',     badgeColor: '#5c6bc0' },
-  { href: '/admin/import',    label: 'Import produits',  exact: false, badgeKey: null,        badgeColor: '' },
+  { href: '/admin',              label: 'Tableau de bord', exact: true,  badgeKey: null,        badgeColor: '' },
+  { href: '/admin/commandes',    label: 'Commandes',        exact: false, badgeKey: 'confirmed', badgeColor: '#DC7F00' },
+  { href: '/admin/membres',      label: 'Membres',          exact: false, badgeKey: 'trial',     badgeColor: '#5c6bc0' },
+  { href: '/admin/fournisseurs', label: 'Fournisseurs',     exact: false, badgeKey: null,        badgeColor: '' },
+  { href: '/admin/import',       label: 'Import produits',  exact: false, badgeKey: null,        badgeColor: '' },
 ]
 
 export default function AdminNav({

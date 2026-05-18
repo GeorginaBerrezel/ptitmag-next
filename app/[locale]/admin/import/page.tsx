@@ -5,7 +5,12 @@ import { use, useRef, useState } from 'react'
 type ImportResult = {
   success: boolean
   message: string
-  stats: { productsCreated: number; productsUpdated: number; errors: number }
+  stats: {
+    productsCreated: number
+    productsUpdated: number
+    errors: number
+    sheetResults?: Record<string, { count: number; supplierName: string }>
+  }
   errors: string[]
 }
 
@@ -20,6 +25,21 @@ type SupplierOption = {
 }
 
 const SUPPLIERS: SupplierOption[] = [
+  {
+    key: 'feuille_hebdo',
+    label: 'Feuille hebdomadaire',
+    type: 'local',
+    endpoint: '/api/admin/import-hebdo',
+    fileHint: 'Feuille de commande hebdomadaire_vX_JJ.MM.AAAA_TONNOM.xlsx',
+    acceptsXlsx: true,
+    fileInstructions: (
+      <>
+        <strong>Un seul fichier Excel</strong> pour importer tous les producteurs locaux de la semaine.<br />
+        Onglets importés : <strong>Bioterroir, Fermette à Didi, Graines d&apos;Avenir, Brasseries d&apos;Ayent, Vins bio et nature, Truffes</strong>.<br />
+        <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé via CSV ci-dessous).</span>
+      </>
+    ),
+  },
   {
     key: 'biopartner',
     label: 'Biopartner',
@@ -119,14 +139,18 @@ export default function ImportPage({
   use(params)
 
   const fileRef = useRef<HTMLInputElement>(null)
-  const [selectedKey, setSelectedKey] = useState<string>('biopartner')
+  const [selectedKey, setSelectedKey] = useState<string>('feuille_hebdo')
   const [file, setFile] = useState<File | null>(null)
   const [dateLimite, setDateLimite] = useState('')
+  // Délais spécifiques à la feuille hebdomadaire (deux groupes)
+  const [dateLimiteMercredi, setDateLimiteMercredi] = useState('')
+  const [dateLimiteJeudi, setDateLimiteJeudi] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const supplier = SUPPLIERS.find(s => s.key === selectedKey)!
+  const isHebdo = selectedKey === 'feuille_hebdo'
 
   function handleSupplierChange(key: string) {
     setSelectedKey(key)
@@ -134,6 +158,8 @@ export default function ImportPage({
     setResult(null)
     setError(null)
     setDateLimite('')
+    setDateLimiteMercredi('')
+    setDateLimiteJeudi('')
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -145,9 +171,17 @@ export default function ImportPage({
 
     const formData = new FormData()
     formData.append('file', file)
-    if (dateLimite) formData.append('date_limite_commande', dateLimite)
+
+    if (isHebdo) {
+      // Feuille hebdo : deux délais distincts selon le fournisseur
+      if (dateLimiteMercredi) formData.append('date_limite_mercredi', dateLimiteMercredi)
+      if (dateLimiteJeudi)    formData.append('date_limite_jeudi',    dateLimiteJeudi)
+    } else {
+      if (dateLimite) formData.append('date_limite_commande', dateLimite)
+    }
+
     // Pour la route unifiée, on passe la clé fournisseur
-    if (supplier.endpoint !== '/api/admin/import-biopartner') {
+    if (supplier.endpoint !== '/api/admin/import-biopartner' && !isHebdo) {
       formData.append('supplier', supplier.key)
     }
 
@@ -191,7 +225,7 @@ export default function ImportPage({
         <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
           Fournisseur
         </label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.5rem' }}>
           {SUPPLIERS.map(s => {
             const b = TYPE_BADGE[s.type]
             const active = s.key === selectedKey
@@ -245,29 +279,79 @@ export default function ImportPage({
         {supplier.fileInstructions}
       </div>
 
-      {/* Date limite */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          Date limite de commande
-        </label>
-        <input
-          type="datetime-local"
-          value={dateLimite}
-          onChange={e => setDateLimite(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '0.65rem 0.9rem',
-            border: '1.5px solid rgba(16,24,40,0.15)',
-            borderRadius: 8,
-            fontSize: '0.95rem',
-            fontFamily: 'inherit',
-            boxSizing: 'border-box',
-          }}
-        />
-        <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', opacity: 0.5 }}>
-          Exemple : jeudi 21 mai 12h00 → <code>2026-05-21T12:00</code>
-        </p>
-      </div>
+      {/* Dates limites */}
+      {isHebdo ? (
+        /* Feuille hebdo : deux délais distincts */
+        <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{
+            background: '#fff8e6', border: '1px solid #ffe082',
+            borderRadius: 10, padding: '0.75rem 1rem',
+            fontSize: '0.82rem', color: '#7a5500', lineHeight: 1.6,
+          }}>
+            <strong>Deux délais différents</strong> selon le fournisseur :<br />
+            <span style={{ opacity: 0.8 }}>• Mercredi → Graines d&apos;Avenir + Truffes</span><br />
+            <span style={{ opacity: 0.8 }}>• Jeudi → Bioterroir, Fermette à Didi, Brasseries d&apos;Ayent, Vins</span>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '0.4rem' }}>
+              Délai mercredi <span style={{ opacity: 0.55, fontWeight: 400 }}>(Graines d&apos;Avenir + Truffes)</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={dateLimiteMercredi}
+              onChange={e => setDateLimiteMercredi(e.target.value)}
+              style={{
+                width: '100%', padding: '0.65rem 0.9rem',
+                border: '1.5px solid rgba(16,24,40,0.15)', borderRadius: 8,
+                fontSize: '0.95rem', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ margin: '0.25rem 0 0', fontSize: '0.73rem', opacity: 0.45 }}>
+              Ex : mercredi 20 mai 18h30 → <code>2026-05-20T18:30</code>
+            </p>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '0.4rem' }}>
+              Délai jeudi <span style={{ opacity: 0.55, fontWeight: 400 }}>(tous les autres fournisseurs)</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={dateLimiteJeudi}
+              onChange={e => setDateLimiteJeudi(e.target.value)}
+              style={{
+                width: '100%', padding: '0.65rem 0.9rem',
+                border: '1.5px solid rgba(16,24,40,0.15)', borderRadius: 8,
+                fontSize: '0.95rem', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ margin: '0.25rem 0 0', fontSize: '0.73rem', opacity: 0.45 }}>
+              Ex : jeudi 21 mai 12h00 → <code>2026-05-21T12:00</code>
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Fournisseur unique : un seul délai */
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+            Date limite de commande
+          </label>
+          <input
+            type="datetime-local"
+            value={dateLimite}
+            onChange={e => setDateLimite(e.target.value)}
+            style={{
+              width: '100%', padding: '0.65rem 0.9rem',
+              border: '1.5px solid rgba(16,24,40,0.15)', borderRadius: 8,
+              fontSize: '0.95rem', fontFamily: 'inherit', boxSizing: 'border-box',
+            }}
+          />
+          <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', opacity: 0.5 }}>
+            Exemple : jeudi 21 mai 12h00 → <code>2026-05-21T12:00</code>
+          </p>
+        </div>
+      )}
 
       {/* Zone de dépôt */}
       <div
@@ -293,13 +377,15 @@ export default function ImportPage({
           </p>
         ) : (
           <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', opacity: 0.45 }}>
-            Format CSV
+            Format {supplier.acceptsXlsx ? 'Excel (.xlsx)' : 'CSV'}
           </p>
         )}
         <input
           ref={fileRef}
           type="file"
-          accept=".csv,text/csv"
+          accept={supplier.acceptsXlsx
+            ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : '.csv,text/csv'}
           style={{ display: 'none' }}
           onChange={e => {
             setFile(e.target.files?.[0] ?? null)
@@ -352,7 +438,7 @@ export default function ImportPage({
           <p style={{ margin: '0 0 1rem', fontWeight: 700, fontSize: '0.95rem' }}>
             {result.stats.errors === 0 ? '✓ ' : '⚠ '}{result.message}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0.75rem', marginBottom: result.errors.length > 0 ? '1rem' : 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0.75rem', marginBottom: (result.stats.sheetResults || result.errors.length > 0) ? '1rem' : 0 }}>
             {[
               { label: 'Produits créés', value: result.stats.productsCreated, color: '#2e7d32' },
               { label: 'Mis à jour', value: result.stats.productsUpdated, color: '#DC7F00' },
@@ -368,6 +454,26 @@ export default function ImportPage({
               </div>
             ))}
           </div>
+          {result.stats.sheetResults && Object.keys(result.stats.sheetResults).length > 0 && (
+            <div style={{ marginBottom: result.errors.length > 0 ? '1rem' : 0 }}>
+              <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.83rem', opacity: 0.8 }}>
+                Détail par fournisseur :
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {Object.entries(result.stats.sheetResults).map(([sheet, info]) => (
+                  <div key={sheet} style={{
+                    display: 'flex', justifyContent: 'space-between',
+                    fontSize: '0.8rem', padding: '0.3rem 0.6rem',
+                    background: '#fff', borderRadius: 6,
+                    border: '1px solid rgba(16,24,40,0.07)',
+                  }}>
+                    <span style={{ fontWeight: 600 }}>{info.supplierName}</span>
+                    <span style={{ opacity: 0.6 }}>{info.count} produit{info.count > 1 ? 's' : ''}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {result.errors.length > 0 && (
             <div style={{ marginTop: '0.75rem' }}>
               <p style={{ margin: '0 0 0.4rem', fontWeight: 600, fontSize: '0.83rem', opacity: 0.8 }}>
