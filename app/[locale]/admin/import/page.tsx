@@ -58,19 +58,6 @@ const SUPPLIERS: SupplierOption[] = [
     ),
   },
   {
-    key: 'bioterroir',
-    label: 'Bioterroir',
-    type: 'local',
-    endpoint: '/api/admin/import-supplier',
-    fileHint: 'Feuil2-Table 1.csv (fichier avec les codes articles)',
-    fileInstructions: (
-      <>
-        Utiliser le fichier <strong>«&nbsp;Feuil2-Table 1.csv&nbsp;»</strong> (pas Feuil1).<br />
-        Ce fichier contient les codes articles Bioterroir, les noms, unités et prix HT (TVA 2.6% non comprise).
-      </>
-    ),
-  },
-  {
     key: 'cave_levain',
     label: 'Cave à levain',
     type: 'local',
@@ -175,7 +162,7 @@ export default function ImportPage({
     if (isHebdo) {
       // Feuille hebdo : deux délais distincts selon le fournisseur
       if (dateLimiteMercredi) formData.append('date_limite_mercredi', dateLimiteMercredi)
-      if (dateLimiteJeudi)    formData.append('date_limite_jeudi',    dateLimiteJeudi)
+      if (dateLimiteJeudi) formData.append('date_limite_jeudi', dateLimiteJeudi)
     } else {
       if (dateLimite) formData.append('date_limite_commande', dateLimite)
     }

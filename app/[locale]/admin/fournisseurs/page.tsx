@@ -4,6 +4,16 @@ import { use, useCallback, useEffect, useState } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type Product = {
+  id: string
+  name: string
+  unit: string
+  unit_price: number | null
+  category: string | null
+  is_featured: boolean
+  active: boolean
+}
+
 type Supplier = {
   id: string
   name: string
@@ -16,127 +26,206 @@ type Supplier = {
 // ─── Constantes d'affichage ───────────────────────────────────────────────────
 
 const TYPE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
-  local:         { label: 'Local',        bg: '#e8f5e9', color: '#2e7d32' },
-  grossiste_bio: { label: 'Grossiste bio', bg: '#e3f2fd', color: '#1565c0' },
-  autre:         { label: 'Autre',         bg: '#f3e5f5', color: '#6a1b9a' },
+  local:         { label: 'Local',         bg: '#e8f5e9', color: '#2e7d32' },
+  grossiste_bio: { label: 'Grossiste bio',  bg: '#e3f2fd', color: '#1565c0' },
+  autre:         { label: 'Autre',          bg: '#f3e5f5', color: '#6a1b9a' },
 }
 
 function formatDate(iso: string | null): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('fr-CH', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  })
+  return new Date(iso).toLocaleDateString('fr-CH', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-// ─── Composant toggle ─────────────────────────────────────────────────────────
+function formatPrice(p: number | null): string {
+  if (p == null) return '—'
+  return p.toFixed(2) + ' CHF'
+}
 
-function ToggleSwitch({
-  active,
-  loading,
-  onChange,
-}: {
-  active: boolean
-  loading: boolean
-  onChange: () => void
+// ─── Composant toggle switch ──────────────────────────────────────────────────
+
+function ToggleSwitch({ active, loading, onChange, small }: {
+  active: boolean; loading: boolean; onChange: () => void; small?: boolean
 }) {
+  const w = small ? 36 : 44
+  const h = small ? 20 : 24
+  const d = small ? 16 : 20
   return (
-    <button
-      onClick={onChange}
-      disabled={loading}
-      title={active ? 'Désactiver ce fournisseur' : 'Activer ce fournisseur'}
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        width: 44,
-        height: 24,
-        borderRadius: 999,
-        background: loading ? '#ccc' : active ? '#2e7d32' : '#d1d5db',
-        border: 'none',
-        cursor: loading ? 'not-allowed' : 'pointer',
-        padding: 0,
-        transition: 'background 0.2s',
-        flexShrink: 0,
-      }}
-    >
+    <button onClick={onChange} disabled={loading} title={active ? 'Désactiver' : 'Activer'} style={{
+      position: 'relative', display: 'inline-flex', alignItems: 'center',
+      width: w, height: h, borderRadius: 999,
+      background: loading ? '#ccc' : active ? '#2e7d32' : '#d1d5db',
+      border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+      padding: 0, transition: 'background 0.2s', flexShrink: 0,
+    }}>
       <span style={{
-        position: 'absolute',
-        left: active ? 22 : 2,
-        width: 20,
-        height: 20,
-        borderRadius: '50%',
-        background: '#fff',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-        transition: 'left 0.2s',
+        position: 'absolute', left: active ? w - d - 2 : 2,
+        width: d, height: d, borderRadius: '50%', background: '#fff',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left 0.2s',
       }} />
     </button>
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Panneau produits d'un fournisseur ────────────────────────────────────────
 
-export default function FournisseursPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
+function ProductPanel({ supplierId, onClose }: { supplierId: string; onClose: () => void }) {
+  const [products, setProducts]     = useState<Product[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch(`/api/admin/products?supplier_id=${supplierId}`)
+      .then(r => r.json())
+      .then(d => setProducts(d.products ?? []))
+      .finally(() => setLoading(false))
+  }, [supplierId])
+
+  async function handleToggleFeatured(p: Product) {
+    setTogglingId(p.id)
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: p.id, is_featured: !p.is_featured }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error)
+      setProducts(prev => prev.map(x => x.id === p.id ? { ...x, is_featured: !x.is_featured } : x))
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
+  const featured = products.filter(p => p.is_featured)
+  const regular  = products.filter(p => !p.is_featured)
+
+  return (
+    <div style={{
+      borderTop: '1px solid rgba(16,24,40,0.08)',
+      marginTop: '0.75rem', paddingTop: '0.75rem',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 700, opacity: 0.6 }}>
+          Produits {!loading && `(${products.length})`}
+        </span>
+        <button onClick={onClose} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: '0.78rem', opacity: 0.45, padding: '0.2rem 0.4rem',
+        }}>Réduire ▲</button>
+      </div>
+
+      {loading && <p style={{ fontSize: '0.8rem', opacity: 0.45, margin: 0 }}>Chargement…</p>}
+
+      {!loading && products.length === 0 && (
+        <p style={{ fontSize: '0.8rem', opacity: 0.45, margin: 0 }}>Aucun produit.</p>
+      )}
+
+      {!loading && products.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: 320, overflowY: 'auto' }}>
+          {[...featured, ...regular].map(p => (
+            <div key={p.id} style={{
+              display: 'flex', alignItems: 'center', gap: '0.6rem',
+              padding: '0.35rem 0.6rem', borderRadius: 7,
+              background: p.is_featured ? '#fffbf0' : 'transparent',
+              border: `1px solid ${p.is_featured ? '#ffe082' : 'transparent'}`,
+              fontSize: '0.8rem',
+            }}>
+              {/* Bouton étoile is_featured */}
+              <button
+                onClick={() => handleToggleFeatured(p)}
+                disabled={togglingId === p.id}
+                title={p.is_featured ? 'Retirer de la mise en avant' : 'Mettre en avant sur la page d\'accueil'}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '1rem', lineHeight: 1, padding: 0, flexShrink: 0,
+                  opacity: togglingId === p.id ? 0.4 : 1,
+                }}
+              >
+                {p.is_featured ? '★' : '☆'}
+              </button>
+              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {p.name}
+              </span>
+              <span style={{ opacity: 0.45, whiteSpace: 'nowrap' }}>{p.unit}</span>
+              <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{formatPrice(p.unit_price)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && featured.length > 0 && (
+        <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', opacity: 0.5 }}>
+          ★ = affiché en avant sur la page d'accueil ({featured.length} produit{featured.length > 1 ? 's' : ''})
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ─── Page principale ──────────────────────────────────────────────────────────
+
+export default function FournisseursPage({ params }: { params: Promise<{ locale: string }> }) {
   use(params)
 
-  const [suppliers, setSuppliers] = useState<Supplier[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [toggling, setToggling] = useState<string | null>(null)
+  const [suppliers, setSuppliers]       = useState<Supplier[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [error, setError]               = useState<string | null>(null)
+  const [toggling, setToggling]         = useState<string | null>(null)
+  const [deleting, setDeleting]         = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [expanded, setExpanded]         = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
       const res = await fetch('/api/admin/suppliers')
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erreur serveur')
-      const data = await res.json()
-      setSuppliers(data.suppliers)
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setLoading(false)
-    }
+      setSuppliers((await res.json()).suppliers)
+    } catch (e) { setError((e as Error).message) }
+    finally { setLoading(false) }
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  async function handleToggle(supplier: Supplier) {
-    setToggling(supplier.id)
+  async function handleToggleActive(s: Supplier) {
+    setToggling(s.id)
     try {
       const res = await fetch('/api/admin/suppliers', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: supplier.id, active: !supplier.active }),
+        body: JSON.stringify({ id: s.id, active: !s.active }),
       })
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Erreur')
-      setSuppliers(prev =>
-        prev.map(s => s.id === supplier.id ? { ...s, active: !s.active } : s)
-      )
-    } catch (e) {
-      alert((e as Error).message)
-    } finally {
-      setToggling(null)
-    }
+      if (!res.ok) throw new Error((await res.json()).error)
+      setSuppliers(prev => prev.map(x => x.id === s.id ? { ...x, active: !x.active } : x))
+    } catch (e) { alert((e as Error).message) }
+    finally { setToggling(null) }
+  }
+
+  async function handleDelete(id: string) {
+    setDeleting(id); setConfirmDelete(null)
+    try {
+      const res = await fetch(`/api/admin/suppliers?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error((await res.json()).error)
+      setSuppliers(prev => prev.filter(x => x.id !== id))
+      if (expanded === id) setExpanded(null)
+    } catch (e) { alert((e as Error).message) }
+    finally { setDeleting(null) }
   }
 
   const activeCount   = suppliers.filter(s => s.active).length
   const inactiveCount = suppliers.filter(s => !s.active).length
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 760 }}>
+    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 780 }}>
 
       {/* Fil d'ariane */}
       <nav aria-label="Fil d'ariane" style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', marginBottom: '1.5rem',
-        color: 'rgba(16,24,40,0.4)',
+        fontSize: '0.8rem', marginBottom: '1.5rem', color: 'rgba(16,24,40,0.4)',
       }}>
-        <span>Admin</span>
-        <span aria-hidden>›</span>
+        <span>Admin</span><span aria-hidden>›</span>
         <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Fournisseurs</span>
       </nav>
 
@@ -145,24 +234,16 @@ export default function FournisseursPage({
         <div>
           <h1 style={{ marginBottom: '0.25rem' }}>Fournisseurs</h1>
           <p style={{ opacity: 0.55, fontSize: '0.9rem', margin: 0 }}>
-            Gérez la visibilité des fournisseurs dans le catalogue.
+            Gérez la visibilité des fournisseurs et les produits mis en avant.
           </p>
         </div>
         {!loading && (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <span style={{
-              background: '#e8f5e9', color: '#2e7d32',
-              padding: '0.3rem 0.8rem', borderRadius: 999,
-              fontSize: '0.8rem', fontWeight: 700,
-            }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '0.3rem 0.8rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 700 }}>
               {activeCount} actif{activeCount > 1 ? 's' : ''}
             </span>
             {inactiveCount > 0 && (
-              <span style={{
-                background: '#f5f5f5', color: '#888',
-                padding: '0.3rem 0.8rem', borderRadius: 999,
-                fontSize: '0.8rem', fontWeight: 700,
-              }}>
+              <span style={{ background: '#f5f5f5', color: '#888', padding: '0.3rem 0.8rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 700 }}>
                 {inactiveCount} inactif{inactiveCount > 1 ? 's' : ''}
               </span>
             )}
@@ -170,110 +251,125 @@ export default function FournisseursPage({
         )}
       </div>
 
-      {/* Chargement */}
-      {loading && (
-        <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>
-          Chargement…
-        </div>
-      )}
+      {loading && <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>Chargement…</div>}
 
-      {/* Erreur */}
       {error && (
-        <div style={{
-          background: '#fdf2f2', border: '1px solid #f5c6c6',
-          borderRadius: 10, padding: '1rem 1.25rem', color: '#c0392b',
-          marginBottom: '1.5rem',
-        }}>
+        <div style={{ background: '#fdf2f2', border: '1px solid #f5c6c6', borderRadius: 10, padding: '1rem 1.25rem', color: '#c0392b', marginBottom: '1.5rem' }}>
           {error}
         </div>
       )}
 
-      {/* Tableau */}
       {!loading && !error && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
-          {/* Note informative */}
-          <div style={{
-            background: '#f0f9f4', borderRadius: 10, padding: '0.75rem 1rem',
-            fontSize: '0.82rem', color: '#2d6a4f', border: '1px solid #c3e6cb',
-            marginBottom: '0.75rem', lineHeight: 1.6,
-          }}>
-            Un fournisseur <strong>inactif</strong> n'apparaît plus dans le catalogue des membres.
-            Ses produits sont conservés et réapparaissent lors de la réactivation.
+          {/* Note */}
+          <div style={{ background: '#f0f9f4', borderRadius: 10, padding: '0.75rem 1rem', fontSize: '0.82rem', color: '#2d6a4f', border: '1px solid #c3e6cb', marginBottom: '0.25rem', lineHeight: 1.6 }}>
+            <strong>Inactif</strong> → masqué du catalogue (produits conservés).{' '}
+            <strong>★ Mise en avant</strong> → produit affiché en haut de la page d'accueil.
           </div>
 
           {suppliers.map(s => {
-            const badge = TYPE_BADGE[s.type] ?? TYPE_BADGE.autre
-            const isToggling = toggling === s.id
-            return (
-              <div
-                key={s.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  padding: '1rem 1.25rem',
-                  background: s.active ? '#fff' : '#fafafa',
-                  border: `1px solid ${s.active ? 'rgba(16,24,40,0.1)' : 'rgba(16,24,40,0.06)'}`,
-                  borderRadius: 12,
-                  transition: 'all 0.2s',
-                  opacity: s.active ? 1 : 0.6,
-                }}
-              >
-                {/* Toggle */}
-                <ToggleSwitch
-                  active={s.active}
-                  loading={isToggling}
-                  onChange={() => handleToggle(s)}
-                />
+            const badge       = TYPE_BADGE[s.type] ?? TYPE_BADGE.autre
+            const isToggling  = toggling === s.id
+            const isDeleting  = deleting === s.id
+            const isExpanded  = expanded === s.id
+            const isConfirm   = confirmDelete === s.id
 
-                {/* Infos fournisseur */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{s.name}</span>
-                    <span style={{
-                      fontSize: '0.68rem', fontWeight: 700,
-                      padding: '0.1rem 0.5rem', borderRadius: 999,
-                      background: badge.bg, color: badge.color,
-                    }}>
-                      {badge.label}
-                    </span>
-                    {!s.active && (
-                      <span style={{
-                        fontSize: '0.68rem', fontWeight: 700,
-                        padding: '0.1rem 0.5rem', borderRadius: 999,
-                        background: '#f5f5f5', color: '#999',
-                      }}>
-                        Inactif
+            return (
+              <div key={s.id} style={{
+                padding: '1rem 1.25rem',
+                background: s.active ? '#fff' : '#fafafa',
+                border: `1px solid ${s.active ? 'rgba(16,24,40,0.1)' : 'rgba(16,24,40,0.06)'}`,
+                borderRadius: 12,
+                opacity: s.active ? 1 : 0.65,
+                transition: 'all 0.2s',
+              }}>
+                {/* Ligne principale */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+
+                  {/* Toggle actif */}
+                  <ToggleSwitch active={s.active} loading={isToggling} onChange={() => handleToggleActive(s)} />
+
+                  {/* Infos */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{s.name}</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: 999, background: badge.bg, color: badge.color }}>
+                        {badge.label}
                       </span>
-                    )}
+                      {!s.active && (
+                        <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: 999, background: '#f5f5f5', color: '#999' }}>
+                          Inactif
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', opacity: 0.5, marginTop: '0.15rem', display: 'flex', gap: '0.9rem', flexWrap: 'wrap' }}>
+                      <span>{s.productCount} produit{s.productCount > 1 ? 's' : ''}</span>
+                      <span>Délai : {formatDate(s.lastDeadline)}</span>
+                    </div>
                   </div>
-                  <div style={{
-                    fontSize: '0.79rem', opacity: 0.5, marginTop: '0.2rem',
-                    display: 'flex', gap: '1rem', flexWrap: 'wrap',
-                  }}>
-                    <span>{s.productCount} produit{s.productCount > 1 ? 's' : ''} actif{s.productCount > 1 ? 's' : ''}</span>
-                    <span>Dernière commande : {formatDate(s.lastDeadline)}</span>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+
+                    {/* Voir produits */}
+                    <button
+                      onClick={() => setExpanded(isExpanded ? null : s.id)}
+                      style={{
+                        background: isExpanded ? '#f0f0f0' : 'transparent',
+                        border: '1px solid rgba(16,24,40,0.12)',
+                        borderRadius: 7, padding: '0.3rem 0.7rem',
+                        fontSize: '0.78rem', cursor: 'pointer', color: '#444',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {isExpanded ? 'Masquer ▲' : `Produits ▾`}
+                    </button>
+
+                    {/* Supprimer */}
+                    {!isConfirm ? (
+                      <button
+                        onClick={() => setConfirmDelete(s.id)}
+                        disabled={isDeleting}
+                        title="Supprimer ce fournisseur et tous ses produits"
+                        style={{
+                          background: 'transparent', border: '1px solid rgba(192,57,43,0.25)',
+                          borderRadius: 7, padding: '0.3rem 0.6rem',
+                          fontSize: '0.78rem', cursor: 'pointer', color: '#c0392b',
+                        }}
+                      >
+                        {isDeleting ? '…' : '🗑'}
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.73rem', color: '#c0392b', fontWeight: 600 }}>Confirmer ?</span>
+                        <button
+                          onClick={() => handleDelete(s.id)}
+                          style={{ background: '#c0392b', color: '#fff', border: 'none', borderRadius: 6, padding: '0.25rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 700 }}
+                        >
+                          Oui
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(null)}
+                          style={{ background: '#eee', border: 'none', borderRadius: 6, padding: '0.25rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                        >
+                          Non
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Statut textuel */}
-                <span style={{
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: s.active ? '#2e7d32' : '#999',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {isToggling ? '…' : s.active ? 'Visible' : 'Masqué'}
-                </span>
+                {/* Panneau produits (expandable) */}
+                {isExpanded && (
+                  <ProductPanel supplierId={s.id} onClose={() => setExpanded(null)} />
+                )}
               </div>
             )
           })}
 
           {suppliers.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.45 }}>
-              Aucun fournisseur trouvé.
-            </div>
+            <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.45 }}>Aucun fournisseur trouvé.</div>
           )}
         </div>
       )}

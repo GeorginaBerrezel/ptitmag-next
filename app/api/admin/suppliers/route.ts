@@ -91,3 +91,34 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ success: true })
 }
+
+// ─── DELETE — supprimer un fournisseur et tous ses produits ──────────────────
+
+export async function DELETE(request: NextRequest) {
+  const user = await getAdminUser()
+  if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'Paramètre id manquant.' }, { status: 400 })
+
+  const admin = createAdminClient()
+
+  // Supprimer d'abord les produits (contrainte FK)
+  const { error: pErr } = await admin
+    .from('products')
+    .delete()
+    .eq('supplier_id', id)
+
+  if (pErr) return NextResponse.json({ error: `Impossible de supprimer les produits : ${pErr.message}` }, { status: 500 })
+
+  // Puis supprimer le fournisseur
+  const { error: sErr } = await admin
+    .from('suppliers')
+    .delete()
+    .eq('id', id)
+
+  if (sErr) return NextResponse.json({ error: `Impossible de supprimer le fournisseur : ${sErr.message}` }, { status: 500 })
+
+  return NextResponse.json({ success: true })
+}
