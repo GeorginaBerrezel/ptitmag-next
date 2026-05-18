@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useCart } from '@/lib/cart/CartContext'
+import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { Link } from '@/i18n/navigation'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -159,7 +159,7 @@ export default function PanierPage({
       {/* Sections par fournisseur */}
       <div style={{ display: 'grid', gap: '1.5rem', marginBottom: '2rem' }}>
         {Object.entries(bySupplier).map(([supplierId, supplierItems]) => {
-          const supplierTotal = supplierItems.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+          const supplierTotal = supplierItems.reduce((sum, i) => sum + i.quantity * getEffectiveUnitPrice(i), 0)
           const { supplierName, supplierType } = supplierItems[0]
 
           return (
@@ -190,59 +190,94 @@ export default function PanierPage({
 
               {/* Lignes produits */}
               <div style={{ padding: '0.5rem 0' }}>
-                {supplierItems.map(item => (
-                  <div key={item.productId} style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr auto auto auto',
-                    gap: '0.75rem',
-                    alignItems: 'center',
-                    padding: '0.6rem 1.25rem',
-                    borderBottom: '1px solid rgba(16,24,40,0.05)',
-                  }}>
-                    <span style={{ fontWeight: 500 }}>{item.productName}</span>
+                {supplierItems.map(item => {
+                  const minAllowed = item.allowsPartialOrder ? 1 : item.minQuantity
+                  const hasSurcharge = item.allowsPartialOrder && item.quantity < item.minQuantity
+                  const effectivePrice = getEffectiveUnitPrice(item)
+                  const lineTotal = item.quantity * effectivePrice
 
-                    {/* Quantité */}
-                    <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        min={item.minQuantity}
-                        step={item.minQuantity}
-                        onChange={e => updateQuantity(item.productId, Math.max(item.minQuantity, Number(e.target.value)))}
+                  return (
+                    <div key={item.productId} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto auto auto',
+                      gap: '0.75rem',
+                      alignItems: 'center',
+                      padding: '0.6rem 1.25rem',
+                      borderBottom: '1px solid rgba(16,24,40,0.05)',
+                    }}>
+                      {/* Nom + numéro article */}
+                      <div>
+                        <span style={{ fontWeight: 500 }}>{item.productName}</span>
+                        {item.supplierRef && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
+                            Réf. {item.supplierRef}
+                          </span>
+                        )}
+                        {hasSurcharge && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: '#DC7F00', fontWeight: 600 }}>
+                            +10% majoration (qté &lt; {item.minQuantity})
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Contrôles quantité */}
+                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        <button
+                          onClick={() => updateQuantity(item.productId, Math.max(minAllowed, item.quantity - 1))}
+                          disabled={item.quantity <= minAllowed}
+                          aria-label="Diminuer"
+                          style={{
+                            width: 28, height: 28,
+                            border: '1px solid rgba(16,24,40,0.15)',
+                            borderRadius: 6,
+                            background: item.quantity <= minAllowed ? '#f5f5f5' : '#fff',
+                            color: item.quantity <= minAllowed ? '#bbb' : '#1a1a2e',
+                            cursor: item.quantity <= minAllowed ? 'not-allowed' : 'pointer',
+                            fontSize: '1rem', fontWeight: 700,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: 0, flexShrink: 0,
+                          }}
+                        >−</button>
+                        <span style={{ minWidth: 32, textAlign: 'center', fontWeight: 700, fontSize: '0.9rem' }}>
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          aria-label="Augmenter"
+                          style={{
+                            width: 28, height: 28,
+                            border: '1px solid rgba(16,24,40,0.15)',
+                            borderRadius: 6, background: '#fff', color: '#1a1a2e',
+                            cursor: 'pointer', fontSize: '1rem', fontWeight: 700,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: 0, flexShrink: 0,
+                          }}
+                        >+</button>
+                        <span style={{ fontSize: '0.78rem', opacity: 0.5, marginLeft: '0.1rem' }}>{item.unit}</span>
+                      </div>
+
+                      {/* Sous-total ligne */}
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontWeight: 600, minWidth: 80, display: 'block' }}>
+                          CHF {lineTotal.toFixed(2)}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>
+                          {effectivePrice.toFixed(2)}/{item.unit}
+                        </span>
+                      </div>
+
+                      {/* Supprimer */}
+                      <button
+                        onClick={() => removeItem(item.productId)}
                         style={{
-                          width: 60,
-                          padding: '0.25rem 0.4rem',
-                          border: '1px solid rgba(16,24,40,0.15)',
-                          borderRadius: 6,
-                          textAlign: 'center',
-                          fontSize: '0.9rem',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          color: '#c0392b', fontSize: '1.1rem', padding: '0.2rem',
                         }}
-                      />
-                      <span style={{ fontSize: '0.8rem', opacity: 0.55 }}>{item.unit}</span>
+                        aria-label={`Supprimer ${item.productName}`}
+                      >×</button>
                     </div>
-
-                    {/* Sous-total ligne */}
-                    <span style={{ fontWeight: 600, minWidth: 80, textAlign: 'right' }}>
-                      CHF {(item.quantity * item.unitPrice).toFixed(2)}
-                    </span>
-
-                    {/* Supprimer */}
-                    <button
-                      onClick={() => removeItem(item.productId)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#c0392b',
-                        fontSize: '1.1rem',
-                        padding: '0.2rem',
-                      }}
-                      aria-label={`Supprimer ${item.productName}`}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                  )
+                })}
 
                 {/* Sous-total fournisseur */}
                 <div style={{

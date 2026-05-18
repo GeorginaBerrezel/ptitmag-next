@@ -14,9 +14,15 @@ export type Product = {
   category: string | null
   unit: string
   unit_price: number | null
+  // Quantité minimum de commande sans majoration (colonne UC Biopartner)
   min_quantity: number
+  // true = on peut commander moins que min_quantity avec +10% (colonne UM=1 Biopartner)
+  // false = minimum strict, impossible de descendre en-dessous
+  allows_partial_order: boolean
   order_deadline: string | null
   is_featured: boolean
+  // Référence article fournisseur (ex : numéro article Biopartner)
+  supplier_ref: string | null
   supplier: Supplier | null
 }
 
@@ -30,7 +36,8 @@ export async function getProducts(): Promise<Product[]> {
     .from('products')
     .select(`
       id, name, description, category,
-      unit, unit_price, min_quantity, order_deadline, is_featured,
+      unit, unit_price, min_quantity, allows_partial_order,
+      order_deadline, is_featured, supplier_ref,
       supplier:suppliers(id, name, website, type)
     `)
     .eq('active', true)

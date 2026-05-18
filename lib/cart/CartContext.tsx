@@ -5,13 +5,26 @@ import { createContext, useContext, useEffect, useState } from 'react'
 export type CartItem = {
   productId: string
   productName: string
+  supplierRef: string | null     // numéro article Biopartner (ex: 100040836)
   supplierId: string
   supplierName: string
   supplierType: string
   quantity: number
-  unitPrice: number
+  unitPrice: number              // prix HT de base, sans majoration
   unit: string
-  minQuantity: number
+  minQuantity: number            // UC : quantité minimum sans majoration
+  allowsPartialOrder: boolean    // UM=1 : peut commander < UC avec +10%
+}
+
+/**
+ * Prix unitaire effectif selon la quantité.
+ * Si qty < minQuantity et allowsPartialOrder → +10% de majoration.
+ */
+export function getEffectiveUnitPrice(item: Pick<CartItem, 'unitPrice' | 'minQuantity' | 'allowsPartialOrder' | 'quantity'>): number {
+  if (item.allowsPartialOrder && item.quantity < item.minQuantity) {
+    return item.unitPrice * 1.1
+  }
+  return item.unitPrice
 }
 
 type CartContextType = {
@@ -48,7 +61,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const existing = prev.find(i => i.productId === newItem.productId)
       if (existing) {
         return prev.map(i =>
-          i.productId === newItem.productId ? { ...i, quantity: newItem.quantity } : i
+          i.productId === newItem.productId ? { ...i, ...newItem } : i
         )
       }
       return [...prev, newItem]
@@ -70,7 +83,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   const totalItems = items.length
-  const globalTotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+  const globalTotal = items.reduce(
+    (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i),
+    0
+  )
 
   return (
     <CartContext.Provider value={{ items, addItem, updateQuantity, removeItem, clearCart, totalItems, globalTotal }}>
