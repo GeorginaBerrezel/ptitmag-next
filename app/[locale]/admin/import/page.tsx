@@ -11,6 +11,8 @@ type ImportResult = {
     productsUpdated: number
     errors: number
     sheetResults?: Record<string, { count: number; supplierName: string }>
+    /** replace = ancienne liste supprimée puis nouvelles lignes insérées (fiches locales hebdo) */
+    importStrategy?: 'replace'
   }
   errors: string[]
 }
@@ -580,22 +582,41 @@ export default function ImportPage({
           <p style={{ margin: '0 0 1rem', fontWeight: 700, fontSize: '0.95rem' }}>
             {result.stats.errors === 0 ? '✓ ' : '⚠ '}{result.message}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0.75rem', marginBottom: (result.stats.sheetResults || result.errors.length > 0) ? '1rem' : 0 }}>
-            {[
-              { label: 'Produits créés', value: result.stats.productsCreated, color: '#2e7d32' },
-              { label: 'Mis à jour', value: result.stats.productsUpdated, color: '#DC7F00' },
-            ].map(s => (
-              <div key={s.label} style={{
-                background: '#fff', borderRadius: 8, padding: '0.75rem',
-                textAlign: 'center', border: '1px solid rgba(16,24,40,0.08)',
-              }}>
-                <p style={{ margin: '0 0 0.2rem', fontSize: '1.5rem', fontWeight: 700, color: s.color }}>
-                  {s.value}
-                </p>
-                <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.65 }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
+          {result.stats.importStrategy === 'replace' ? (
+            <div style={{
+              background: '#fff', borderRadius: 8, padding: '1rem',
+              border: '1px solid rgba(16,24,40,0.08)',
+              marginBottom: (result.stats.sheetResults || result.errors.length > 0) ? '1rem' : 0,
+            }}>
+              <p style={{ margin: '0 0 0.35rem', fontSize: '1.35rem', fontWeight: 700, color: '#1565c0' }}>
+                {result.stats.productsCreated}
+              </p>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: '0.88rem' }}>
+                Produits au catalogue après import
+              </p>
+              <p style={{ margin: '0.45rem 0 0', fontSize: '0.76rem', opacity: 0.58, lineHeight: 1.5 }}>
+                Pour les fiches locales, l&apos;ancienne liste du fournisseur est <strong>supprimée</strong> puis remplacée par le fichier : ce sont des nouvelles lignes en base (nouveaux identifiants).
+                Ce n&apos;est pas un « UPDATE » ligne à ligne — d&apos;où l&apos;absence de compteur « Mis à jour ». Fonctionnellement, c&apos;est bien une <strong>mise à jour du catalogue</strong> pour la semaine.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0.75rem', marginBottom: (result.stats.sheetResults || result.errors.length > 0) ? '1rem' : 0 }}>
+              {[
+                { label: 'Produits créés', value: result.stats.productsCreated, color: '#2e7d32' },
+                { label: 'Mis à jour', value: result.stats.productsUpdated, color: '#DC7F00' },
+              ].map(s => (
+                <div key={s.label} style={{
+                  background: '#fff', borderRadius: 8, padding: '0.75rem',
+                  textAlign: 'center', border: '1px solid rgba(16,24,40,0.08)',
+                }}>
+                  <p style={{ margin: '0 0 0.2rem', fontSize: '1.5rem', fontWeight: 700, color: s.color }}>
+                    {s.value}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.65 }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
           {result.stats.sheetResults && Object.keys(result.stats.sheetResults).length > 0 && (
             <div style={{ marginBottom: result.errors.length > 0 ? '1rem' : 0 }}>
               <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.83rem', opacity: 0.8 }}>

@@ -66,7 +66,13 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: globalStats.sheetsProcessed > 0,
     message,
-    stats: { productsCreated: globalStats.productsImported, productsUpdated: 0, errors: globalStats.errors.length, sheetResults },
+    stats: {
+      productsCreated: globalStats.productsImported,
+      productsUpdated: 0,
+      errors: globalStats.errors.length,
+      sheetResults,
+      importStrategy: 'replace' as const,
+    },
     errors: globalStats.errors,
   })
 }

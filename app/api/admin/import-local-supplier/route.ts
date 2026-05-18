@@ -71,7 +71,13 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     message: `${config.supplierName} — ${count} produit${count > 1 ? 's' : ''} importé${count > 1 ? 's' : ''}.`,
-    stats: { productsCreated: count, productsUpdated: 0, errors: 0 },
+    stats: {
+      productsCreated: count,
+      productsUpdated: 0,
+      errors: 0,
+      /** Liste effacée puis réécrite : pas d’UPDATE SQL, d’où « Mis à jour » à 0 dans l’ancien affichage */
+      importStrategy: 'replace' as const,
+    },
     errors: [],
   })
 }
