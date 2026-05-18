@@ -27,30 +27,49 @@ export type Product = {
 }
 
 /**
+ * PostgREST / Supabase : au plus 1000 lignes par requête select par défaut.
+ * On pagine pour afficher tout le catalogue (ex. Biopartner ~1380 articles).
+ */
+const PAGE = 1000
+
+/**
  * Retourne tous les produits actifs avec leur fournisseur.
  */
 export async function getProducts(): Promise<Product[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
+  const selectPayload = `
       id, name, description, category,
       unit, unit_price, min_quantity, allows_partial_order,
       order_deadline, is_featured, supplier_ref,
       supplier:suppliers(id, name, website, type)
-    `)
-    .eq('active', true)
-    .order('is_featured', { ascending: false })
-    .order('category')
-    .order('name')
+    `
 
-  if (error) {
-    console.error('getProducts error:', error.message)
-    return []
+  const rows: Product[] = []
+  let from = 0
+
+  for (;;) {
+    const { data, error } = await supabase
+      .from('products')
+      .select(selectPayload)
+      .eq('active', true)
+      .order('is_featured', { ascending: false })
+      .order('category')
+      .order('name')
+      .range(from, from + PAGE - 1)
+
+    if (error) {
+      console.error('getProducts error:', error.message)
+      return rows.length ? rows : []
+    }
+
+    const chunk = (data ?? []) as unknown as Product[]
+    rows.push(...chunk)
+    if (chunk.length < PAGE) break
+    from += PAGE
   }
 
-  return (data ?? []) as unknown as Product[]
+  return rows
 }
 
 /**
