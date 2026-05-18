@@ -187,12 +187,16 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Préparer tous les produits d'un coup ──────────────────────────────────
+  // Les prix Biopartner sont HT (hors TVA). On applique +2.6% pour obtenir le TTC.
+  const TVA_RATE = 1.026
   const allProducts = rows.map(row => ({
     name: buildName(row),
     description: buildDescription(row),
     category: buildCategory(row),
     unit: buildUnit(row),
-    unit_price: parsePrice(row.Prix),
+    unit_price: parsePrice(row.Prix) != null
+      ? Math.round(parsePrice(row.Prix)! * TVA_RATE * 100) / 100
+      : null,
     min_quantity: row.UC ? parseInt(row.UC) || 1 : 1,
     allows_partial_order: row.UM === '1',
     order_deadline: dateLimite || null,

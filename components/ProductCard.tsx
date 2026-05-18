@@ -136,6 +136,11 @@ export default function ProductCard({ product }: { product: Product }) {
               CHF {effectivePrice.toFixed(2)}
               <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85rem' }}>/{product.unit}</span>
             </p>
+            {product.supplier?.type === 'grossiste_bio' && (
+              <p style={{ margin: '0.1rem 0 0', fontSize: '0.68rem', opacity: 0.5 }}>
+                TVA 2.6% incluse
+              </p>
+            )}
             {hasSurcharge && (
               <p style={{
                 margin: '0.1rem 0 0',
