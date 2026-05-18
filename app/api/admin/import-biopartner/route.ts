@@ -211,18 +211,17 @@ export async function POST(request: NextRequest) {
 
   for (let i = 0; i < allProducts.length; i += BATCH) {
     const batch = allProducts.slice(i, i + BATCH)
-    const { error: upsertErr, count } = await supabaseAdmin
+    const { error: upsertErr } = await supabaseAdmin
       .from('products')
       .upsert(batch, {
         onConflict: 'supplier_id,supplier_ref',
         ignoreDuplicates: false,
       })
-      .select('id', { count: 'exact', head: true })
 
     if (upsertErr) {
       errors.push(`Lot ${Math.floor(i / BATCH) + 1} : ${upsertErr.message}`)
     } else {
-      totalUpserted += count ?? batch.length
+      totalUpserted += batch.length
     }
   }
 

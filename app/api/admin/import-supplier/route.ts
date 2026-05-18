@@ -447,26 +447,24 @@ export async function POST(request: NextRequest) {
   // Nécessite la contrainte UNIQUE (supplier_id, supplier_ref) sur la table.
   for (let i = 0; i < withRef.length; i += BATCH) {
     const batch = withRef.slice(i, i + BATCH)
-    const { error: uErr, count } = await supabaseAdmin
+    const { error: uErr } = await supabaseAdmin
       .from('products')
       .upsert(batch, { onConflict: 'supplier_id,supplier_ref', ignoreDuplicates: false })
-      .select('id', { count: 'exact', head: true })
 
     if (uErr) errors.push(`Lot avec réf ${Math.floor(i / BATCH) + 1} : ${uErr.message}`)
-    else totalUpserted += count ?? batch.length
+    else totalUpserted += batch.length
   }
 
   // ── Upsert en masse pour les produits sans référence (clé : nom + unité) ──
   // Nécessite la contrainte UNIQUE (supplier_id, name, unit) sur la table.
   for (let i = 0; i < withoutRef.length; i += BATCH) {
     const batch = withoutRef.slice(i, i + BATCH)
-    const { error: uErr, count } = await supabaseAdmin
+    const { error: uErr } = await supabaseAdmin
       .from('products')
       .upsert(batch, { onConflict: 'supplier_id,name,unit', ignoreDuplicates: false })
-      .select('id', { count: 'exact', head: true })
 
     if (uErr) errors.push(`Lot sans réf ${Math.floor(i / BATCH) + 1} : ${uErr.message}`)
-    else totalUpserted += count ?? batch.length
+    else totalUpserted += batch.length
   }
 
   return NextResponse.json({
