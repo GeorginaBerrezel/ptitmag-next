@@ -41,26 +41,29 @@ export const HEBDO_SHEET_CONFIG: Record<string, LocalSupplierConfig> = {
 }
 
 // ─── Parser commun ────────────────────────────────────────────────────────────
-// Format A — feuille hebdomadaire / onglet Joel (colonnes espacées) :
-//   ["Produit","","Quantité","","Prix d'achat TTC/HT","","Total TTC"]
-//   [nom, "", "", "", prix(number|string), unité(string), 0]
+// Format « Joel export onglet seul » (2026) — le plus fréquent :
+//   ["Produit","","","Prix d'achat TTC",""]  → données [nom,"","", prix, unité]
 //
-// Format B — exports courts (ex : Truffes.xlsx seul, 3 colonnes) :
-//   ["Produit", "Prix d'achat TTC", …] ou ["Produit", "CHF 1,00", "pce"]
+// Format Bioterroir : deux prix puis unité
+//   ["Produit","","","Prix HT","Prix TTC",""] → [nom,"","", HT, TTC, kilo|pce|…]
+//
+// Ancien gabarit large (feuille complète) :
+//   [nom, "", "", "", prix, unité, …]
+//
+// Compact Produit | CHF | pce en colonnes A–C
 
 function trimCell(v: unknown): string {
   return typeof v === 'string' ? v.trim() : String(v ?? '').trim()
 }
 
-/** "CHF 1,00" | 3.8 | "6,25" → nombre positif ou null */
+/** "CHF 1,00" | 3.8 | "6,25" → nombre positif ou null (pas "250g", "33cl") */
 function parsePriceLike(raw: unknown): number | null {
   if (typeof raw === 'number' && !isNaN(raw) && raw > 0) return raw
   if (raw == null || raw === '') return null
-  const cleaned = String(raw)
-    .replace(/CHF/gi, '')
-    .replace(/\s/g, '')
-    .replace(/'/g, '')
-    .replace(',', '.')
+  const s = String(raw).trim()
+  const withoutChf = s.replace(/CHF/gi, '').trim()
+  if (/[a-zA-Zàâäéèêëïîôùûç]/i.test(withoutChf)) return null
+  const cleaned = withoutChf.replace(/\s/g, '').replace(/'/g, '').replace(',', '.')
   const n = parseFloat(cleaned)
   return isNaN(n) || n <= 0 ? null : n
 }
@@ -85,17 +88,33 @@ function findProduitHeader(rows: unknown[][]): { headerIdx: number; produitCol: 
   return null
 }
 
-/** Extrait prix + unité pour une ligne (essaie d'abord le gabarit large, puis le compact). */
+/**
+ * Extrait prix + unité. Ordre important : Bioterroir 2 prix avant « prix col D seul ».
+ */
 function extractPriceUnit(row: unknown[]): { price: number; unit: string } | null {
-  const u5 = trimCell(row[5])
-  const u4 = trimCell(row[4])
-
+  const p3 = parsePriceLike(row[3])
   const p4 = parsePriceLike(row[4])
-  if (p4 != null) {
-    const unit = trimCell(row[5])
-    if (!isTotalRow(unit)) return { price: p4, unit: unit || 'pièce' }
+  const s4 = trimCell(row[4])
+  const s5 = trimCell(row[5])
+
+  // 1 — Bioterroir : HT col 3, TTC col 4, unité col 5 (les deux premières cases sont numériques)
+  if (p3 != null && p4 != null && s5 && parsePriceLike(s5) == null && !isTotalRow(s5)) {
+    return { price: p4, unit: s5 || 'pièce' }
   }
 
+  // 2 — Export standard Joel : prix col D (3), unité col E (4) — ex. Truffes, Vins, Brasseries…
+  if (p3 != null && s4 && parsePriceLike(s4) == null && !isTotalRow(s4)) {
+    return { price: p3, unit: s4 || 'pièce' }
+  }
+
+  // 3 — Ancien gabarit : prix col E (4), unité col F (5)
+  const pLegacy = parsePriceLike(row[4])
+  if (pLegacy != null) {
+    const u = trimCell(row[5])
+    if (!isTotalRow(u)) return { price: pLegacy, unit: u || 'pièce' }
+  }
+
+  // 4 — Compact : colonnes B–C–D (texte CHF ou nombre en B)
   const p1 = parsePriceLike(row[1])
   if (p1 != null) {
     let unit = trimCell(row[2])
