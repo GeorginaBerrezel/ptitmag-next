@@ -186,71 +186,54 @@ export async function POST(request: NextRequest) {
     biopartnerId = newBp.id
   }
 
-  let productsCreated = 0
-  let productsUpdated = 0
+  // ── Préparer tous les produits d'un coup ──────────────────────────────────
+  const allProducts = rows.map(row => ({
+    name: buildName(row),
+    description: buildDescription(row),
+    category: buildCategory(row),
+    unit: buildUnit(row),
+    unit_price: parsePrice(row.Prix),
+    min_quantity: row.UC ? parseInt(row.UC) || 1 : 1,
+    allows_partial_order: row.UM === '1',
+    order_deadline: dateLimite || null,
+    supplier_id: biopartnerId,
+    supplier_ref: row.Article,
+    active: true,
+    is_featured: false,
+  }))
+
+  // ── Upsert en masse par lots de 200 ──────────────────────────────────────
+  // Un seul aller-retour DB par lot au lieu de 1 requête par produit.
+  // Nécessite la contrainte UNIQUE (supplier_id, supplier_ref) sur la table.
+  const BATCH = 200
   const errors: string[] = []
+  let totalUpserted = 0
 
-  for (const row of rows) {
-    try {
-      const minQty = row.UC ? parseInt(row.UC) || 1 : 1
-      // UM=1 → commande partielle possible avec majoration de 10%
-      // UM=0 → minimum strict, impossible de descendre en-dessous de UC
-      const allowsPartial = row.UM === '1'
+  for (let i = 0; i < allProducts.length; i += BATCH) {
+    const batch = allProducts.slice(i, i + BATCH)
+    const { error: upsertErr, count } = await supabaseAdmin
+      .from('products')
+      .upsert(batch, {
+        onConflict: 'supplier_id,supplier_ref',
+        ignoreDuplicates: false,
+      })
+      .select('id', { count: 'exact', head: true })
 
-      const productData = {
-        name: buildName(row),
-        description: buildDescription(row),
-        category: buildCategory(row),
-        unit: buildUnit(row),
-        unit_price: parsePrice(row.Prix),
-        min_quantity: minQty,
-        allows_partial_order: allowsPartial,
-        order_deadline: dateLimite || null,
-        supplier_id: biopartnerId,
-        supplier_ref: row.Article,
-        active: true,
-        is_featured: false,
-      }
-
-      // Upsert par référence article Biopartner (plus fiable que nom+unité)
-      const { data: existing } = await supabaseAdmin
-        .from('products')
-        .select('id')
-        .eq('supplier_id', biopartnerId)
-        .eq('supplier_ref', row.Article)
-        .single()
-
-      if (existing) {
-        const { error: updErr } = await supabaseAdmin
-          .from('products')
-          .update(productData)
-          .eq('id', existing.id)
-
-        if (updErr) {
-          errors.push(`[${row.Article}] ${row.Désignation} : ${updErr.message}`)
-        } else {
-          productsUpdated++
-        }
-      } else {
-        const { error: insErr } = await supabaseAdmin
-          .from('products')
-          .insert(productData)
-
-        if (insErr) {
-          errors.push(`[${row.Article}] ${row.Désignation} : ${insErr.message}`)
-        } else {
-          productsCreated++
-        }
-      }
-    } catch (err) {
-      errors.push(`[${row.Article}] Erreur inattendue : ${err}`)
+    if (upsertErr) {
+      errors.push(`Lot ${Math.floor(i / BATCH) + 1} : ${upsertErr.message}`)
+    } else {
+      totalUpserted += count ?? batch.length
     }
   }
 
   return NextResponse.json({
     success: true,
-    stats: { productsCreated, productsUpdated, errors: errors.length },
+    stats: {
+      productsCreated: totalUpserted,
+      productsUpdated: 0,
+      errors: errors.length,
+    },
     errors,
-    message: `Import Biopartner terminé : ${productsCreated} produit(s) créé(s), ${productsUpdated} mis à jour.`,
+    message: `Import Biopartner terminé : ${totalUpserted} produit(s) importé(s) en ${Math.ceil(allProducts.length / BATCH)} lot(s).`,
   })
 }

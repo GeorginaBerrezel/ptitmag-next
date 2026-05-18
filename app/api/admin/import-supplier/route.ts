@@ -419,70 +419,60 @@ export async function POST(request: NextRequest) {
     supplierId = newSupplier.id
   }
 
-  // ── Upsert produits ────────────────────────────────────────────────────────
-  let productsCreated = 0
-  let productsUpdated = 0
+  // ── Préparer les produits ─────────────────────────────────────────────────
+  const allProducts = parsed.map(p => ({
+    name: p.name,
+    description: p.description,
+    category: p.category,
+    unit: p.unit,
+    unit_price: p.unitPrice,
+    min_quantity: p.minQuantity,
+    allows_partial_order: p.allowsPartialOrder,
+    order_deadline: dateLimite,
+    supplier_id: supplierId,
+    supplier_ref: p.supplierRef,
+    active: true,
+    is_featured: false,
+  }))
+
+  // Séparer les produits avec et sans référence fournisseur
+  const withRef = allProducts.filter(p => p.supplier_ref)
+  const withoutRef = allProducts.filter(p => !p.supplier_ref)
+
   const errors: string[] = []
+  let totalUpserted = 0
+  const BATCH = 200
 
-  for (const p of parsed) {
-    try {
-      const productData = {
-        name: p.name,
-        description: p.description,
-        category: p.category,
-        unit: p.unit,
-        unit_price: p.unitPrice,
-        min_quantity: p.minQuantity,
-        allows_partial_order: p.allowsPartialOrder,
-        order_deadline: dateLimite,
-        supplier_id: supplierId,
-        supplier_ref: p.supplierRef,
-        active: true,
-        is_featured: false,
-      }
+  // ── Upsert en masse pour les produits avec supplier_ref ───────────────────
+  // Nécessite la contrainte UNIQUE (supplier_id, supplier_ref) sur la table.
+  for (let i = 0; i < withRef.length; i += BATCH) {
+    const batch = withRef.slice(i, i + BATCH)
+    const { error: uErr, count } = await supabaseAdmin
+      .from('products')
+      .upsert(batch, { onConflict: 'supplier_id,supplier_ref', ignoreDuplicates: false })
+      .select('id', { count: 'exact', head: true })
 
-      // Clé d'upsert : supplier_ref si disponible, sinon nom + unité
-      let existing: { id: string } | null = null
+    if (uErr) errors.push(`Lot avec réf ${Math.floor(i / BATCH) + 1} : ${uErr.message}`)
+    else totalUpserted += count ?? batch.length
+  }
 
-      if (p.supplierRef) {
-        const { data } = await supabaseAdmin
-          .from('products')
-          .select('id')
-          .eq('supplier_id', supplierId)
-          .eq('supplier_ref', p.supplierRef)
-          .single()
-        existing = data
-      } else {
-        const { data } = await supabaseAdmin
-          .from('products')
-          .select('id')
-          .eq('supplier_id', supplierId)
-          .eq('name', p.name)
-          .eq('unit', p.unit)
-          .single()
-        existing = data
-      }
+  // ── Upsert en masse pour les produits sans référence (clé : nom + unité) ──
+  // Nécessite la contrainte UNIQUE (supplier_id, name, unit) sur la table.
+  for (let i = 0; i < withoutRef.length; i += BATCH) {
+    const batch = withoutRef.slice(i, i + BATCH)
+    const { error: uErr, count } = await supabaseAdmin
+      .from('products')
+      .upsert(batch, { onConflict: 'supplier_id,name,unit', ignoreDuplicates: false })
+      .select('id', { count: 'exact', head: true })
 
-      if (existing) {
-        const { error: upErr } = await supabaseAdmin
-          .from('products').update(productData).eq('id', existing.id)
-        if (upErr) errors.push(`"${p.name}" : ${upErr.message}`)
-        else productsUpdated++
-      } else {
-        const { error: insErr } = await supabaseAdmin
-          .from('products').insert(productData)
-        if (insErr) errors.push(`"${p.name}" : ${insErr.message}`)
-        else productsCreated++
-      }
-    } catch (err) {
-      errors.push(`"${p.name}" : erreur inattendue — ${err}`)
-    }
+    if (uErr) errors.push(`Lot sans réf ${Math.floor(i / BATCH) + 1} : ${uErr.message}`)
+    else totalUpserted += count ?? batch.length
   }
 
   return NextResponse.json({
     success: true,
-    stats: { productsCreated, productsUpdated, errors: errors.length },
+    stats: { productsCreated: totalUpserted, productsUpdated: 0, errors: errors.length },
     errors,
-    message: `${config.name} — Import terminé : ${productsCreated} produit(s) créé(s), ${productsUpdated} mis à jour.`,
+    message: `${config.name} — ${totalUpserted} produit(s) importé(s).`,
   })
 }
