@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import type { Product } from '@/lib/supabase/products'
 import ProductCard from './ProductCard'
 import CartBar from './CartBar'
@@ -13,6 +13,12 @@ const TYPE_LABELS: Record<string, string> = {
 
 const TYPE_ORDER = ['local', 'grossiste_bio', 'autre']
 
+/** Encore commandable : pas de deadline ou deadline ≥ maintenant */
+function productOrderable(p: Product): boolean {
+  if (!p.order_deadline) return true
+  return new Date(p.order_deadline).getTime() >= Date.now()
+}
+
 type Props = {
   products: Product[]
   initialEphemere?: boolean
@@ -24,18 +30,34 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
   const [selectedSupplier, setSelectedSupplier] = useState<string>('tous')
   const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
 
-  const hasFeatured = useMemo(() => products.some(p => p.is_featured), [products])
+  // Masquer tout un fournisseur si aucun de ses produits n'est encore commandable (souhait Joel)
+  const visibleProducts = useMemo(() => {
+    return products.filter(p => {
+      if (!p.supplier) return true
+      const siblings = products.filter(x => x.supplier?.id === p.supplier!.id)
+      return siblings.some(productOrderable)
+    })
+  }, [products])
+
+  const hasFeatured = useMemo(() => visibleProducts.some(p => p.is_featured), [visibleProducts])
 
   // Tous les fournisseurs disponibles
   const suppliers = useMemo(() => {
     const map = new Map<string, { id: string; name: string; type: string }>()
-    products.forEach(p => {
+    visibleProducts.forEach(p => {
       if (p.supplier && !map.has(p.supplier.id)) {
         map.set(p.supplier.id, { id: p.supplier.id, name: p.supplier.name, type: p.supplier.type })
       }
     })
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
-  }, [products])
+  }, [visibleProducts])
+
+  // Si le fournisseur sélectionné disparaît (ex : tous ses produits passés), revenir à « tous »
+  useEffect(() => {
+    if (selectedSupplier !== 'tous' && !suppliers.some(s => s.id === selectedSupplier)) {
+      setSelectedSupplier('tous')
+    }
+  }, [suppliers, selectedSupplier])
 
   // Fournisseurs filtrés par type sélectionné
   const visibleSuppliers = useMemo(() => {
@@ -46,7 +68,7 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
   // Produits filtrés par recherche + type + fournisseur + éphémères
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
-    return products.filter(p => {
+    return visibleProducts.filter(p => {
       if (ephemereOnly && !p.is_featured) return false
       if (!ephemereOnly && selectedType !== 'tous' && p.supplier?.type !== selectedType) return false
       if (!ephemereOnly && selectedSupplier !== 'tous' && p.supplier?.id !== selectedSupplier) return false
@@ -61,7 +83,7 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
       }
       return true
     })
-  }, [products, search, selectedType, selectedSupplier, ephemereOnly])
+  }, [visibleProducts, search, selectedType, selectedSupplier, ephemereOnly])
 
   // Grouper les produits filtrés par fournisseur
   const bySupplier = useMemo(() => {
@@ -180,15 +202,15 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
             >
               ⏳ Éphémères
               <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
-                {products.filter(p => p.is_featured).length}
+                {visibleProducts.filter(p => p.is_featured).length}
               </span>
             </button>
           )}
 
           {['tous', ...TYPE_ORDER].map(type => {
             const count = type === 'tous'
-              ? products.length
-              : products.filter(p => p.supplier?.type === type).length
+              ? visibleProducts.length
+              : visibleProducts.filter(p => p.supplier?.type === type).length
             if (type !== 'tous' && count === 0) return null
             return (
               <button

@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useRef, useState } from 'react'
+import { nextWednesday1830, nextThursday1200, toDatetimeLocalValue } from '@/lib/import/deadline-defaults'
 
 type ImportResult = {
   success: boolean
@@ -201,6 +202,28 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
 // Liste plate pour la recherche par clé
 const SUPPLIERS: SupplierOption[] = SUPPLIER_GROUPS.flatMap(g => g.suppliers)
 
+/** Prochains créneaux mercredi 18h30 / jeudi 12h00 — Joel peut modifier dans les champs. */
+function deadlineDefaultsForSelection(key: string): {
+  dateLimite: string
+  dateLimiteMercredi: string
+  dateLimiteJeudi: string
+} {
+  const mer = toDatetimeLocalValue(nextWednesday1830())
+  const jeu = toDatetimeLocalValue(nextThursday1200())
+  if (key === 'feuille_hebdo') {
+    return { dateLimite: '', dateLimiteMercredi: mer, dateLimiteJeudi: jeu }
+  }
+  const s = SUPPLIERS.find(x => x.key === key)
+  if (!s) return { dateLimite: '', dateLimiteMercredi: '', dateLimiteJeudi: '' }
+  if (s.deadlineGroup === 'mercredi') {
+    return { dateLimite: mer, dateLimiteMercredi: '', dateLimiteJeudi: '' }
+  }
+  if (s.deadlineGroup === 'jeudi') {
+    return { dateLimite: jeu, dateLimiteMercredi: '', dateLimiteJeudi: '' }
+  }
+  return { dateLimite: '', dateLimiteMercredi: '', dateLimiteJeudi: '' }
+}
+
 const TYPE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
   local: { label: 'Local', bg: '#e8f5e9', color: '#2e7d32' },
   grossiste_bio: { label: 'Grossiste bio', bg: '#e3f2fd', color: '#1565c0' },
@@ -216,10 +239,10 @@ export default function ImportPage({
   const fileRef = useRef<HTMLInputElement>(null)
   const [selectedKey, setSelectedKey] = useState<string>('feuille_hebdo')
   const [file, setFile] = useState<File | null>(null)
-  const [dateLimite, setDateLimite] = useState('')
-  // Délais spécifiques à la feuille hebdomadaire (deux groupes)
-  const [dateLimiteMercredi, setDateLimiteMercredi] = useState('')
-  const [dateLimiteJeudi, setDateLimiteJeudi] = useState('')
+  const initDeadlines = deadlineDefaultsForSelection('feuille_hebdo')
+  const [dateLimite, setDateLimite] = useState(initDeadlines.dateLimite)
+  const [dateLimiteMercredi, setDateLimiteMercredi] = useState(initDeadlines.dateLimiteMercredi)
+  const [dateLimiteJeudi, setDateLimiteJeudi] = useState(initDeadlines.dateLimiteJeudi)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -232,10 +255,18 @@ export default function ImportPage({
     setFile(null)
     setResult(null)
     setError(null)
-    setDateLimite('')
-    setDateLimiteMercredi('')
-    setDateLimiteJeudi('')
+    const d = deadlineDefaultsForSelection(key)
+    setDateLimite(d.dateLimite)
+    setDateLimiteMercredi(d.dateLimiteMercredi)
+    setDateLimiteJeudi(d.dateLimiteJeudi)
     if (fileRef.current) fileRef.current.value = ''
+  }
+
+  function resetDeadlineFields() {
+    const d = deadlineDefaultsForSelection(selectedKey)
+    setDateLimite(d.dateLimite)
+    setDateLimiteMercredi(d.dateLimiteMercredi)
+    setDateLimiteJeudi(d.dateLimiteJeudi)
   }
 
   async function handleImport() {
@@ -371,6 +402,25 @@ export default function ImportPage({
       </div>
 
       {/* Dates limites */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        {(isHebdo || supplier.deadlineGroup) && (
+          <p style={{ margin: '0 0 0.65rem', fontSize: '0.78rem', opacity: 0.62, lineHeight: 1.5 }}>
+            Les dates sont <strong>pré-remplies</strong> selon la règle habituelle (mercredi 18h30 / jeudi 12h00 — prochain créneau à venir).
+            Joel peut les modifier à tout moment.
+            {' '}
+            <button
+              type="button"
+              onClick={resetDeadlineFields}
+              style={{
+                background: 'none', border: 'none', padding: 0,
+                color: '#1565c0', fontWeight: 600, cursor: 'pointer',
+                textDecoration: 'underline', fontSize: 'inherit', fontFamily: 'inherit',
+              }}
+            >
+              Réinitialiser aux valeurs suggérées
+            </button>
+          </p>
+        )}
       {isHebdo ? (
         /* Feuille hebdo : deux délais distincts */
         <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -443,6 +493,7 @@ export default function ImportPage({
           </p>
         </div>
       )}
+      </div>
 
       {/* Zone de dépôt */}
       <div
