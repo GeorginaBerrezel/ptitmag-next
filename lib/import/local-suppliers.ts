@@ -41,30 +41,102 @@ export const HEBDO_SHEET_CONFIG: Record<string, LocalSupplierConfig> = {
 }
 
 // ─── Parser commun ────────────────────────────────────────────────────────────
-// Format attendu (identique dans tous les onglets hebdo et fichiers individuels) :
-//   - Ligne titre  : "Nom fournisseur – Livraison…"
-//   - Ligne en-têtes : ["Produit","","Quantité","","Prix d'achat TTC/HT","","Total TTC"]
-//   - Lignes produits : [nom, "", "", "", prix(number), unité(string), 0]
-//   - Dernière ligne  : ["","","","","","Total TTC",0]
+// Format A — feuille hebdomadaire / onglet Joel (colonnes espacées) :
+//   ["Produit","","Quantité","","Prix d'achat TTC/HT","","Total TTC"]
+//   [nom, "", "", "", prix(number|string), unité(string), 0]
+//
+// Format B — exports courts (ex : Truffes.xlsx seul, 3 colonnes) :
+//   ["Produit", "Prix d'achat TTC", …] ou ["Produit", "CHF 1,00", "pce"]
+
+function trimCell(v: unknown): string {
+  return typeof v === 'string' ? v.trim() : String(v ?? '').trim()
+}
+
+/** "CHF 1,00" | 3.8 | "6,25" → nombre positif ou null */
+function parsePriceLike(raw: unknown): number | null {
+  if (typeof raw === 'number' && !isNaN(raw) && raw > 0) return raw
+  if (raw == null || raw === '') return null
+  const cleaned = String(raw)
+    .replace(/CHF/gi, '')
+    .replace(/\s/g, '')
+    .replace(/'/g, '')
+    .replace(',', '.')
+  const n = parseFloat(cleaned)
+  return isNaN(n) || n <= 0 ? null : n
+}
+
+function isTotalRow(unitOrName: string): boolean {
+  const u = unitOrName.toLowerCase()
+  return u.includes('total') || u.includes('ttc')
+}
+
+/**
+ * Trouve la ligne d'en-tête contenant « Produit » (colonne A ou décalée après fusion).
+ */
+function findProduitHeader(rows: unknown[][]): { headerIdx: number; produitCol: number } | null {
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i]
+    if (!Array.isArray(r)) continue
+    const j = r.findIndex(
+      cell => typeof cell === 'string' && cell.trim().toLowerCase() === 'produit',
+    )
+    if (j !== -1) return { headerIdx: i, produitCol: j }
+  }
+  return null
+}
+
+/** Extrait prix + unité pour une ligne (essaie d'abord le gabarit large, puis le compact). */
+function extractPriceUnit(row: unknown[]): { price: number; unit: string } | null {
+  const u5 = trimCell(row[5])
+  const u4 = trimCell(row[4])
+
+  const p4 = parsePriceLike(row[4])
+  if (p4 != null) {
+    const unit = trimCell(row[5])
+    if (!isTotalRow(unit)) return { price: p4, unit: unit || 'pièce' }
+  }
+
+  const p1 = parsePriceLike(row[1])
+  if (p1 != null) {
+    let unit = trimCell(row[2])
+    if (!unit || parsePriceLike(unit) != null) unit = trimCell(row[3])
+    if (!isTotalRow(unit)) return { price: p1, unit: unit || 'pièce' }
+  }
+
+  const p2 = parsePriceLike(row[2])
+  if (p2 != null) {
+    const unit = trimCell(row[3]) || trimCell(row[1])
+    if (!isTotalRow(unit)) return { price: p2, unit: unit || 'pièce' }
+  }
+
+  return null
+}
 
 export function parseLocalSheet(rows: unknown[][], category: string): ParsedProduct[] {
   const products: ParsedProduct[] = []
 
-  const headerIdx = rows.findIndex(r =>
-    typeof r[0] === 'string' && r[0].trim().toLowerCase() === 'produit'
-  )
-  if (headerIdx === -1) return []
+  const header = findProduitHeader(rows)
+  if (!header) return []
+
+  const { headerIdx, produitCol } = header
 
   for (const row of rows.slice(headerIdx + 1)) {
-    const name  = typeof row[0] === 'string' ? row[0].trim() : ''
-    const price = typeof row[4] === 'number' ? row[4] : parseFloat(String(row[4] ?? ''))
-    const unit  = (typeof row[5] === 'string' ? row[5] : String(row[5] ?? '')).trim()
-
+    if (!Array.isArray(row)) continue
+    const name = trimCell(row[produitCol])
     if (!name) continue
-    if (unit.toLowerCase().includes('total')) continue
-    if (isNaN(price) || price <= 0) continue
+    if (name.toLowerCase() === 'produit') continue
 
-    products.push({ name, category, unit: unit || 'pièce', unitPrice: price })
+    const shifted = produitCol === 0 ? row : row.slice(produitCol)
+    const got = extractPriceUnit(shifted)
+    if (!got) continue
+    if (isTotalRow(got.unit) || isTotalRow(name)) continue
+
+    products.push({
+      name,
+      category,
+      unit: got.unit || 'pièce',
+      unitPrice: got.price,
+    })
   }
 
   return products
