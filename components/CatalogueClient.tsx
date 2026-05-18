@@ -13,10 +13,10 @@ const TYPE_LABELS: Record<string, string> = {
 
 const TYPE_ORDER = ['local', 'grossiste_bio', 'autre']
 
-/** Encore commandable : pas de deadline ou deadline ≥ maintenant */
-function productOrderable(p: Product): boolean {
+/** Encore commandable à l'instant `nowMs` : pas de deadline ou deadline ≥ now */
+function productOrderableAt(p: Product, nowMs: number): boolean {
   if (!p.order_deadline) return true
-  return new Date(p.order_deadline).getTime() >= Date.now()
+  return new Date(p.order_deadline).getTime() >= nowMs
 }
 
 type Props = {
@@ -29,12 +29,21 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
   const [selectedType, setSelectedType] = useState<string>('tous')
   const [selectedSupplier, setSelectedSupplier] = useState<string>('tous')
   const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
-  /** Incrémenté périodiquement pour recalculer visibilité / deadlines sans recharger la page. */
-  const [deadlineTick, setDeadlineTick] = useState(0)
+  /** Horloge catalogue : tout recalcul lié aux deadlines en dépend explicitement (badges, dont « Tous »). */
+  const [catalogNow, setCatalogNow] = useState(() => Date.now())
 
   useEffect(() => {
-    const id = window.setInterval(() => setDeadlineTick(t => t + 1), 30_000)
-    return () => window.clearInterval(id)
+    const bump = () => setCatalogNow(Date.now())
+    bump()
+    const id = window.setInterval(bump, 30_000)
+    const onVis = () => {
+      if (document.visibilityState === 'visible') bump()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVis)
+    }
   }, [])
 
   // Masquer tout un fournisseur si aucun de ses produits n'est encore commandable (souhait Joel)
@@ -42,15 +51,12 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
     return products.filter(p => {
       if (!p.supplier) return true
       const siblings = products.filter(x => x.supplier?.id === p.supplier!.id)
-      return siblings.some(productOrderable)
+      return siblings.some(s => productOrderableAt(s, catalogNow))
     })
-  }, [products, deadlineTick])
+  }, [products, catalogNow])
 
-  /** Produits encore commandables — utilisé pour les totaux des filtres (pas les lignes « fermées »). */
-  const orderableVisible = useMemo(
-    () => visibleProducts.filter(productOrderable),
-    [visibleProducts],
-  )
+  /** Produits encore commandables — badges filtres (pas les lignes « fermées » affichées sous le même fournisseur). */
+  const orderableVisible = visibleProducts.filter(p => productOrderableAt(p, catalogNow))
 
   const hasFeatured = useMemo(() => visibleProducts.some(p => p.is_featured), [visibleProducts])
 
