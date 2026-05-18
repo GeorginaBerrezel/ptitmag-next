@@ -435,36 +435,47 @@ export async function POST(request: NextRequest) {
     is_featured: false,
   }))
 
-  // Séparer les produits avec et sans référence fournisseur
-  const withRef = allProducts.filter(p => p.supplier_ref)
-  const withoutRef = allProducts.filter(p => !p.supplier_ref)
-
+  const hasRefs = allProducts.every(p => p.supplier_ref)
   const errors: string[] = []
   let totalUpserted = 0
   const BATCH = 200
 
-  // ── Upsert en masse pour les produits avec supplier_ref ───────────────────
-  // Nécessite la contrainte UNIQUE (supplier_id, supplier_ref) sur la table.
-  for (let i = 0; i < withRef.length; i += BATCH) {
-    const batch = withRef.slice(i, i + BATCH)
-    const { error: uErr } = await supabaseAdmin
+  if (hasRefs) {
+    // ── Tous les produits ont une référence → upsert en masse ──────────────
+    // Nécessite la contrainte UNIQUE (supplier_id, supplier_ref) sur la table.
+    for (let i = 0; i < allProducts.length; i += BATCH) {
+      const batch = allProducts.slice(i, i + BATCH)
+      const { error: uErr } = await supabaseAdmin
+        .from('products')
+        .upsert(batch, { onConflict: 'supplier_id,supplier_ref', ignoreDuplicates: false })
+
+      if (uErr) errors.push(`Lot ${Math.floor(i / BATCH) + 1} : ${uErr.message}`)
+      else totalUpserted += batch.length
+    }
+  } else {
+    // ── Pas de référence article → supprimer les anciens, insérer les nouveaux
+    // Adapté aux listes hebdomadaires (Cave à levain, Novoma, Les Dailles…)
+    const { error: delErr } = await supabaseAdmin
       .from('products')
-      .upsert(batch, { onConflict: 'supplier_id,supplier_ref', ignoreDuplicates: false })
+      .delete()
+      .eq('supplier_id', supplierId)
 
-    if (uErr) errors.push(`Lot avec réf ${Math.floor(i / BATCH) + 1} : ${uErr.message}`)
-    else totalUpserted += batch.length
-  }
+    if (delErr) {
+      return NextResponse.json(
+        { error: `Impossible de supprimer les anciens produits : ${delErr.message}` },
+        { status: 500 }
+      )
+    }
 
-  // ── Upsert en masse pour les produits sans référence (clé : nom + unité) ──
-  // Nécessite la contrainte UNIQUE (supplier_id, name, unit) sur la table.
-  for (let i = 0; i < withoutRef.length; i += BATCH) {
-    const batch = withoutRef.slice(i, i + BATCH)
-    const { error: uErr } = await supabaseAdmin
-      .from('products')
-      .upsert(batch, { onConflict: 'supplier_id,name,unit', ignoreDuplicates: false })
+    for (let i = 0; i < allProducts.length; i += BATCH) {
+      const batch = allProducts.slice(i, i + BATCH)
+      const { error: insErr } = await supabaseAdmin
+        .from('products')
+        .insert(batch)
 
-    if (uErr) errors.push(`Lot sans réf ${Math.floor(i / BATCH) + 1} : ${uErr.message}`)
-    else totalUpserted += batch.length
+      if (insErr) errors.push(`Lot ${Math.floor(i / BATCH) + 1} : ${insErr.message}`)
+      else totalUpserted += batch.length
+    }
   }
 
   return NextResponse.json({
