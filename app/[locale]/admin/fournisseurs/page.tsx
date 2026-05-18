@@ -207,9 +207,17 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
     setDeleting(id); setConfirmDelete(null)
     try {
       const res = await fetch(`/api/admin/suppliers?id=${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error((await res.json()).error)
-      setSuppliers(prev => prev.filter(x => x.id !== id))
-      if (expanded === id) setExpanded(null)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      if (data.deleted) {
+        // Suppression complète
+        setSuppliers(prev => prev.filter(x => x.id !== id))
+        if (expanded === id) setExpanded(null)
+      } else {
+        // Désactivé car produits liés à des commandes
+        setSuppliers(prev => prev.map(x => x.id === id ? { ...x, active: false } : x))
+        alert(data.warning)
+      }
     } catch (e) { alert((e as Error).message) }
     finally { setDeleting(null) }
   }

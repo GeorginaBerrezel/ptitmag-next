@@ -92,7 +92,14 @@ export async function PATCH(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
-// ─── DELETE — supprimer un fournisseur et tous ses produits ──────────────────
+// ─── DELETE — supprimer un fournisseur et ses produits (si possible) ─────────
+//
+// Stratégie :
+// 1. Les produits référencés dans order_items ne peuvent pas être supprimés (FK).
+//    → On les désactive (active=false) plutôt que de les supprimer.
+// 2. Les produits sans commandes sont supprimés.
+// 3. Si tous les produits ont pu être supprimés → le fournisseur est supprimé.
+//    Sinon → le fournisseur est désactivé (et un message l'explique).
 
 export async function DELETE(request: NextRequest) {
   const user = await getAdminUser()
@@ -104,21 +111,44 @@ export async function DELETE(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Supprimer d'abord les produits (contrainte FK)
-  const { error: pErr } = await admin
+  // Récupérer les IDs des produits de ce fournisseur
+  const { data: productRows } = await admin
     .from('products')
-    .delete()
+    .select('id')
     .eq('supplier_id', id)
 
-  if (pErr) return NextResponse.json({ error: `Impossible de supprimer les produits : ${pErr.message}` }, { status: 500 })
+  const productIds = (productRows ?? []).map(p => p.id)
 
-  // Puis supprimer le fournisseur
-  const { error: sErr } = await admin
-    .from('suppliers')
-    .delete()
-    .eq('id', id)
+  // Trouver lesquels sont référencés dans order_items
+  const { data: linkedRows } = productIds.length > 0
+    ? await admin.from('order_items').select('product_id').in('product_id', productIds)
+    : { data: [] }
 
-  if (sErr) return NextResponse.json({ error: `Impossible de supprimer le fournisseur : ${sErr.message}` }, { status: 500 })
+  const linkedIds = new Set((linkedRows ?? []).map(r => r.product_id))
+  const freeIds   = productIds.filter(pid => !linkedIds.has(pid))
 
-  return NextResponse.json({ success: true })
+  // Supprimer les produits sans commandes
+  if (freeIds.length > 0) {
+    await admin.from('products').delete().in('id', freeIds)
+  }
+
+  // Désactiver les produits liés à des commandes
+  if (linkedIds.size > 0) {
+    await admin.from('products').update({ active: false }).in('id', [...linkedIds])
+  }
+
+  if (linkedIds.size === 0) {
+    // Aucun produit lié → suppression complète du fournisseur
+    const { error: sErr } = await admin.from('suppliers').delete().eq('id', id)
+    if (sErr) return NextResponse.json({ error: `Impossible de supprimer le fournisseur : ${sErr.message}` }, { status: 500 })
+    return NextResponse.json({ success: true, deleted: true })
+  } else {
+    // Des produits sont dans des commandes → on désactive le fournisseur
+    await admin.from('suppliers').update({ active: false }).eq('id', id)
+    return NextResponse.json({
+      success: true,
+      deleted: false,
+      warning: `${linkedIds.size} produit(s) lié(s) à des commandes ont été désactivés (non supprimés). Le fournisseur a été masqué du catalogue.`,
+    })
+  }
 }

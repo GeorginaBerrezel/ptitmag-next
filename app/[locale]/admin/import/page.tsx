@@ -22,96 +22,184 @@ type SupplierOption = {
   fileHint: string
   fileInstructions: React.ReactNode
   acceptsXlsx?: boolean
+  // 'mercredi' = délai mercredi (Graines d'Avenir, Truffes)
+  // 'jeudi'    = délai jeudi (tous les autres locaux + Biopartner)
+  // undefined  = pas de groupe fixe (grossistes sans contrainte hebdo)
+  deadlineGroup?: 'mercredi' | 'jeudi'
 }
 
-const SUPPLIERS: SupplierOption[] = [
+type SupplierGroup = {
+  label: string
+  suppliers: SupplierOption[]
+}
+
+const SUPPLIER_GROUPS: SupplierGroup[] = [
   {
-    key: 'feuille_hebdo',
-    label: 'Feuille hebdomadaire',
-    type: 'local',
-    endpoint: '/api/admin/import-hebdo',
-    fileHint: 'Feuille de commande hebdomadaire_vX_JJ.MM.AAAA_TONNOM.xlsx',
-    acceptsXlsx: true,
-    fileInstructions: (
-      <>
-        <strong>Un seul fichier Excel</strong> pour importer tous les producteurs locaux de la semaine.<br />
-        Onglets importés : <strong>Bioterroir, Fermette à Didi, Graines d&apos;Avenir, Brasseries d&apos;Ayent, Vins bio et nature, Truffes</strong>.<br />
-        <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé via CSV ci-dessous).</span>
-      </>
-    ),
+    label: 'Feuille hebdomadaire complète',
+    suppliers: [
+      {
+        key: 'feuille_hebdo',
+        label: 'Tous les locaux (1 fichier)',
+        type: 'local',
+        endpoint: '/api/admin/import-hebdo',
+        fileHint: 'Feuille de commande hebdomadaire_vX_JJ.MM.AAAA_TONNOM.xlsx',
+        acceptsXlsx: true,
+        fileInstructions: (
+          <>
+            <strong>Un seul fichier Excel</strong> pour importer tous les producteurs locaux de la semaine.<br />
+            Onglets importés : <strong>Bioterroir, Fermette à Didi, Graines d&apos;Avenir, Brasseries d&apos;Ayent, Vins bio et nature, Truffes</strong>.<br />
+            <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé via CSV).</span>
+          </>
+        ),
+      },
+    ],
   },
   {
-    key: 'biopartner',
-    label: 'Biopartner',
-    type: 'grossiste_bio',
-    endpoint: '/api/admin/import-biopartner',
-    fileHint: 'Liste de commandes personnelle (.csv)',
-    fileInstructions: (
-      <>
-        <strong>1.</strong> Se connecter sur{' '}
-        <a href="https://shop.biopartner.ch" target="_blank" rel="noreferrer"
-          style={{ color: '#1e5c35', fontWeight: 600 }}>shop.biopartner.ch</a>
-        {' '}→ télécharger la <strong>«&nbsp;Liste de commandes personnelle&nbsp;»</strong> (CSV)<br />
-        <strong>2.</strong> Saisir la date limite ci-dessous et importer le fichier.{' '}
-        <span style={{ opacity: 0.7 }}>Les ~1 380 articles sont mis à jour en quelques secondes.</span>
-      </>
-    ),
+    label: 'Fournisseurs locaux — fichier par fichier',
+    suppliers: [
+      {
+        key: 'bioterroir',
+        label: 'Bioterroir',
+        type: 'local',
+        endpoint: '/api/admin/import-local-supplier',
+        fileHint: 'Bioterroir JJ.MM.AAAA.xlsx',
+        acceptsXlsx: true,
+        deadlineGroup: 'jeudi',
+        fileInstructions: <>Légumes & fruits. Prix d&apos;achat HT (TVA 2.6% non comprise).</>,
+      },
+      {
+        key: 'fermette_didi',
+        label: 'Fermette à Didi',
+        type: 'local',
+        endpoint: '/api/admin/import-local-supplier',
+        fileHint: 'Fermette à Didi JJ.MM.AAAA.xlsx',
+        acceptsXlsx: true,
+        deadlineGroup: 'jeudi',
+        fileInstructions: <>Produits fermiers (œufs, fromages, charcuterie). Prix TTC.</>,
+      },
+      {
+        key: 'graines_avenir',
+        label: "Graines d'Avenir",
+        type: 'local',
+        endpoint: '/api/admin/import-local-supplier',
+        fileHint: "Graines d'avenir JJ.MM.AAAA.xlsx",
+        acceptsXlsx: true,
+        deadlineGroup: 'mercredi',
+        fileInstructions: <>Pains & pâtisseries. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> — commander avant les autres.</>,
+      },
+      {
+        key: 'brasseries_ayent',
+        label: "Brasseries d'Ayent",
+        type: 'local',
+        endpoint: '/api/admin/import-local-supplier',
+        fileHint: "Brasseries d'Ayent.xlsx",
+        acceptsXlsx: true,
+        deadlineGroup: 'jeudi',
+        fileInstructions: <>Bières artisanales valaisannes. Prix TTC.</>,
+      },
+      {
+        key: 'vins_bio',
+        label: 'Vins bio et nature',
+        type: 'local',
+        endpoint: '/api/admin/import-local-supplier',
+        fileHint: 'Vins bio et nature.xlsx',
+        acceptsXlsx: true,
+        deadlineGroup: 'jeudi',
+        fileInstructions: <>Vins bio valaisans (Chèrouche, Olivier & Stéphanie). Prix TTC.</>,
+      },
+      {
+        key: 'truffes',
+        label: 'Truffes',
+        type: 'local',
+        endpoint: '/api/admin/import-local-supplier',
+        fileHint: 'Truffes.xlsx',
+        acceptsXlsx: true,
+        deadlineGroup: 'mercredi',
+        fileInstructions: <>Truffes au chocolat cru. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> — commander avant les autres.</>,
+      },
+    ],
   },
   {
-    key: 'cave_levain',
-    label: 'Cave à levain',
-    type: 'local',
-    endpoint: '/api/admin/import-supplier',
-    fileHint: 'Formulaire commande Cave à levain.csv',
-    fileInstructions: (
-      <>
-        Importer le <strong>formulaire de commande</strong> reçu de la Cave à levain.<br />
-        Les sections (Boulangerie, Viennoiserie, Traiteur, Pâtisserie) deviennent les catégories.
-        Prix TTC (2.6% inclus).
-      </>
-    ),
-  },
-  {
-    key: 'dailles',
-    label: 'Domaine des Dailles',
-    type: 'local',
-    endpoint: '/api/admin/import-supplier',
-    fileHint: 'liste prix dailles ... .csv',
-    fileInstructions: (
-      <>
-        Importer le <strong>fichier de prix</strong> des Dailles.<br />
-        Chaque produit est importé en plusieurs variantes selon le conditionnement (1 kg, 5 kg, 25 kg…).
-        Prix TTC (2.6% inclus).
-      </>
-    ),
-  },
-  {
-    key: 'novoma',
-    label: 'Novoma',
-    type: 'grossiste_bio',
-    endpoint: '/api/admin/import-supplier',
-    fileHint: 'Commande Novoma - XXXX.csv',
-    fileInstructions: (
-      <>
-        Importer le <strong>bon de commande Novoma</strong>.<br />
-        Le prix importé est le tarif à l'unité (colonne «&nbsp;1&nbsp;»). Compléments alimentaires.
-      </>
-    ),
-  },
-  {
-    key: 'naturmel',
-    label: 'NaturMel (M\'Cosmetics)',
-    type: 'grossiste_bio',
-    endpoint: '/api/admin/import-supplier',
-    fileHint: 'NaturMel - Formulaire de commande ... .csv',
-    fileInstructions: (
-      <>
-        Importer le <strong>formulaire NaturMel</strong>.<br />
-        Le prix importé est le tarif revendeur (&lt;&nbsp;5 pièces). Cosmétiques bio.
-      </>
-    ),
+    label: 'Grossistes bio',
+    suppliers: [
+      {
+        key: 'biopartner',
+        label: 'Biopartner',
+        type: 'grossiste_bio',
+        endpoint: '/api/admin/import-biopartner',
+        fileHint: 'Liste de commandes personnelle (.csv)',
+        deadlineGroup: 'jeudi',
+        fileInstructions: (
+          <>
+            <strong>1.</strong> Se connecter sur{' '}
+            <a href="https://shop.biopartner.ch" target="_blank" rel="noreferrer"
+              style={{ color: '#1e5c35', fontWeight: 600 }}>shop.biopartner.ch</a>
+            {' '}→ télécharger la <strong>«&nbsp;Liste de commandes personnelle&nbsp;»</strong> (CSV)<br />
+            <strong>2.</strong> Saisir le délai jeudi ci-dessous et importer.{' '}
+            <span style={{ opacity: 0.7 }}>Les ~1 380 articles sont mis à jour en quelques secondes.</span>
+          </>
+        ),
+      },
+      {
+        key: 'cave_levain',
+        label: 'Cave à levain',
+        type: 'local',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'Formulaire commande Cave à levain.csv',
+        fileInstructions: (
+          <>
+            Importer le <strong>formulaire de commande</strong> reçu de la Cave à levain.<br />
+            Les sections (Boulangerie, Viennoiserie, Traiteur, Pâtisserie) deviennent les catégories.
+            Prix TTC (2.6% inclus).
+          </>
+        ),
+      },
+      {
+        key: 'dailles',
+        label: 'Domaine des Dailles',
+        type: 'local',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'liste prix dailles ... .csv',
+        fileInstructions: (
+          <>
+            Importer le <strong>fichier de prix</strong> des Dailles.<br />
+            Chaque produit est importé en plusieurs variantes selon le conditionnement (1 kg, 5 kg, 25 kg…).
+            Prix TTC (2.6% inclus).
+          </>
+        ),
+      },
+      {
+        key: 'novoma',
+        label: 'Novoma',
+        type: 'grossiste_bio',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'Commande Novoma - XXXX.csv',
+        fileInstructions: (
+          <>
+            Importer le <strong>bon de commande Novoma</strong>.<br />
+            Le prix importé est le tarif à l&apos;unité (colonne «&nbsp;1&nbsp;»). Compléments alimentaires.
+          </>
+        ),
+      },
+      {
+        key: 'naturmel',
+        label: "NaturMel (M'Cosmetics)",
+        type: 'grossiste_bio',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'NaturMel - Formulaire de commande ... .csv',
+        fileInstructions: (
+          <>
+            Importer le <strong>formulaire NaturMel</strong>.<br />
+            Le prix importé est le tarif revendeur (&lt;&nbsp;5 pièces). Cosmétiques bio.
+          </>
+        ),
+      },
+    ],
   },
 ]
+
+// Liste plate pour la recherche par clé
+const SUPPLIERS: SupplierOption[] = SUPPLIER_GROUPS.flatMap(g => g.suppliers)
 
 const TYPE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
   local: { label: 'Local', bg: '#e8f5e9', color: '#2e7d32' },
@@ -167,8 +255,10 @@ export default function ImportPage({
       if (dateLimite) formData.append('date_limite_commande', dateLimite)
     }
 
-    // Pour la route unifiée, on passe la clé fournisseur
-    if (supplier.endpoint !== '/api/admin/import-biopartner' && !isHebdo) {
+    // Pour les routes qui ont besoin de la clé fournisseur
+    const needsSupplierKey = supplier.endpoint === '/api/admin/import-supplier'
+      || supplier.endpoint === '/api/admin/import-local-supplier'
+    if (needsSupplierKey) {
       formData.append('supplier', supplier.key)
     }
 
@@ -207,51 +297,65 @@ export default function ImportPage({
         Sélectionnez le fournisseur et importez leur fichier pour mettre à jour le catalogue.
       </p>
 
-      {/* Sélecteur fournisseur */}
-      <div style={{ marginBottom: '1.75rem' }}>
-        <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-          Fournisseur
-        </label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.5rem' }}>
-          {SUPPLIERS.map(s => {
-            const b = TYPE_BADGE[s.type]
-            const active = s.key === selectedKey
-            return (
-              <button
-                key={s.key}
-                onClick={() => handleSupplierChange(s.key)}
-                style={{
-                  padding: '0.6rem 0.5rem',
-                  border: `2px solid ${active ? '#1a1a2e' : 'rgba(16,24,40,0.12)'}`,
-                  borderRadius: 10,
-                  background: active ? '#1a1a2e' : '#fff',
-                  color: active ? '#fff' : '#1a1a2e',
-                  fontWeight: active ? 700 : 500,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s',
-                  lineHeight: 1.3,
-                }}
-              >
-                <span style={{
-                  display: 'inline-block',
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  padding: '0.1rem 0.4rem',
-                  borderRadius: 999,
-                  background: active ? 'rgba(255,255,255,0.15)' : b.bg,
-                  color: active ? '#fff' : b.color,
-                  marginBottom: '0.25rem',
-                }}>
-                  {b.label}
-                </span>
-                <br />
-                {s.label}
-              </button>
-            )
-          })}
-        </div>
+      {/* Sélecteur fournisseur — groupes */}
+      <div style={{ marginBottom: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {SUPPLIER_GROUPS.map(group => (
+          <div key={group.label}>
+            <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.4 }}>
+              {group.label}
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.4rem' }}>
+              {group.suppliers.map(s => {
+                const b = TYPE_BADGE[s.type]
+                const active = s.key === selectedKey
+                const dlBadge = s.deadlineGroup === 'mercredi'
+                  ? { label: '⏰ Mercredi', color: '#b45309', bg: '#fef3c7' }
+                  : s.deadlineGroup === 'jeudi'
+                  ? { label: '⏰ Jeudi', color: '#1565c0', bg: '#e3f2fd' }
+                  : null
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => handleSupplierChange(s.key)}
+                    style={{
+                      padding: '0.55rem 0.5rem',
+                      border: `2px solid ${active ? '#1a1a2e' : 'rgba(16,24,40,0.12)'}`,
+                      borderRadius: 10,
+                      background: active ? '#1a1a2e' : '#fff',
+                      color: active ? '#fff' : '#1a1a2e',
+                      fontWeight: active ? 700 : 500,
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+                      <span style={{
+                        fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.35rem', borderRadius: 999,
+                        background: active ? 'rgba(255,255,255,0.15)' : b.bg,
+                        color: active ? '#fff' : b.color,
+                      }}>
+                        {b.label}
+                      </span>
+                      {dlBadge && (
+                        <span style={{
+                          fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.35rem', borderRadius: 999,
+                          background: active ? 'rgba(255,255,255,0.12)' : dlBadge.bg,
+                          color: active ? 'rgba(255,255,255,0.85)' : dlBadge.color,
+                        }}>
+                          {dlBadge.label}
+                        </span>
+                      )}
+                    </div>
+                    {s.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Instructions spécifiques */}
