@@ -38,7 +38,7 @@
       },
       {
         "title": "Sign up for free",
-        "desc": "Register in 30 seconds. For 3 months, you can order without paying a membership contribution to test whether it suits you. No commitment, delete your account anytime."
+        "desc": "Register in 30 seconds. Order freely until you join as a member. No commitment, delete your account anytime."
       },
       {
         "title": "Order online",
@@ -49,10 +49,10 @@
         "desc": "Come pick up your purchases in St-Romain (Wed, Fri, Sat). We chat, play cards and share good moments — much more than just a pick-up!"
       }
     ],
-    "trial_title": "Try it for 3 months — no membership fee",
-    "trial_text": "Create your account for free, browse the catalogue and place your first orders. If you like it, you join the association. If not, delete your account in one click — no cost, no hassle.",
+    "trial_title": "Create your account and order",
+    "trial_text": "Sign up for free, browse the catalogue and place your orders. If you like it, join the association and pay your contribution. If not, delete your account in one click — no hassle.",
     "trial_cta": "Create my account →",
-    "trial_note": "✓ Free registration  ·  ✓ No membership fee for 3 months  ·  ✓ Join freely afterwards"
+    "trial_note": "✓ Free registration  ·  ✓ Full catalogue  ·  ✓ Join whenever you want"
   },
   "membership": {
     "title": "Membership",
@@ -70,7 +70,7 @@
       },
       {
         "title": "Test",
-        "text": "If you already know enough, you can test this alternative distribution system for 3 months to see if it suits you. Contact us to start your trial."
+        "text": "If you already know enough, create your account and order to see if this alternative distribution system suits you. Contact us if you have questions."
       },
       {
         "title": "Join",
@@ -99,7 +99,7 @@
       "communityText": "Build local ties: help each other and enjoy a friendly atmosphere at the shop."
     },
     "cta_title": "Start right now",
-    "cta_text": "Create your account for free, browse the catalogue and place your first orders without a membership fee for 3 months. If it suits you, join the association. If not, delete your account — no obligation.",
+    "cta_text": "Create your account for free, browse the catalogue and place your orders. If it suits you, join the association and pay your contribution. If not, delete your account — no obligation.",
     "cta_button": "Create my account →"
   },
   "producers": {

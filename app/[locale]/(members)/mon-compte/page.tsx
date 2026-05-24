@@ -2,12 +2,13 @@ import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
+import { formatCotisation } from '@/lib/members/profile'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const STATUS_LABELS: Record<string, { label: string; bg: string; color: string }> = {
-  trial:  { label: "Période d'essai", bg: '#fff8e6', color: '#DC7F00' },
-  member: { label: 'Adhérent·e',      bg: '#e8f5e9', color: '#2e7d32' },
+  trial:  { label: 'Non cotisé', bg: '#f3f4f6', color: '#4b5563' },
+  member: { label: 'Cotisé',     bg: '#e8f5e9', color: '#2e7d32' },
   admin:  { label: 'Administrateur·rice', bg: '#e3f2fd', color: '#1565c0' },
 }
 
@@ -40,6 +41,7 @@ export default async function MonComptePage() {
   const totalSpent      = activeOrders.reduce((s, o) => s + o.total, 0)
 
   const memberStatus = STATUS_LABELS[profile?.status ?? 'trial'] ?? STATUS_LABELS.trial
+  const showCotisation = profile?.status === 'member' || (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
 
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 700 }}>
@@ -88,6 +90,13 @@ export default async function MonComptePage() {
           {profile?.email && (
             <span style={{ fontSize: '0.83rem', opacity: 0.55, overflow: 'hidden', textOverflow: 'ellipsis' }}>
               ✉ {profile.email}
+            </span>
+          )}
+
+          {showCotisation && (
+            <span style={{ fontSize: '0.83rem', opacity: 0.55, whiteSpace: 'nowrap' }}>
+              Cotisation : {formatCotisation(profile?.cotisation_amount)}
+              {profile?.cotisation_active ? ' (active)' : profile?.cotisation_amount ? ' (inactive)' : ''}
             </span>
           )}
 

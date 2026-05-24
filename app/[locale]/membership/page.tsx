@@ -201,7 +201,7 @@ export default async function MembershipPage({
           {t('tryTitle')}
         </h2>
 
-        {/* Note essai gratuit */}
+        {/* Note inscription */}
         <p style={{
           margin: '0 0 1.5rem',
           fontSize: '0.9rem',

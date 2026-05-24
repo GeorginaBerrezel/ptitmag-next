@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useCallback, useEffect, useState } from 'react'
+import { MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,8 @@ type Member = {
   username: string | null
   avatar_url: string | null
   status: string
+  cotisation_amount: number | null
+  cotisation_active: boolean
   created_at: string | null
   orderCount: number
   orderTotal: number
@@ -26,12 +29,16 @@ type Member = {
   recentOrders: RecentOrder[]
 }
 
+type ApiStats = {
+  totalCotisations: number
+  cotisationActive: number
+  cotised: number
+  nonCotise: number
+}
+
 // ─── Constantes d'affichage ───────────────────────────────────────────────────
 
-const MEMBER_STATUS: Record<string, { label: string; bg: string; color: string; border: string }> = {
-  trial:  { label: 'En essai',   bg: '#fff8e6', color: '#DC7F00', border: '#DC7F00' },
-  member: { label: 'Adhérent·e', bg: '#e8f5e9', color: '#2e7d32', border: '#2e7d32' },
-}
+const MEMBER_STATUS = MEMBER_STATUS_LABELS
 
 const ORDER_STATUS: Record<string, { label: string; color: string }> = {
   confirmed: { label: 'Confirmée', color: '#DC7F00' },
@@ -71,11 +78,13 @@ export default function AdminMembresPage({
   use(params)
 
   const [members, setMembers]         = useState<Member[]>([])
+  const [apiStats, setApiStats]       = useState<ApiStats | null>(null)
   const [loading, setLoading]         = useState(true)
   const [error, setError]             = useState<string | null>(null)
   const [search, setSearch]           = useState('')
   const [filterStatus, setFilterStatus] = useState<'' | 'trial' | 'member'>('')
   const [updating, setUpdating]       = useState<string | null>(null)
+  const [cotisationDraft, setCotisationDraft] = useState<Record<string, { amount: string; active: boolean }>>({})
 
   // ── Chargement ───────────────────────────────────────────────────────────
 
@@ -90,6 +99,7 @@ export default function AdminMembresPage({
     }
     const data = await res.json()
     setMembers(data.members ?? [])
+    setApiStats(data.stats ?? null)
     setLoading(false)
   }, [])
 
@@ -112,9 +122,11 @@ export default function AdminMembresPage({
 
   const stats = {
     total:      members.length,
-    trial:      members.filter(m => m.status === 'trial').length,
-    member:     members.filter(m => m.status === 'member').length,
+    nonCotise:  members.filter(m => m.status !== 'member').length,
+    cotised:    members.filter(m => m.status === 'member').length,
     withOrders: members.filter(m => m.orderCount > 0).length,
+    totalCotisations: apiStats?.totalCotisations ?? members.reduce((s, m) => s + (m.cotisation_amount ?? 0), 0),
+    cotisationActive: apiStats?.cotisationActive ?? members.filter(m => m.cotisation_active).length,
   }
 
   // ── Mise à jour du statut ─────────────────────────────────────────────────
@@ -144,6 +156,64 @@ export default function AdminMembresPage({
     setUpdating(null)
   }
 
+  function getCotisationDraft(member: Member) {
+    const draft = cotisationDraft[member.id]
+    if (draft) return draft
+    return {
+      amount: member.cotisation_amount != null ? String(member.cotisation_amount) : '',
+      active: member.cotisation_active,
+    }
+  }
+
+  async function saveCotisation(memberId: string) {
+    const member = members.find(m => m.id === memberId)
+    if (!member) return
+
+    const draft = getCotisationDraft(member)
+    const parsed = draft.amount.trim() === '' ? null : parseFloat(draft.amount.replace(',', '.'))
+    if (parsed !== null && (Number.isNaN(parsed) || parsed < 0)) {
+      alert('Montant invalide.')
+      return
+    }
+
+    setUpdating(memberId)
+    const prev = { amount: member.cotisation_amount, active: member.cotisation_active }
+
+    setMembers(prevMembers => prevMembers.map(m =>
+      m.id === memberId
+        ? { ...m, cotisation_amount: parsed, cotisation_active: draft.active }
+        : m
+    ))
+
+    const res = await fetch('/api/admin/members', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        memberId,
+        cotisation_amount: parsed,
+        cotisation_active: draft.active,
+      }),
+    })
+
+    if (!res.ok) {
+      setMembers(prevMembers => prevMembers.map(m =>
+        m.id === memberId
+          ? { ...m, cotisation_amount: prev.amount, cotisation_active: prev.active }
+          : m
+      ))
+      alert('Erreur lors de l\'enregistrement de la cotisation.')
+    } else {
+      setCotisationDraft(d => {
+        const next = { ...d }
+        delete next[memberId]
+        return next
+      })
+      await fetchMembers()
+    }
+
+    setUpdating(null)
+  }
+
   // ── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
@@ -163,7 +233,7 @@ export default function AdminMembresPage({
       {/* En-tête */}
       <h1 style={{ margin: '0 0 0.2rem' }}>Gestion des membres</h1>
       <p style={{ opacity: 0.55, margin: '0 0 1.5rem', fontSize: '0.85rem' }}>
-        Consulte les profils, change les statuts essai → adhérent et suis l&apos;activité.
+        Consulte les profils, gère les cotisations et suis l&apos;activité.
       </p>
 
       {/* Statistiques */}
@@ -173,10 +243,12 @@ export default function AdminMembresPage({
         gap: '0.75rem', marginBottom: '1.25rem',
       }}>
         {[
-          { label: 'Total inscrits',  value: stats.total,      color: '#1a1a2e' },
-          { label: 'En essai',        value: stats.trial,      color: '#DC7F00', highlight: stats.trial > 0 },
-          { label: 'Adhérent·e·s',   value: stats.member,     color: '#2e7d32' },
-          { label: 'Ont commandé',    value: stats.withOrders, color: '#1565c0' },
+          { label: 'Total inscrits',     value: stats.total,      color: '#1a1a2e' },
+          { label: 'Non cotisés',        value: stats.nonCotise,  color: '#4b5563', highlight: stats.nonCotise > 0 },
+          { label: 'Cotisés',            value: stats.cotised,    color: '#2e7d32' },
+          { label: 'Total cotisations',  value: `CHF ${stats.totalCotisations.toFixed(0)}`, color: '#1565c0' },
+          { label: 'Cotisations actives', value: stats.cotisationActive, color: '#5c6bc0' },
+          { label: 'Ont commandé',       value: stats.withOrders, color: '#DC7F00' },
         ].map(s => (
           <div key={s.label} style={{
             background: '#fff',
@@ -193,7 +265,7 @@ export default function AdminMembresPage({
         ))}
       </div>
 
-      {/* Barre de répartition essai vs adhérents */}
+      {/* Barre de répartition cotisés / non cotisés */}
       {stats.total > 0 && (
         <div style={{
           background: '#f8f9fa', borderRadius: 10, padding: '0.75rem 1rem',
@@ -205,21 +277,21 @@ export default function AdminMembresPage({
           }}>
             <span>Répartition des statuts</span>
             <span>
-              {stats.member} adhérent·e·s · {stats.trial} en essai
+              {stats.cotised} cotisé·e·s · {stats.nonCotise} non cotisé·e·s
             </span>
           </div>
           <div style={{ height: 8, borderRadius: 999, background: '#e0e0e0', overflow: 'hidden' }}>
             <div style={{
               height: '100%',
-              width: stats.total > 0 ? `${(stats.member / stats.total) * 100}%` : '0%',
+              width: stats.total > 0 ? `${(stats.cotised / stats.total) * 100}%` : '0%',
               background: 'linear-gradient(90deg, #2e7d32, #66bb6a)',
               borderRadius: 999,
               transition: 'width 0.6s ease',
             }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginTop: '0.3rem', opacity: 0.5 }}>
-            <span style={{ color: '#2e7d32' }}>■ Adhérent·e·s ({Math.round(stats.member / stats.total * 100)}%)</span>
-            <span style={{ color: '#DC7F00' }}>■ En essai ({Math.round(stats.trial / stats.total * 100)}%)</span>
+            <span style={{ color: '#2e7d32' }}>■ Cotisé·e·s ({Math.round(stats.cotised / stats.total * 100)}%)</span>
+            <span style={{ color: '#4b5563' }}>■ Non cotisé·e·s ({Math.round(stats.nonCotise / stats.total * 100)}%)</span>
           </div>
         </div>
       )}
@@ -244,8 +316,8 @@ export default function AdminMembresPage({
           style={controlStyle}
         >
           <option value="">Tous les statuts</option>
-          <option value="trial">En essai</option>
-          <option value="member">Adhérent·e·s</option>
+          <option value="trial">Non cotisés</option>
+          <option value="member">Cotisés</option>
         </select>
         {(search || filterStatus) && (
           <button
@@ -364,6 +436,10 @@ export default function AdminMembresPage({
                       {st.label}
                     </span>
                     <span style={{ fontSize: '0.78rem', opacity: 0.45, whiteSpace: 'nowrap' }}>
+                      {formatCotisation(member.cotisation_amount)}
+                      {member.cotisation_active ? ' · actif' : member.cotisation_amount ? ' · inactif' : ''}
+                    </span>
+                    <span style={{ fontSize: '0.78rem', opacity: 0.45, whiteSpace: 'nowrap' }}>
                       {member.orderCount > 0
                         ? `${member.orderCount} cmd · CHF ${member.orderTotal.toFixed(2)}`
                         : 'Aucune commande'}
@@ -373,6 +449,65 @@ export default function AdminMembresPage({
 
                 {/* ── Contenu déplié ── */}
                 <div style={{ padding: '1rem 1.1rem', borderTop: '1px solid rgba(16,24,40,0.06)' }}>
+
+                  {/* Cotisation */}
+                  <div style={{
+                    display: 'grid',
+                    gap: '0.65rem',
+                    marginBottom: '1.25rem',
+                    paddingBottom: '1rem',
+                    borderBottom: '1px solid rgba(16,24,40,0.06)',
+                  }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Cotisation</span>
+                    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <label style={{ fontSize: '0.8rem', opacity: 0.6 }}>Montant (CHF)</label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="ex. 30"
+                        value={getCotisationDraft(member).amount}
+                        onChange={e => setCotisationDraft(d => ({
+                          ...d,
+                          [member.id]: {
+                            ...getCotisationDraft(member),
+                            amount: e.target.value,
+                          },
+                        }))}
+                        style={{ ...controlStyle, width: 100 }}
+                        disabled={isUpdating}
+                      />
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={getCotisationDraft(member).active}
+                          onChange={e => setCotisationDraft(d => ({
+                            ...d,
+                            [member.id]: {
+                              ...getCotisationDraft(member),
+                              active: e.target.checked,
+                            },
+                          }))}
+                          disabled={isUpdating}
+                        />
+                        Cotisation active
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => saveCotisation(member.id)}
+                        disabled={isUpdating}
+                        style={{
+                          ...controlStyle,
+                          cursor: isUpdating ? 'default' : 'pointer',
+                          background: '#1565c0',
+                          color: '#fff',
+                          border: 'none',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Enregistrer
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Changer le statut */}
                   <div style={{

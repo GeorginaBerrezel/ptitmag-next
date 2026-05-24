@@ -112,7 +112,7 @@ export default function AdminNav({
           >
             {link.label}
 
-            {/* Badge numérique (commandes confirmées, membres en essai) */}
+            {/* Badge numérique (commandes confirmées, membres non cotisés) */}
             {hasBadge && (
               <span style={{
                 marginLeft: 6,

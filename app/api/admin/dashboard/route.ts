@@ -22,7 +22,7 @@ export async function GET() {
   const [profilesResult, ordersResult] = await Promise.all([
     admin
       .from('profiles')
-      .select('id, status, created_at, full_name, username, email')
+      .select('id, status, created_at, full_name, username, email, cotisation_amount, cotisation_active')
       .order('created_at', { ascending: false }),
     admin
       .from('orders')
@@ -36,8 +36,13 @@ export async function GET() {
   // ── Statistiques membres ──────────────────────────────────────────────────
   const memberStats = {
     total:  profiles.length,
-    trial:  profiles.filter(p => (p.status as string) === 'trial').length,
-    member: profiles.filter(p => (p.status as string) === 'member').length,
+    cotised: profiles.filter(p => (p.status as string) === 'member').length,
+    nonCotise: profiles.filter(p => (p.status as string) !== 'member').length,
+    cotisationActive: profiles.filter(p => p.cotisation_active === true).length,
+    totalCotisations: profiles.reduce(
+      (sum, p) => sum + (p.cotisation_amount != null ? Number(p.cotisation_amount) : 0),
+      0,
+    ),
   }
 
   // ── Statistiques commandes ────────────────────────────────────────────────
@@ -50,8 +55,8 @@ export async function GET() {
     revenue:   activeOrders.reduce((s, o) => s + (o.total as number), 0),
   }
 
-  // ── Tendance mensuelle (6 derniers mois) ──────────────────────────────────
   const now = new Date()
+
   const monthlyData = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
     const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -64,6 +69,22 @@ export async function GET() {
       label:   d.toLocaleDateString('fr-CH', { month: 'short', year: '2-digit' }),
       count:   monthOrders.length,
       revenue: monthOrders.reduce((s, o) => s + (o.total as number), 0),
+    }
+  })
+
+  const monthlyMembers = Array.from({ length: 6 }, (_, i) => {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+    const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`
+    const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0, 23, 59, 59)
+    const count = profiles.filter(p => {
+      if ((p.status as string) !== 'member') return false
+      if (!p.created_at) return false
+      return new Date(p.created_at as string) <= endOfMonth
+    }).length
+    return {
+      month: monthKey,
+      label: monthDate.toLocaleDateString('fr-CH', { month: 'short', year: '2-digit' }),
+      count,
     }
   })
 
@@ -109,6 +130,7 @@ export async function GET() {
     memberStats,
     orderStats,
     monthlyData,
+    monthlyMembers,
     recentOrders,
     recentMembers,
   })

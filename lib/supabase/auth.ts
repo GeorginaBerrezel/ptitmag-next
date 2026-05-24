@@ -16,6 +16,8 @@ export type Profile = {
   username?: string | null
   avatar_url?: string | null
   status?: string | null
+  cotisation_amount?: number | null
+  cotisation_active?: boolean | null
 }
 
 /**
@@ -29,7 +31,7 @@ export async function getProfile(): Promise<Profile | null> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, email, full_name, username, avatar_url, status')
+    .select('id, email, full_name, username, avatar_url, status, cotisation_amount, cotisation_active')
     .eq('id', user.id)
     .single()
 

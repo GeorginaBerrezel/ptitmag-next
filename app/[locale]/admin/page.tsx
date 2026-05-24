@@ -9,7 +9,13 @@ type MonthData = {
   month: string
   label: string
   count: number
-  revenue: number
+  revenue?: number
+}
+
+type MemberMonthData = {
+  month: string
+  label: string
+  count: number
 }
 
 type RecentOrder = {
@@ -29,9 +35,16 @@ type RecentMember = {
 }
 
 type DashboardData = {
-  memberStats:   { total: number; trial: number; member: number }
+  memberStats: {
+    total: number
+    cotised: number
+    nonCotise: number
+    cotisationActive: number
+    totalCotisations: number
+  }
   orderStats:    { confirmed: number; delivered: number; cancelled: number; total: number; revenue: number }
   monthlyData:   MonthData[]
+  monthlyMembers: MemberMonthData[]
   recentOrders:  RecentOrder[]
   recentMembers: RecentMember[]
 }
@@ -45,8 +58,8 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
 }
 
 const MEMBER_STATUS: Record<string, { label: string; color: string; bg: string }> = {
-  trial:  { label: 'En essai',   color: '#DC7F00', bg: '#fff8e6' },
-  member: { label: 'Adhérent·e', color: '#2e7d32', bg: '#e8f5e9' },
+  trial:  { label: 'Non cotisé', color: '#4b5563', bg: '#f3f4f6' },
+  member: { label: 'Cotisé',     color: '#2e7d32', bg: '#e8f5e9' },
 }
 
 function formatDateShort(iso: string) {
@@ -57,8 +70,10 @@ function formatDateShort(iso: string) {
 
 // ─── Graphique en barres (CSS pur, sans bibliothèque) ─────────────────────────
 
-function MonthlyChart({ data }: { data: MonthData[] }) {
+function MonthlyChart({ data, barColor }: { data: MonthData[]; barColor?: string }) {
   const maxCount = Math.max(...data.map(d => d.count), 1)
+  const pastBar = barColor ?? '#1a1a2e'
+  const currentBar = barColor ?? '#DC7F00'
 
   return (
     <div>
@@ -90,7 +105,7 @@ function MonthlyChart({ data }: { data: MonthData[] }) {
               <span style={{
                 fontSize: '0.68rem',
                 fontWeight: m.count > 0 ? 700 : 400,
-                color: isCurrentMonth ? '#DC7F00' : 'rgba(16,24,40,0.5)',
+                color: isCurrentMonth ? currentBar : 'rgba(16,24,40,0.5)',
                 minHeight: '1em',
               }}>
                 {m.count > 0 ? m.count : ''}
@@ -102,9 +117,9 @@ function MonthlyChart({ data }: { data: MonthData[] }) {
                 height: `${Math.max(heightPct, m.count > 0 ? 8 : 3)}%`,
                 minHeight: m.count > 0 ? 6 : 3,
                 background: isCurrentMonth
-                  ? '#DC7F00'
+                  ? currentBar
                   : m.count > 0
-                    ? '#1a1a2e'
+                    ? pastBar
                     : '#e0e0e0',
                 borderRadius: '4px 4px 0 0',
                 transition: 'height 0.4s ease',
@@ -123,7 +138,7 @@ function MonthlyChart({ data }: { data: MonthData[] }) {
             <div key={m.month} style={{ flex: 1, textAlign: 'center' }}>
               <span style={{
                 fontSize: '0.65rem',
-                color: isCurrentMonth ? '#DC7F00' : 'rgba(16,24,40,0.45)',
+                color: isCurrentMonth ? currentBar : 'rgba(16,24,40,0.45)',
                 fontWeight: isCurrentMonth ? 700 : 400,
                 whiteSpace: 'nowrap',
               }}>
@@ -213,19 +228,27 @@ export default function AdminDashboardPage({
                 href: `/${locale}/admin/commandes`,
               },
               {
-                label: 'Membres en essai',
-                value: data.memberStats.trial,
-                color: '#5c6bc0',
-                highlight: data.memberStats.trial > 0,
+                label: 'Non cotisés',
+                value: data.memberStats.nonCotise,
+                color: '#4b5563',
+                highlight: data.memberStats.nonCotise > 0,
                 icon: '👤',
                 href: `/${locale}/admin/membres`,
               },
               {
-                label: 'Total adhérent·e·s',
-                value: data.memberStats.member,
+                label: 'Membres cotisés',
+                value: data.memberStats.cotised,
                 color: '#2e7d32',
                 highlight: false,
                 icon: '✓',
+                href: `/${locale}/admin/membres`,
+              },
+              {
+                label: 'Total cotisations (CHF)',
+                value: data.memberStats.totalCotisations.toFixed(0),
+                color: '#1565c0',
+                highlight: false,
+                icon: '📋',
                 href: `/${locale}/admin/membres`,
               },
               {
@@ -277,12 +300,11 @@ export default function AdminDashboardPage({
             marginBottom: '1.5rem',
           }}>
 
-            {/* Graphique mensuel */}
+            {/* Graphique commandes mensuelles */}
             <div style={{
               background: '#fff',
               border: '1px solid rgba(16,24,40,0.08)',
               borderRadius: 14, padding: '1.25rem',
-              gridColumn: 'span 2',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
@@ -293,12 +315,25 @@ export default function AdminDashboardPage({
                     6 derniers mois · hors annulées
                   </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.78rem' }}>
-                  <span style={{ color: '#DC7F00', fontWeight: 700 }}>■ Mois en cours</span>
-                  <span style={{ color: '#1a1a2e', fontWeight: 700 }}>■ Mois passés</span>
-                </div>
               </div>
-              <MonthlyChart data={data.monthlyData} />
+              <MonthlyChart data={data.monthlyData.map(m => ({ ...m, revenue: m.revenue ?? 0 }))} />
+            </div>
+
+            {/* Graphique membres cotisés par mois */}
+            <div style={{
+              background: '#fff',
+              border: '1px solid rgba(16,24,40,0.08)',
+              borderRadius: 14, padding: '1.25rem',
+            }}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <h3 style={{ margin: '0 0 0.15rem', fontSize: '0.95rem', fontWeight: 700 }}>
+                  Membres cotisés par mois
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.5 }}>
+                  Cumul des inscrits avec statut cotisé
+                </p>
+              </div>
+              <MonthlyChart data={data.monthlyMembers.map(m => ({ ...m, revenue: 0 }))} barColor="#2e7d32" />
             </div>
           </div>
 

@@ -68,7 +68,7 @@ export default function InscriptionPage({
     <main className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
       <h1 style={{ marginBottom: '0.25rem' }}>Créer un compte</h1>
       <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
-        Période d&apos;essai de 3 mois — aucun engagement immédiat.
+        Inscription gratuite — cotisation uniquement après adhésion.
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>

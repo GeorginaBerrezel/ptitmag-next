@@ -38,7 +38,7 @@
       },
       {
         "title": "Créez votre compte gratuitement",
-        "desc": "Inscription en 30 secondes. Pendant 3 mois, vous commandez sans cotisation pour tester si ça vous convient. Aucun engagement, suppression possible à tout moment."
+        "desc": "Inscription en 30 secondes. Commandez librement tant que vous n'avez pas adhéré. Aucun engagement, suppression possible à tout moment."
       },
       {
         "title": "Commandez en ligne",
@@ -49,10 +49,10 @@
         "desc": "Venez chercher vos achats à St-Romain (mer., ven., sam.). On se retrouve, on discute, on joue aux cartes — bien plus qu'un simple retrait !"
       }
     ],
-    "trial_title": "Testez sans cotisation pendant 3 mois",
-    "trial_text": "Créez votre compte gratuitement, parcourez le catalogue et passez vos premières commandes. Si ça vous plaît, vous adhérez à l'association. Sinon, vous supprimez votre compte en un clic — sans frais, sans prise de tête.",
+    "trial_title": "Créez votre compte et commandez",
+    "trial_text": "Inscrivez-vous gratuitement, parcourez le catalogue et passez vos commandes. Si ça vous plaît, vous adhérez à l'association et cotisez. Sinon, vous supprimez votre compte en un clic — sans prise de tête.",
     "trial_cta": "Je crée mon compte →",
-    "trial_note": "✓ Inscription gratuite  ·  ✓ Pas de cotisation pendant 3 mois  ·  ✓ Adhésion libre ensuite"
+    "trial_note": "✓ Inscription gratuite  ·  ✓ Catalogue complet  ·  ✓ Adhésion quand vous le souhaitez"
   },
   "membership": {
     "title": "Adhésion",
@@ -70,7 +70,7 @@
       },
       {
         "title": "Tester",
-        "text": "Si tu en sais assez, tu peux tester ce système alternatif de distribution pendant 3 mois pour voir s’il te convient. Contacte-nous pour démarrer ta phase test."
+        "text": "Si tu en sais assez, crée ton compte et commande pour voir si ce système alternatif de distribution te convient. Contacte-nous si tu as des questions."
       },
       {
         "title": "Adhérer",
@@ -99,7 +99,7 @@
       "communityText": "Créer du lien au village: échanges, entraide, moments conviviaux au local."
     },
     "cta_title": "Commencez dès maintenant",
-    "cta_text": "Créez votre compte gratuitement, parcourez le catalogue et passez vos premières commandes sans cotisation pendant 3 mois. Si ça vous convient, vous adhérez à l'association. Sinon, vous supprimez votre compte — aucune obligation.",
+    "cta_text": "Créez votre compte gratuitement, parcourez le catalogue et passez vos commandes. Si ça vous convient, vous adhérez à l'association et cotisez. Sinon, vous supprimez votre compte — aucune obligation.",
     "cta_button": "Créer mon compte →"
   },
   "producers": {

@@ -27,7 +27,7 @@ export default async function AdminLayout({
     redirect(`/${locale}`)
   }
 
-  // Badges de la nav : commandes à traiter + membres en phase d'essai
+  // Badges de la nav : commandes à traiter + membres non cotisés
   // Les deux requêtes tournent en parallèle pour ne pas ralentir le chargement.
   const admin = createAdminClient()
   const [{ count: confirmedCount }, { count: trialCount }] = await Promise.all([
