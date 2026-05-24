@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
+import { getProductImageUrl, showProductImage } from '@/lib/catalog/product-image'
 import type { Product } from '@/lib/supabase/products'
 
 function daysLeft(deadline: string, nowMs: number): number {
@@ -26,6 +28,8 @@ export default function ProductCard({ product, nowMs }: Props) {
   const orderable = productOrderableAt(product, now)
   const days = product.order_deadline ? daysLeft(product.order_deadline, now) : null
   const inCart = items.some(i => i.productId === product.id)
+  const imageUrl = getProductImageUrl(product)
+  const hasImage = showProductImage(product) && imageUrl
 
   const minAllowed = product.allows_partial_order ? 1 : product.min_quantity
 
@@ -87,10 +91,26 @@ export default function ProductCard({ product, nowMs }: Props) {
       borderRadius: 12,
       padding: '0.875rem 1rem',
       display: 'grid',
-      gridTemplateColumns: '1fr auto',
-      gap: '0.5rem',
+      gridTemplateColumns: hasImage ? '72px 1fr auto' : '1fr auto',
+      gap: '0.75rem',
       alignItems: 'start',
     }}>
+
+      {hasImage && imageUrl && (
+        <div style={{
+          width: 72, height: 72, borderRadius: 10, overflow: 'hidden',
+          background: '#f3f4f6', border: '1px solid rgba(16,24,40,0.06)',
+          flexShrink: 0, position: 'relative',
+        }}>
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            sizes="72px"
+            style={{ objectFit: 'cover' }}
+          />
+        </div>
+      )}
 
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem', flexWrap: 'wrap' }}>
@@ -123,9 +143,9 @@ export default function ProductCard({ product, nowMs }: Props) {
               {product.category}
             </span>
           )}
-          {product.supplier && (
-            <span style={{ fontSize: '0.8rem', opacity: 0.55 }}>
-              {product.supplier.name}
+          {product.supplier_ref && (
+            <span style={{ fontSize: '0.75rem', opacity: 0.45 }}>
+              Réf. {product.supplier_ref}
             </span>
           )}
           {deadlineLabel && (
