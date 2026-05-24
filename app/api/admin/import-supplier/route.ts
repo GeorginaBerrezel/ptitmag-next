@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
+import { requireAdminUser } from '@/lib/admin/auth'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -356,15 +356,8 @@ const SUPPLIER_CONFIGS: Record<string, SupplierConfig> = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await requireAdminUser()
   if (!user) {
-    return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 })
-  }
-
-  const adminEmails = [process.env.ADMIN_EMAIL ?? 'info@leptitmag.org', 'georgina.berrezel@gmail.com']
-  if (!adminEmails.includes(user.email ?? '')) {
     return NextResponse.json({ error: "Accès réservé à l'administrateur." }, { status: 403 })
   }
 

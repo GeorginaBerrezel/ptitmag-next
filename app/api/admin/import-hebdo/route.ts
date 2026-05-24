@@ -1,22 +1,13 @@
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import * as XLSX from 'xlsx'
 import { HEBDO_SHEET_CONFIG, parseLocalSheet } from '@/lib/import/local-suppliers'
 import { upsertLocalSupplier } from '@/lib/import/upsert-local'
-
-const ADMIN_EMAILS = [
-  process.env.ADMIN_EMAIL ?? 'info@leptitmag.org',
-  'georgina.berrezel@gmail.com',
-]
+import { requireAdminUser } from '@/lib/admin/auth'
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 })
-  if (!ADMIN_EMAILS.includes(user.email ?? '')) {
-    return NextResponse.json({ error: "Accès réservé à l'administrateur." }, { status: 403 })
-  }
+  const user = await requireAdminUser()
+  if (!user) return NextResponse.json({ error: "Accès réservé à l'administrateur." }, { status: 403 })
 
   const admin = createAdminClient()
   const formData = await request.formData()

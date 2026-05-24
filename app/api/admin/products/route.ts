@@ -1,23 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
-
-const ADMIN_EMAILS = [
-  process.env.ADMIN_EMAIL ?? 'info@leptitmag.org',
-  'georgina.berrezel@gmail.com',
-]
-
-async function getAdminUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) return null
-  return user
-}
-
-// ─── GET — liste des produits d'un fournisseur ────────────────────────────────
+import { requireAdminUser } from '@/lib/admin/auth'
 
 export async function GET(request: NextRequest) {
-  const user = await getAdminUser()
+  const user = await requireAdminUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
   const { searchParams } = new URL(request.url)
@@ -39,7 +25,7 @@ export async function GET(request: NextRequest) {
 // ─── PATCH — basculer is_featured d'un produit ────────────────────────────────
 
 export async function PATCH(request: NextRequest) {
-  const user = await getAdminUser()
+  const user = await requireAdminUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
   const body = await request.json() as { id?: string; is_featured?: boolean }

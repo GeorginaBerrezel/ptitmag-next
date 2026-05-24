@@ -1,17 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
-
-/**
- * Ce fichier gère les membres depuis l'espace admin.
- * Même contrainte que orders : pour lier orders → profiles on doit faire
- * deux requêtes séparées (member_id pointe vers auth.users, pas public.profiles).
- */
-
-const ADMIN_EMAILS = [
-  'info@leptitmag.org',
-  'georgina.berrezel@gmail.com',
-]
+import { requireAdminUser } from '@/lib/admin/auth'
 
 const VALID_STATUSES = ['trial', 'member']
 
@@ -19,10 +8,8 @@ const VALID_STATUSES = ['trial', 'member']
 // Retourne tous les profils avec leur historique de commandes agrégé.
 
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+  const user = await requireAdminUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
   }
 
@@ -108,10 +95,8 @@ export async function GET() {
 // Body attendu : { memberId: string, status: 'trial' | 'member' }
 
 export async function PATCH(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+  const user = await requireAdminUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
   }
 

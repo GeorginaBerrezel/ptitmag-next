@@ -1,11 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { requireAdminUser } from '@/lib/admin/auth'
 import { NextResponse } from 'next/server'
-
-const ADMIN_EMAILS = [
-  'info@leptitmag.org',
-  'georgina.berrezel@gmail.com',
-]
 
 /**
  * GET /api/admin/dashboard
@@ -16,10 +11,8 @@ const ADMIN_EMAILS = [
  * - Commandes récentes + membres récents
  */
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+  const user = await requireAdminUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
   }
 

@@ -1,12 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { sendDeliveryNotification } from '@/lib/email/sendDeliveryNotification'
-
-const ADMIN_EMAILS = [
-  'info@leptitmag.org',
-  'georgina.berrezel@gmail.com',
-]
+import { requireAdminUser } from '@/lib/admin/auth'
 
 const VALID_STATUSES = ['confirmed', 'delivered', 'cancelled']
 
@@ -19,10 +14,8 @@ const VALID_STATUSES = ['confirmed', 'delivered', 'cancelled']
  * entre orders et profiles. On récupère les profils dans une deuxième requête.
  */
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+  const user = await requireAdminUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
   }
 
@@ -105,10 +98,8 @@ export async function GET() {
  * Body attendu : { orderId: string, status: 'confirmed' | 'delivered' | 'cancelled' }
  */
 export async function PATCH(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+  const user = await requireAdminUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
   }
 

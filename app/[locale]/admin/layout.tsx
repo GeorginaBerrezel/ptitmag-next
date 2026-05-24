@@ -1,15 +1,11 @@
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/supabase/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isAdminEmail } from '@/lib/admin/access'
 import AdminNav from '@/components/AdminNav'
 
-const ADMIN_EMAILS = [
-  'info@leptitmag.org',
-  'georgina.berrezel@gmail.com', // email de test
-]
-
 /**
- * Layout protégé admin : accessible uniquement aux comptes listés dans ADMIN_EMAILS.
+ * Layout protégé admin : accessible aux comptes listés dans lib/admin/access.ts.
  * Redirige vers /connexion si non connecté, vers l'accueil si connecté mais non admin.
  * Récupère en parallèle le nombre de commandes "confirmed" pour le badge du menu.
  */
@@ -27,7 +23,7 @@ export default async function AdminLayout({
     redirect(`/${locale}/connexion?next=/${locale}/admin/commandes`)
   }
 
-  if (!ADMIN_EMAILS.includes(user.email ?? '')) {
+  if (!isAdminEmail(user.email)) {
     redirect(`/${locale}`)
   }
 

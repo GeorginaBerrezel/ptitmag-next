@@ -1,28 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
-
-const ADMIN_EMAILS = [
-  process.env.ADMIN_EMAIL ?? 'info@leptitmag.org',
-  'georgina.berrezel@gmail.com',
-]
-
-async function getAdminUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) return null
-  return user
-}
+import { requireAdminUser } from '@/lib/admin/auth'
 
 // ─── GET — liste des fournisseurs avec nombre de produits ─────────────────────
 
 export async function GET() {
-  const user = await getAdminUser()
+  const user = await requireAdminUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
   const admin = createAdminClient()
 
-  // Récupérer tous les fournisseurs
   const { data: suppliers, error: sErr } = await admin
     .from('suppliers')
     .select('id, name, type, active')
@@ -30,7 +17,6 @@ export async function GET() {
 
   if (sErr) return NextResponse.json({ error: sErr.message }, { status: 500 })
 
-  // Compter les produits actifs par fournisseur
   const { data: counts, error: cErr } = await admin
     .from('products')
     .select('supplier_id')
@@ -38,13 +24,11 @@ export async function GET() {
 
   if (cErr) return NextResponse.json({ error: cErr.message }, { status: 500 })
 
-  // Construire un dictionnaire supplierId → count
   const countMap: Record<string, number> = {}
   for (const p of counts ?? []) {
     countMap[p.supplier_id] = (countMap[p.supplier_id] ?? 0) + 1
   }
 
-  // Récupérer la date de dernier import (order_deadline max) par fournisseur
   const { data: deadlines } = await admin
     .from('products')
     .select('supplier_id, order_deadline')
@@ -70,10 +54,8 @@ export async function GET() {
   return NextResponse.json({ suppliers: result })
 }
 
-// ─── PATCH — basculer actif/inactif d'un fournisseur ─────────────────────────
-
 export async function PATCH(request: NextRequest) {
-  const user = await getAdminUser()
+  const user = await requireAdminUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
   const body = await request.json() as { id?: string; active?: boolean }
@@ -92,17 +74,8 @@ export async function PATCH(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
-// ─── DELETE — supprimer un fournisseur et ses produits (si possible) ─────────
-//
-// Stratégie :
-// 1. Les produits référencés dans order_items ne peuvent pas être supprimés (FK).
-//    → On les désactive (active=false) plutôt que de les supprimer.
-// 2. Les produits sans commandes sont supprimés.
-// 3. Si tous les produits ont pu être supprimés → le fournisseur est supprimé.
-//    Sinon → le fournisseur est désactivé (et un message l'explique).
-
 export async function DELETE(request: NextRequest) {
-  const user = await getAdminUser()
+  const user = await requireAdminUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
   const { searchParams } = new URL(request.url)
@@ -111,7 +84,6 @@ export async function DELETE(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Récupérer les IDs des produits de ce fournisseur
   const { data: productRows } = await admin
     .from('products')
     .select('id')
@@ -119,36 +91,36 @@ export async function DELETE(request: NextRequest) {
 
   const productIds = (productRows ?? []).map(p => p.id)
 
-  // Trouver lesquels sont référencés dans order_items
   const { data: linkedRows } = productIds.length > 0
     ? await admin.from('order_items').select('product_id').in('product_id', productIds)
     : { data: [] }
 
   const linkedIds = new Set((linkedRows ?? []).map(r => r.product_id))
-  const freeIds   = productIds.filter(pid => !linkedIds.has(pid))
+  const freeIds = productIds.filter(pid => !linkedIds.has(pid))
 
-  // Supprimer les produits sans commandes
   if (freeIds.length > 0) {
     await admin.from('products').delete().in('id', freeIds)
   }
 
-  // Désactiver les produits liés à des commandes
   if (linkedIds.size > 0) {
     await admin.from('products').update({ active: false }).in('id', [...linkedIds])
   }
 
   if (linkedIds.size === 0) {
-    // Aucun produit lié → suppression complète du fournisseur
     const { error: sErr } = await admin.from('suppliers').delete().eq('id', id)
-    if (sErr) return NextResponse.json({ error: `Impossible de supprimer le fournisseur : ${sErr.message}` }, { status: 500 })
+    if (sErr) {
+      return NextResponse.json(
+        { error: `Impossible de supprimer le fournisseur : ${sErr.message}` },
+        { status: 500 },
+      )
+    }
     return NextResponse.json({ success: true, deleted: true })
-  } else {
-    // Des produits sont dans des commandes → on désactive le fournisseur
-    await admin.from('suppliers').update({ active: false }).eq('id', id)
-    return NextResponse.json({
-      success: true,
-      deleted: false,
-      warning: `${linkedIds.size} produit(s) lié(s) à des commandes ont été désactivés (non supprimés). Le fournisseur a été masqué du catalogue.`,
-    })
   }
+
+  await admin.from('suppliers').update({ active: false }).eq('id', id)
+  return NextResponse.json({
+    success: true,
+    deleted: false,
+    warning: `${linkedIds.size} produit(s) lié(s) à des commandes ont été désactivés (non supprimés). Le fournisseur a été masqué du catalogue.`,
+  })
 }
