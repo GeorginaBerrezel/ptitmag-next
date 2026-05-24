@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import type { Product } from '@/lib/supabase/products'
+import { productOrderableAt } from '@/lib/catalog/orderable'
+import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import ProductCard from './ProductCard'
 import CartBar from './CartBar'
 
@@ -12,12 +14,6 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_ORDER = ['local', 'grossiste_bio', 'autre']
-
-/** Encore commandable à l'instant `nowMs` : pas de deadline ou deadline ≥ now */
-function productOrderableAt(p: Product, nowMs: number): boolean {
-  if (!p.order_deadline) return true
-  return new Date(p.order_deadline).getTime() >= nowMs
-}
 
 type Props = {
   products: Product[]
@@ -46,16 +42,10 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
     }
   }, [])
 
-  // Masquer tout un fournisseur si aucun de ses produits n'est encore commandable (souhait Joel)
-  const visibleProducts = useMemo(() => {
-    return products.filter(p => {
-      if (!p.supplier) return true
-      const siblings = products.filter(x => x.supplier?.id === p.supplier!.id)
-      return siblings.some(s => productOrderableAt(s, catalogNow))
-    })
-  }, [products, catalogNow])
+  // Produits actifs (masquage admin = côté serveur via getProducts). Les deadlines n'enlèvent plus un fournisseur.
+  const visibleProducts = products
 
-  /** Produits encore commandables — badges filtres (pas les lignes « fermées » affichées sous le même fournisseur). */
+  /** Produits encore commandables — compteurs de filtres et statut panier. */
   const orderableVisible = visibleProducts.filter(p => productOrderableAt(p, catalogNow))
 
   const hasFeatured = useMemo(() => visibleProducts.some(p => p.is_featured), [visibleProducts])
@@ -70,13 +60,6 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
     })
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
   }, [visibleProducts])
-
-  // Si le fournisseur sélectionné disparaît (ex : tous ses produits passés), revenir à « tous »
-  useEffect(() => {
-    if (selectedSupplier !== 'tous' && !suppliers.some(s => s.id === selectedSupplier)) {
-      setSelectedSupplier('tous')
-    }
-  }, [suppliers, selectedSupplier])
 
   // Fournisseurs filtrés par type sélectionné
   const visibleSuppliers = useMemo(() => {
@@ -370,11 +353,17 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
                   )}
 
                   <div style={{ display: 'grid', gap: '1.75rem' }}>
-                    {groups.map(({ supplier, items }) => (
+                    {groups.map(({ supplier, items }) => {
+                      const supplierOpen = items.some(p => productOrderableAt(p, catalogNow))
+                      const nextWindow = formatOrderWindow(
+                        nextOrderWindowForSupplier(supplier, catalogNow),
+                      )
+
+                      return (
                       <section key={supplier.id}>
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: '0.6rem',
-                          marginBottom: '0.75rem',
+                          marginBottom: '0.75rem', flexWrap: 'wrap',
                         }}>
                           <h3 style={{
                             margin: 0, fontSize: '1rem', fontWeight: 700,
@@ -389,14 +378,24 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
                           }}>
                             {items.length} produit{items.length > 1 ? 's' : ''}
                           </span>
+                          <span style={{
+                            fontSize: '0.78rem', fontWeight: 500,
+                            background: supplierOpen ? '#ecfdf5' : '#f3f4f6',
+                            color: supplierOpen ? '#047857' : '#4b5563',
+                            borderRadius: 999, padding: '0.15rem 0.6rem',
+                          }}>
+                            {supplierOpen
+                              ? 'Commandes ouvertes'
+                              : `Prochaine commande : ${nextWindow}`}
+                          </span>
                         </div>
                         <div style={{ display: 'grid', gap: '0.5rem' }}>
                           {items.map(product => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard key={product.id} product={product} nowMs={catalogNow} />
                           ))}
                         </div>
                       </section>
-                    ))}
+                    )})}
                   </div>
                 </div>
               )

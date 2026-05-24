@@ -2,37 +2,55 @@
 
 import { useState } from 'react'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
+import { productOrderableAt } from '@/lib/catalog/orderable'
+import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import type { Product } from '@/lib/supabase/products'
 
-function isExpired(deadline: string | null): boolean {
-  if (!deadline) return false
-  return new Date(deadline) < new Date()
+function daysLeft(deadline: string, nowMs: number): number {
+  return Math.ceil((new Date(deadline).getTime() - nowMs) / 86400000)
 }
 
-function daysLeft(deadline: string | null): number | null {
-  if (!deadline) return null
-  return Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000)
+type Props = {
+  product: Product
+  /** Horloge catalogue partagée (CatalogueClient) — évite Date.now() éparpillé. */
+  nowMs?: number
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, nowMs }: Props) {
   const { addItem, items } = useCart()
+  const now = nowMs ?? Date.now()
 
-  // Quantité par défaut = UC (minimum sans majoration)
   const [qty, setQty] = useState(product.min_quantity)
   const [added, setAdded] = useState(false)
 
-  const expired = isExpired(product.order_deadline)
-  const days = daysLeft(product.order_deadline)
+  const orderable = productOrderableAt(product, now)
+  const days = product.order_deadline ? daysLeft(product.order_deadline, now) : null
   const inCart = items.some(i => i.productId === product.id)
 
-  // Quantité minimum absolue : 1 si commande partielle possible, sinon UC
   const minAllowed = product.allows_partial_order ? 1 : product.min_quantity
 
-  // Prix effectif selon quantité choisie
   const hasSurcharge = product.allows_partial_order && qty < product.min_quantity
   const effectivePrice = product.unit_price != null
     ? getEffectiveUnitPrice({ unitPrice: product.unit_price, minQuantity: product.min_quantity, allowsPartialOrder: product.allows_partial_order, quantity: qty })
     : null
+
+  const deadlineLabel = (() => {
+    if (!product.order_deadline) return null
+    if (orderable) {
+      return `Commandez avant le ${new Date(product.order_deadline).toLocaleString('fr-CH', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
+    }
+    if (product.supplier) {
+      const next = formatOrderWindow(nextOrderWindowForSupplier(product.supplier, now))
+      return `Commande fermée — prochaine fenêtre : ${next}`
+    }
+    return 'Commande fermée'
+  })()
 
   function decrement() {
     setQty(q => Math.max(minAllowed, q - 1))
@@ -42,7 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
   }
 
   function handleAdd() {
-    if (!product.supplier || expired) return
+    if (!product.supplier || !orderable) return
     addItem({
       productId: product.id,
       productName: product.name,
@@ -62,7 +80,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <div style={{
-      background: expired ? '#fafafa' : '#fff',
+      background: orderable ? '#fff' : '#fafafa',
       border: product.is_featured
         ? '2px solid #DC7F00'
         : '1px solid rgba(16,24,40,0.08)',
@@ -72,10 +90,8 @@ export default function ProductCard({ product }: { product: Product }) {
       gridTemplateColumns: '1fr auto',
       gap: '0.5rem',
       alignItems: 'start',
-      opacity: expired ? 0.5 : 1,
     }}>
 
-      {/* Infos produit */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem', flexWrap: 'wrap' }}>
           <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{product.name}</p>
@@ -112,24 +128,24 @@ export default function ProductCard({ product }: { product: Product }) {
               {product.supplier.name}
             </span>
           )}
-          {product.order_deadline && (
+          {deadlineLabel && (
             <span style={{
               fontSize: '0.78rem', fontWeight: 500,
-              background: expired ? '#fee2e2' : days !== null && days <= 3 ? '#fff3cd' : '#f3f4f6',
-              color: expired ? '#c0392b' : days !== null && days <= 3 ? '#92400e' : '#374151',
+              background: orderable
+                ? (days !== null && days <= 3 ? '#fff3cd' : '#ecfdf5')
+                : '#f3f4f6',
+              color: orderable
+                ? (days !== null && days <= 3 ? '#92400e' : '#047857')
+                : '#4b5563',
               borderRadius: 999, padding: '0.1rem 0.55rem',
             }}>
-              {expired
-                ? 'Commande fermée'
-                : `Avant le ${new Date(product.order_deadline).toLocaleDateString('fr-CH')}`}
+              {deadlineLabel}
             </span>
           )}
         </div>
       </div>
 
-      {/* Prix + contrôles */}
       <div style={{ display: 'grid', gap: '0.4rem', minWidth: 0, textAlign: 'right' }}>
-        {/* Prix effectif */}
         {effectivePrice != null && (
           <div style={{ textAlign: 'right' }}>
             <p style={{ margin: 0, fontWeight: 700 }}>
@@ -154,9 +170,8 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        {!expired && (
+        {orderable ? (
           <>
-            {/* Contrôles quantité */}
             <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'flex-end', alignItems: 'center' }}>
               <button
                 onClick={decrement}
@@ -214,7 +229,6 @@ export default function ProductCard({ product }: { product: Product }) {
               <span style={{ fontSize: '0.78rem', opacity: 0.55, marginLeft: '0.1rem' }}>{product.unit}</span>
             </div>
 
-            {/* Bouton ajouter */}
             <button
               onClick={handleAdd}
               style={{
@@ -233,13 +247,16 @@ export default function ProductCard({ product }: { product: Product }) {
               {added ? '✓ Ajouté' : inCart ? '✎ Modifier' : '+ Panier'}
             </button>
 
-            {/* Info quantité minimum */}
             <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.5, lineHeight: 1.3 }}>
               {product.allows_partial_order
                 ? `min. sans majoration : ${product.min_quantity} ${product.unit}`
                 : `minimum : ${product.min_quantity} ${product.unit}`}
             </p>
           </>
+        ) : (
+          <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.35 }}>
+            Commande indisponible pour le moment
+          </p>
         )}
       </div>
     </div>
