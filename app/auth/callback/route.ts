@@ -2,15 +2,21 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
+function localeFromNext(next: string | null): string {
+  const match = next?.match(/^\/(fr|en)(\/|$)/)
+  return match?.[1] ?? 'fr'
+}
+
 /**
- * Route de callback après confirmation d'email Supabase.
- * Supabase redirige ici avec un `code` après l'inscription.
- * On échange ce code contre une session, puis on redirige vers /fr/mon-compte.
+ * Route de callback après confirmation d'email Supabase ou reset mot de passe.
+ * Supabase redirige ici avec un `code`. On échange ce code contre une session,
+ * puis on redirige vers `next` (ex. /fr/mon-compte ou /fr/reinitialiser-mot-de-passe).
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/fr/mon-compte'
+  const locale = localeFromNext(next)
 
   if (code) {
     const cookieStore = await cookies()
@@ -39,5 +45,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/fr/connexion?error=lien_invalide`)
+  return NextResponse.redirect(`${origin}/${locale}/connexion?error=lien_invalide`)
 }

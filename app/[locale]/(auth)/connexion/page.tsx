@@ -3,6 +3,7 @@
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import PasswordInput from '@/components/PasswordInput'
 import { Link } from '@/i18n/navigation'
 
 export default function ConnexionPage({
@@ -70,15 +71,22 @@ export default function ConnexionPage({
         </div>
 
         <div style={{ display: 'grid', gap: '0.375rem' }}>
-          <label htmlFor="password">Mot de passe</label>
-          <input
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem' }}>
+            <label htmlFor="password">Mot de passe</label>
+            <Link
+              href="/mot-de-passe-oublie"
+              locale={locale}
+              style={{ fontSize: '0.85rem', opacity: 0.75 }}
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
+          <PasswordInput
             id="password"
-            type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
+            onChange={setPassword}
             autoComplete="current-password"
-            placeholder="••••••••"
+            required
           />
         </div>
 
