@@ -1,10 +1,15 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import type { Product, Supplier } from '@/lib/supabase/products'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { groupProductsByCategory } from '@/lib/catalog/group-by-category'
 import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
+import {
+  categoryMatches,
+  productMatches,
+  supplierMatches,
+} from '@/lib/catalog/search'
 import SupplierCard from './catalogue/SupplierCard'
 import CategoryCard from './catalogue/CategoryCard'
 import ProductCard from './ProductCard'
@@ -80,44 +85,58 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
     [allGroups, activeSupplierId],
   )
 
-  const filteredGroups = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return allGroups.filter(g => {
-      if (selectedType && g.supplier.type !== selectedType) return false
-      if (q && !g.supplier.name.toLowerCase().includes(q)) return false
-      return true
-    })
-  }, [allGroups, selectedType, search])
-
-  const filteredCategories = useMemo(() => {
-    if (!activeGroup) return []
-    const q = search.trim().toLowerCase()
-    if (!q) return activeGroup.categories
-    return activeGroup.categories.filter(c => c.name.toLowerCase().includes(q))
-  }, [activeGroup, search])
-
-  const displayedProducts = useMemo(() => {
-    if (!activeGroup || !activeCategory) return []
-    const cat = activeGroup.categories.find(c => c.name === activeCategory)
-    if (!cat) return []
-    const q = search.trim().toLowerCase()
-    if (!q) return cat.items
-    return cat.items.filter(p => {
-      const haystack = [p.name, p.description, p.supplier_ref].join(' ').toLowerCase()
-      return haystack.includes(q)
-    })
-  }, [activeGroup, activeCategory, search])
-
-  const hasFeatured = products.some(p => p.is_featured)
-
   const view: 'suppliers' | 'categories' | 'products' =
     activeGroup && activeCategory ? 'products'
     : activeGroup ? 'categories'
     : 'suppliers'
 
+  const isSearching = search.trim().length > 0
+
+  const filteredGroups = useMemo(() => {
+    return allGroups.filter(g => {
+      if (selectedType && g.supplier.type !== selectedType) return false
+      if (!isSearching) return true
+      return supplierMatches(g.supplier.name, search)
+        || g.products.some(p => productMatches(p, search))
+    })
+  }, [allGroups, selectedType, search, isSearching])
+
+  /** Résultats produits à l'accueil catalogue (recherche globale). */
+  const globalProductResults = useMemo(() => {
+    if (view !== 'suppliers' || !isSearching) return []
+    return baseProducts.filter(p => {
+      if (selectedType && p.supplier?.type !== selectedType) return false
+      return productMatches(p, search)
+    })
+  }, [baseProducts, selectedType, search, isSearching, view])
+
+  /** Produits trouvés dans un fournisseur (vue catégories + recherche). */
+  const supplierProductResults = useMemo(() => {
+    if (view !== 'categories' || !activeGroup || !isSearching) return []
+    return activeGroup.products.filter(p => productMatches(p, search))
+  }, [view, activeGroup, search, isSearching])
+
+  const filteredCategories = useMemo(() => {
+    if (!activeGroup) return []
+    if (!isSearching) return activeGroup.categories
+    return activeGroup.categories.filter(c => categoryMatches(c.name, search))
+  }, [activeGroup, search, isSearching])
+
+  const displayedProducts = useMemo(() => {
+    if (!activeGroup || !activeCategory) return []
+    const cat = activeGroup.categories.find(c => c.name === activeCategory)
+    if (!cat) return []
+    if (!isSearching) return cat.items
+    return cat.items.filter(p => productMatches(p, search))
+  }, [activeGroup, activeCategory, search, isSearching])
+
+  const hasFeatured = products.some(p => p.is_featured)
+
   const searchPlaceholder =
-    view === 'suppliers' ? 'Rechercher un fournisseur…'
-    : view === 'categories' ? 'Rechercher une catégorie…'
+    view === 'suppliers'
+      ? 'Rechercher un produit ou un fournisseur…'
+    : view === 'categories'
+      ? 'Rechercher une catégorie ou un produit…'
     : 'Rechercher un produit…'
 
   function handleTypeClick(type: string) {
@@ -374,73 +393,134 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
 
         {/* Vue fournisseurs */}
         {view === 'suppliers' && (
-          filteredGroups.length === 0 ? (
-            <EmptyState message="Aucun fournisseur ne correspond à votre recherche." />
-          ) : (
-            TYPE_ORDER.map(type => {
-              const groups = groupsByType.get(type)
-              if (!groups?.length) return null
-              const showHeader = !selectedType && !ephemereOnly
-              return (
-                <section key={type} style={{ marginBottom: showHeader ? '2rem' : 0 }}>
-                  {showHeader && (
-                    <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
-                      {TYPE_LABELS[type] ?? type}
-                    </h2>
-                  )}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                    gap: '0.85rem',
-                  }}>
-                    {groups.map(group => {
-                      const status = supplierStatus(group)
-                      return (
-                        <SupplierCard
-                          key={group.supplier.id}
-                          name={group.supplier.name}
-                          typeLabel={TYPE_LABELS[group.supplier.type] ?? group.supplier.type}
-                          productCount={group.products.length}
-                          categoryCount={group.categories.length}
-                          isOpen={status.isOpen}
-                          statusLabel={status.label}
-                          onClick={() => openSupplier(group.supplier.id)}
-                        />
-                      )
-                    })}
-                  </div>
-                </section>
-              )
-            })
-          )
+          <>
+            {isSearching && globalProductResults.length > 0 && (
+              <SearchResultsSection
+                title={`Produits trouvés (${globalProductResults.length})`}
+                subtitle="Ajoutez directement au panier ou ouvrez le fournisseur pour voir la catégorie."
+              >
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {globalProductResults.map(product => (
+                    <ProductCard key={product.id} product={product} nowMs={catalogNow} />
+                  ))}
+                </div>
+              </SearchResultsSection>
+            )}
+
+            {isSearching && globalProductResults.length > 0 && filteredGroups.length > 0 && (
+              <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
+                Fournisseurs
+              </h2>
+            )}
+
+            {!isSearching && filteredGroups.length === 0 ? (
+              <EmptyState message="Aucun fournisseur disponible." />
+            ) : isSearching && filteredGroups.length === 0 && globalProductResults.length === 0 ? (
+              <EmptyState message="Aucun produit ni fournisseur ne correspond à votre recherche." />
+            ) : filteredGroups.length > 0 ? (
+              TYPE_ORDER.map(type => {
+                const groups = groupsByType.get(type)
+                if (!groups?.length) return null
+                const showHeader = !selectedType && !ephemereOnly && !isSearching
+                return (
+                  <section key={type} style={{ marginBottom: showHeader ? '2rem' : 0 }}>
+                    {showHeader && (
+                      <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
+                        {TYPE_LABELS[type] ?? type}
+                      </h2>
+                    )}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                      gap: '0.85rem',
+                    }}>
+                      {groups.map(group => {
+                        const status = supplierStatus(group)
+                        return (
+                          <SupplierCard
+                            key={group.supplier.id}
+                            name={group.supplier.name}
+                            typeLabel={TYPE_LABELS[group.supplier.type] ?? group.supplier.type}
+                            productCount={group.products.length}
+                            categoryCount={group.categories.length}
+                            isOpen={status.isOpen}
+                            statusLabel={status.label}
+                            onClick={() => openSupplier(group.supplier.id)}
+                          />
+                        )
+                      })}
+                    </div>
+                  </section>
+                )
+              })
+            ) : null}
+          </>
         )}
 
         {/* Vue catégories */}
         {view === 'categories' && activeGroup && (
-          filteredCategories.length === 0 ? (
-            <EmptyState message="Aucune catégorie ne correspond à votre recherche." />
-          ) : (
-            <>
-              <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem' }}>
-                {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} — cliquez pour voir les produits
-              </p>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                gap: '0.75rem',
-              }}>
-                {filteredCategories.map(({ name, items }) => (
-                  <CategoryCard
-                    key={name}
-                    name={name}
-                    productCount={items.length}
-                    orderableCount={items.filter(p => productOrderableAt(p, catalogNow)).length}
-                    onClick={() => openCategory(name)}
-                  />
-                ))}
-              </div>
-            </>
-          )
+          <>
+            {isSearching && supplierProductResults.length > 0 && (
+              <SearchResultsSection
+                title={`Produits trouvés (${supplierProductResults.length})`}
+                subtitle={`Dans ${activeGroup.supplier.name} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
+              >
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {supplierProductResults.map(product => (
+                    <ProductCard key={product.id} product={product} nowMs={catalogNow} />
+                  ))}
+                </div>
+              </SearchResultsSection>
+            )}
+
+            {!isSearching ? (
+              <>
+                <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem' }}>
+                  {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} — cliquez pour voir les produits
+                </p>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                  gap: '0.75rem',
+                }}>
+                  {filteredCategories.map(({ name, items }) => (
+                    <CategoryCard
+                      key={name}
+                      name={name}
+                      productCount={items.length}
+                      orderableCount={items.filter(p => productOrderableAt(p, catalogNow)).length}
+                      onClick={() => openCategory(name)}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : filteredCategories.length === 0 && supplierProductResults.length === 0 ? (
+              <EmptyState message="Aucune catégorie ni produit ne correspond à votre recherche." />
+            ) : filteredCategories.length > 0 ? (
+              <>
+                {supplierProductResults.length > 0 && (
+                  <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
+                    Catégories
+                  </h2>
+                )}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                  gap: '0.75rem',
+                }}>
+                  {filteredCategories.map(({ name, items }) => (
+                    <CategoryCard
+                      key={name}
+                      name={name}
+                      productCount={items.length}
+                      orderableCount={items.filter(p => productOrderableAt(p, catalogNow)).length}
+                      onClick={() => openCategory(name)}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </>
         )}
 
         {/* Vue produits */}
@@ -457,6 +537,24 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
         )}
       </div>
     </div>
+  )
+}
+
+function SearchResultsSection({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string
+  subtitle: string
+  children: ReactNode
+}) {
+  return (
+    <section style={{ marginBottom: '2rem' }}>
+      <h2 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 700 }}>{title}</h2>
+      <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', opacity: 0.6 }}>{subtitle}</p>
+      {children}
+    </section>
   )
 }
 
