@@ -2,6 +2,7 @@ import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
+import DeleteAccountSection from './DeleteAccountSection'
 import { formatCotisation } from '@/lib/members/profile'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -33,7 +34,12 @@ function formatDate(iso: string) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function MonComptePage() {
+export default async function MonComptePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
   const [profile, orders] = await Promise.all([getProfile(), getMyOrders()])
 
   const activeOrders    = orders.filter(o => o.status !== 'cancelled')
@@ -288,9 +294,10 @@ export default async function MonComptePage() {
           )}
         </div>
 
-        {/* Déconnexion */}
+        {/* Déconnexion + suppression de compte */}
         <div style={{ marginTop: '0.5rem' }}>
           <SignOutButton />
+          <DeleteAccountSection locale={locale} />
         </div>
 
       </div>
