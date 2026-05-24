@@ -72,19 +72,18 @@ export default async function ProducersPage({
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
       {/* ── Bloc intro ── */}
-      <div style={{
+      <div className="page-hero" style={{
         background: 'linear-gradient(135deg, #0E1726 0%, #1a3020 100%)',
         borderRadius: 20,
         padding: 'clamp(1.75rem, 5vw, 2.75rem)',
         color: '#fff',
         marginBottom: '3rem',
       }}>
-        <p style={{
+        <p className="page-hero-kicker" style={{
           margin: '0 0 0.5rem',
           fontSize: '0.78rem',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color: '#cda867',
           fontWeight: 700,
           opacity: 0.9,
         }}>
@@ -210,8 +209,8 @@ export default async function ProducersPage({
             >
               <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{supplier.emoji}</span>
               <div>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem' }}>{supplier.name}</p>
-                <p style={{ margin: 0, fontSize: '0.77rem', opacity: 0.55, marginTop: '0.1rem' }}>
+                <p className="card-title" style={{ fontSize: '0.88rem' }}>{supplier.name}</p>
+                <p className="card-text" style={{ fontSize: '0.77rem', marginTop: '0.1rem' }}>
                   {supplier.description}
                 </p>
               </div>

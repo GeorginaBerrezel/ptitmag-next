@@ -47,19 +47,18 @@ export default async function ContactPage({
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
       {/* ── Bloc intro ── */}
-      <div style={{
+      <div className="page-hero" style={{
         background: 'linear-gradient(135deg, #0E1726 0%, #1a2e3a 100%)',
         borderRadius: 20,
         padding: 'clamp(1.75rem, 5vw, 2.75rem)',
         color: '#fff',
         marginBottom: '2rem',
       }}>
-        <p style={{
+        <p className="page-hero-kicker" style={{
           margin: '0 0 0.5rem',
           fontSize: '0.78rem',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color: '#cda867',
           fontWeight: 700,
         }}>
           Le p&apos;tit mag · St-Romain (Ayent)
@@ -204,7 +203,7 @@ export default async function ContactPage({
                   <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
                     {slot.days.map(d => DAY_LABELS[d] ?? d).join(', ')}
                   </span>
-                  <span style={{ opacity: 0.65, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                  <span className="contact-hours-time">
                     {slot.ranges.map(formatRange).join('  ·  ')}
                   </span>
                 </div>

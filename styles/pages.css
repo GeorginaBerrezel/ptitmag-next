@@ -1,0 +1,75 @@
+/* Pages statiques — heroes sombres et grilles catalogue mobile */
+
+.page-hero,
+.page-hero h1,
+.page-hero h2 {
+  color: #fff;
+}
+
+.page-hero p {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.page-hero .page-hero-kicker {
+  color: #cda867;
+}
+
+.card-title {
+  margin: 0;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.card-text {
+  margin: 0;
+  color: rgba(16, 24, 40, 0.65);
+  line-height: 1.55;
+}
+
+.catalogue-supplier-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+@media (min-width: 480px) {
+  .catalogue-supplier-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@media (min-width: 720px) {
+  .catalogue-supplier-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+.catalogue-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+  gap: 0.65rem;
+}
+
+.catalogue-sticky-categories {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 0.5rem 0;
+  position: sticky;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+}
+
+.contact-hours-time {
+  opacity: 0.65;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .contact-hours-time {
+    width: 100%;
+    white-space: normal;
+  }
+}

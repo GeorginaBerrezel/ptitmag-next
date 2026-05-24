@@ -7,6 +7,7 @@ import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import { getProductImageUrl, showProductImage } from '@/lib/catalog/product-image'
 import type { Product } from '@/lib/supabase/products'
+import styles from './ProductCard.module.css'
 
 function daysLeft(deadline: string, nowMs: number): number {
   return Math.ceil((new Date(deadline).getTime() - nowMs) / 86400000)
@@ -51,7 +52,7 @@ function ProductCardInner({ product, nowMs }: Props) {
     }
     if (product.supplier) {
       const next = formatOrderWindow(nextOrderWindowForSupplier(product.supplier, now))
-      return `Commande fermée — prochaine fenêtre : ${next}`
+      return `Commande fermée — prochaine : ${next}`
     }
     return 'Commande fermée'
   })()
@@ -82,39 +83,31 @@ function ProductCardInner({ product, nowMs }: Props) {
     setTimeout(() => setAdded(false), 2000)
   }
 
+  const cardClass = [
+    styles.card,
+    !orderable ? styles.cardClosed : '',
+    product.is_featured ? styles.cardFeatured : '',
+    hasImage ? styles.cardWithImage : styles.cardNoImage,
+  ].filter(Boolean).join(' ')
+
   return (
-    <div style={{
-      background: orderable ? '#fff' : '#fafafa',
-      border: product.is_featured
-        ? '2px solid #DC7F00'
-        : '1px solid rgba(16,24,40,0.08)',
-      borderRadius: 12,
-      padding: '0.875rem 1rem',
-      display: 'grid',
-      gridTemplateColumns: hasImage ? '72px 1fr auto' : '1fr auto',
-      gap: '0.75rem',
-      alignItems: 'start',
-    }}>
+    <div className={cardClass}>
 
       {hasImage && imageUrl && (
-        <div style={{
-          width: 72, height: 72, borderRadius: 10, overflow: 'hidden',
-          background: '#f3f4f6', border: '1px solid rgba(16,24,40,0.06)',
-          flexShrink: 0, position: 'relative',
-        }}>
+        <div className={styles.image}>
           <Image
             src={imageUrl}
             alt=""
             fill
-            sizes="72px"
+            sizes="(max-width: 560px) 64px, 72px"
             style={{ objectFit: 'cover' }}
           />
         </div>
       )}
 
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem', flexWrap: 'wrap' }}>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{product.name}</p>
+      <div className={styles.info}>
+        <div className={styles.nameRow}>
+          <p className={styles.name}>{product.name}</p>
           {product.is_featured && (
             <span style={{
               background: '#DC7F00', color: '#fff',
@@ -128,12 +121,10 @@ function ProductCardInner({ product, nowMs }: Props) {
         </div>
 
         {product.description && (
-          <p style={{ margin: '0.1rem 0 0.35rem', fontSize: '0.8rem', opacity: 0.58, lineHeight: 1.4 }}>
-            {product.description}
-          </p>
+          <p className={styles.description}>{product.description}</p>
         )}
 
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className={styles.meta}>
           {product.category && (
             <span style={{
               fontSize: '0.73rem', fontWeight: 600,
@@ -158,6 +149,7 @@ function ProductCardInner({ product, nowMs }: Props) {
                 ? (days !== null && days <= 3 ? '#92400e' : '#047857')
                 : '#4b5563',
               borderRadius: 999, padding: '0.1rem 0.55rem',
+              lineHeight: 1.35,
             }}>
               {deadlineLabel}
             </span>
@@ -165,104 +157,68 @@ function ProductCardInner({ product, nowMs }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gap: '0.4rem', minWidth: 0, textAlign: 'right' }}>
+      <div className={styles.actions}>
         {effectivePrice != null && (
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ margin: 0, fontWeight: 700 }}>
-              CHF {effectivePrice.toFixed(2)}
-              <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85rem' }}>/{product.unit}</span>
-            </p>
-            {product.supplier?.type === 'grossiste_bio' && (
-              <p style={{ margin: '0.1rem 0 0', fontSize: '0.68rem', opacity: 0.5 }}>
-                TVA 2.6% incluse
+          <div className={styles.priceRow}>
+            <div className={styles.priceBlock}>
+              <p className={styles.price}>
+                CHF {effectivePrice.toFixed(2)}
+                <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85rem' }}>/{product.unit}</span>
               </p>
-            )}
-            {hasSurcharge && (
-              <p style={{
-                margin: '0.1rem 0 0',
-                fontSize: '0.72rem',
-                color: '#DC7F00',
-                fontWeight: 600,
-              }}>
-                +10% (qté &lt; min.)
-              </p>
-            )}
+              {product.supplier?.type === 'grossiste_bio' && (
+                <p style={{ margin: '0.1rem 0 0', fontSize: '0.68rem', opacity: 0.5 }}>
+                  TVA 2.6% incluse
+                </p>
+              )}
+              {hasSurcharge && (
+                <p style={{
+                  margin: '0.1rem 0 0',
+                  fontSize: '0.72rem',
+                  color: '#DC7F00',
+                  fontWeight: 600,
+                }}>
+                  +10% (qté &lt; min.)
+                </p>
+              )}
+            </div>
           </div>
         )}
 
         {orderable ? (
           <>
-            <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <div className={styles.qtyRow}>
               <button
+                type="button"
                 onClick={decrement}
                 disabled={qty <= minAllowed}
                 aria-label="Diminuer la quantité"
-                style={{
-                  width: 30, height: 30,
-                  border: '1px solid rgba(16,24,40,0.15)',
-                  borderRadius: 6,
-                  background: qty <= minAllowed ? '#f5f5f5' : '#fff',
-                  color: qty <= minAllowed ? '#bbb' : '#1a1a2e',
-                  cursor: qty <= minAllowed ? 'not-allowed' : 'pointer',
-                  fontSize: '1.1rem',
-                  fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  lineHeight: 1,
-                  padding: 0,
-                  flexShrink: 0,
-                }}
+                className={styles.qtyBtn}
               >
                 −
               </button>
 
-              <span style={{
-                minWidth: 36,
-                textAlign: 'center',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                lineHeight: '30px',
-              }}>
-                {qty}
-              </span>
+              <span className={styles.qtyValue}>{qty}</span>
 
               <button
+                type="button"
                 onClick={increment}
                 aria-label="Augmenter la quantité"
-                style={{
-                  width: 30, height: 30,
-                  border: '1px solid rgba(16,24,40,0.15)',
-                  borderRadius: 6,
-                  background: '#fff',
-                  color: '#1a1a2e',
-                  cursor: 'pointer',
-                  fontSize: '1.1rem',
-                  fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  lineHeight: 1,
-                  padding: 0,
-                  flexShrink: 0,
-                }}
+                className={styles.qtyBtn}
               >
                 +
               </button>
 
-              <span style={{ fontSize: '0.78rem', opacity: 0.55, marginLeft: '0.1rem' }}>{product.unit}</span>
+              <span style={{ fontSize: '0.78rem', opacity: 0.55 }}>{product.unit}</span>
             </div>
 
             <button
+              type="button"
               onClick={handleAdd}
-              style={{
-                background: added ? '#2e7d32' : inCart ? '#DC7F00' : '#1a1a2e',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                padding: '0.35rem 0.65rem',
-                cursor: 'pointer',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                transition: 'background 0.2s',
-                whiteSpace: 'nowrap',
-              }}
+              className={[
+                styles.addBtn,
+                added ? styles.addBtnAdded : '',
+                !added && inCart ? styles.addBtnInCart : '',
+              ].filter(Boolean).join(' ')}
             >
               {added ? '✓ Ajouté' : inCart ? '✎ Modifier' : '+ Panier'}
             </button>

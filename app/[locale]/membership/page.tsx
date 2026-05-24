@@ -42,19 +42,18 @@ export default async function MembershipPage({
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
       {/* ── Bloc intro ── */}
-      <div style={{
+      <div className="page-hero" style={{
         background: 'linear-gradient(135deg, #0E1726 0%, #1a3020 100%)',
         borderRadius: 20,
         padding: 'clamp(1.75rem, 5vw, 2.75rem)',
         color: '#fff',
         marginBottom: '2.5rem',
       }}>
-        <p style={{
+        <p className="page-hero-kicker" style={{
           margin: '0 0 0.5rem',
           fontSize: '0.78rem',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color: '#cda867',
           fontWeight: 700,
         }}>
           Le p&apos;tit mag · St-Romain (Ayent)
@@ -86,7 +85,7 @@ export default async function MembershipPage({
             display: 'flex', flexDirection: 'column', gap: '0.5rem',
           }}>
             <span style={{ fontSize: '1.75rem' }}>🌱</span>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem' }}>Ordinaire</p>
+            <p className="card-title" style={{ fontSize: '1.1rem' }}>Ordinaire</p>
             <p style={{
               margin: 0, fontSize: '1.6rem', fontWeight: 800,
               color: '#0E1726',
@@ -106,7 +105,7 @@ export default async function MembershipPage({
             display: 'flex', flexDirection: 'column', gap: '0.5rem',
           }}>
             <span style={{ fontSize: '1.75rem' }}>🤲</span>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem' }}>Douce</p>
+            <p className="card-title" style={{ fontSize: '1.1rem' }}>Douce</p>
             <p style={{
               margin: 0, fontSize: '1.6rem', fontWeight: 800,
               color: '#245c2a',
@@ -126,7 +125,7 @@ export default async function MembershipPage({
             display: 'flex', flexDirection: 'column', gap: '0.5rem',
           }}>
             <span style={{ fontSize: '1.75rem' }}>💛</span>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem' }}>Don récurrent</p>
+            <p className="card-title" style={{ fontSize: '1.1rem' }}>Don récurrent</p>
             <p style={{
               margin: 0, fontSize: '1.1rem', fontWeight: 700,
               color: '#DC7F00',

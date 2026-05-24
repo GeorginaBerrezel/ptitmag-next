@@ -7,10 +7,12 @@ import { productOrderableAt } from '@/lib/catalog/orderable'
 import { groupProductsByCategory } from '@/lib/catalog/group-by-category'
 import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
+import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import SupplierCard from './catalogue/SupplierCard'
 import CategoryCard from './catalogue/CategoryCard'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
+import { useCart } from '@/lib/cart/CartContext'
 
 const TYPE_LABELS: Record<string, string> = {
   local: 'Producteurs locaux',
@@ -31,6 +33,11 @@ function cacheKey(supplierId: string, featuredOnly: boolean) {
 }
 
 export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
+  const { totalItems } = useCart()
+  const stickyTop = totalItems > 0
+    ? 'calc(var(--header-height) + 2.75rem)'
+    : 'var(--header-height)'
+
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
@@ -419,12 +426,10 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
         )}
 
         {view === 'products' && activeCategories.length > 0 && (
-          <div style={{
-            display: 'flex', gap: '0.4rem', flexWrap: 'wrap',
-            marginBottom: '1.25rem', padding: '0.5rem 0',
-            position: 'sticky', top: '3.5rem', zIndex: 10,
-            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(6px)',
-          }}>
+          <div
+            className="catalogue-sticky-categories"
+            style={{ top: stickyTop }}
+          >
             {activeCategories.map(({ name, items }) => {
               const count = items.length || activeSummary?.categories.find(c => c.name === name)?.count || 0
               return (
@@ -503,18 +508,17 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                         {TYPE_LABELS[type] ?? type}
                       </h2>
                     )}
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                      gap: '0.85rem',
-                    }}>
+                    <div className="catalogue-supplier-grid">
                       {list.map(summary => {
                         const status = supplierStatus(summary)
+                        const display = getSupplierDisplayInfo(summary.supplier.name, summary.supplier.type)
                         return (
                           <SupplierCard
                             key={summary.supplier.id}
                             name={summary.supplier.name}
                             typeLabel={TYPE_LABELS[summary.supplier.type] ?? summary.supplier.type}
+                            description={display.description}
+                            emoji={display.emoji}
                             productCount={summary.productCount}
                             categoryCount={summary.categories.length}
                             isOpen={status.isOpen}
@@ -548,11 +552,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                 <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem' }}>
                   {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} — cliquez pour voir les produits
                 </p>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                  gap: '0.75rem',
-                }}>
+                <div className="catalogue-category-grid">
                   {filteredCategories.map(({ name }) => {
                     const meta = activeSummary.categories.find(c => c.name === name)
                     const count = meta?.count ?? 0
@@ -580,11 +580,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                     Catégories
                   </h2>
                 )}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                  gap: '0.75rem',
-                }}>
+                <div className="catalogue-category-grid">
                   {filteredCategories.map(({ name }) => {
                     const meta = activeSummary.categories.find(c => c.name === name)
                     const count = meta?.count ?? 0
