@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import Image from 'next/image'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { productOrderableAt } from '@/lib/catalog/orderable'
@@ -18,7 +18,7 @@ type Props = {
   nowMs?: number
 }
 
-export default function ProductCard({ product, nowMs }: Props) {
+function ProductCardInner({ product, nowMs }: Props) {
   const { addItem, items } = useCart()
   const now = nowMs ?? Date.now()
 
@@ -282,3 +282,6 @@ export default function ProductCard({ product, nowMs }: Props) {
     </div>
   )
 }
+
+const ProductCard = memo(ProductCardInner)
+export default ProductCard

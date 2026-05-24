@@ -1,18 +1,15 @@
 'use client'
 
-import { useState, useMemo, useEffect, type ReactNode } from 'react'
-import type { Product, Supplier } from '@/lib/supabase/products'
+import { useState, useMemo, useEffect, useRef, type ReactNode } from 'react'
+import type { Product } from '@/lib/supabase/products'
+import type { CatalogueSupplierSummary } from '@/lib/supabase/catalogue'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { groupProductsByCategory } from '@/lib/catalog/group-by-category'
 import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
-import {
-  categoryMatches,
-  productMatches,
-  supplierMatches,
-} from '@/lib/catalog/search'
+import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import SupplierCard from './catalogue/SupplierCard'
 import CategoryCard from './catalogue/CategoryCard'
-import ProductCard from './ProductCard'
+import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -22,42 +19,32 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_ORDER = ['local', 'grossiste_bio', 'autre']
-
-type SupplierGroup = {
-  supplier: Supplier
-  products: Product[]
-  categories: ReturnType<typeof groupProductsByCategory>
-}
+const SEARCH_DEBOUNCE_MS = 300
 
 type Props = {
-  products: Product[]
+  summaries: CatalogueSupplierSummary[]
   initialEphemere?: boolean
 }
 
-function buildSupplierGroups(items: Product[]): SupplierGroup[] {
-  const map = new Map<string, SupplierGroup>()
-  for (const p of items) {
-    if (!p.supplier) continue
-    if (!map.has(p.supplier.id)) {
-      map.set(p.supplier.id, { supplier: p.supplier, products: [], categories: [] })
-    }
-    map.get(p.supplier.id)!.products.push(p)
-  }
-  return Array.from(map.values())
-    .map(g => ({
-      ...g,
-      categories: groupProductsByCategory(g.products),
-    }))
-    .sort((a, b) => a.supplier.name.localeCompare(b.supplier.name))
+function cacheKey(supplierId: string, featuredOnly: boolean) {
+  return featuredOnly ? `${supplierId}:featured` : supplierId
 }
 
-export default function CatalogueClient({ products, initialEphemere = false }: Props) {
+export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
   const [activeSupplierId, setActiveSupplierId] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [catalogNow, setCatalogNow] = useState(() => Date.now())
+
+  const [productCache, setProductCache] = useState<Map<string, Product[]>>(new Map())
+  const loadedKeys = useRef(new Set<string>())
+  const [loadingSupplier, setLoadingSupplier] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const [globalSearchResults, setGlobalSearchResults] = useState<Product[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
 
   useEffect(() => {
     const bump = () => setCatalogNow(Date.now())
@@ -73,64 +60,153 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
     }
   }, [])
 
-  const baseProducts = useMemo(() => {
-    if (!ephemereOnly) return products
-    return products.filter(p => p.is_featured)
-  }, [products, ephemereOnly])
+  const baseSummaries = useMemo(() => {
+    if (!ephemereOnly) return summaries
+    return summaries.filter(s => s.hasFeatured)
+  }, [summaries, ephemereOnly])
 
-  const allGroups = useMemo(() => buildSupplierGroups(baseProducts), [baseProducts])
-
-  const activeGroup = useMemo(
-    () => allGroups.find(g => g.supplier.id === activeSupplierId) ?? null,
-    [allGroups, activeSupplierId],
+  const activeSummary = useMemo(
+    () => baseSummaries.find(s => s.supplier.id === activeSupplierId) ?? null,
+    [baseSummaries, activeSupplierId],
   )
 
+  const activeProducts = useMemo(() => {
+    if (!activeSupplierId) return null
+    return productCache.get(cacheKey(activeSupplierId, ephemereOnly)) ?? null
+  }, [activeSupplierId, ephemereOnly, productCache])
+
+  const activeCategories = useMemo(() => {
+    if (activeProducts) return groupProductsByCategory(activeProducts)
+    if (!activeSummary) return []
+    return activeSummary.categories.map(c => ({ name: c.name, items: [] as Product[] }))
+  }, [activeProducts, activeSummary])
+
   const view: 'suppliers' | 'categories' | 'products' =
-    activeGroup && activeCategory ? 'products'
-    : activeGroup ? 'categories'
+    activeSummary && activeCategory ? 'products'
+    : activeSummary ? 'categories'
     : 'suppliers'
 
   const isSearching = search.trim().length > 0
 
-  const filteredGroups = useMemo(() => {
-    return allGroups.filter(g => {
-      if (selectedType && g.supplier.type !== selectedType) return false
+  useEffect(() => {
+    if (!activeSupplierId) return
+    const key = cacheKey(activeSupplierId, ephemereOnly)
+    if (loadedKeys.current.has(key)) return
+
+    let cancelled = false
+    loadedKeys.current.add(key)
+
+    ;(async () => {
+      setLoadingSupplier(true)
+      setLoadError(null)
+      try {
+        const params = new URLSearchParams({ supplierId: activeSupplierId })
+        if (ephemereOnly) params.set('featured', '1')
+        const res = await fetch(`/api/catalogue/products?${params}`)
+        if (!res.ok) throw new Error('Chargement impossible')
+        const data = (await res.json()) as Product[]
+        if (!cancelled) {
+          setProductCache(prev => new Map(prev).set(key, data))
+        }
+      } catch {
+        loadedKeys.current.delete(key)
+        if (!cancelled) setLoadError('Impossible de charger les produits. Réessayez.')
+      } finally {
+        if (!cancelled) setLoadingSupplier(false)
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [activeSupplierId, ephemereOnly])
+
+  useEffect(() => {
+    if (view !== 'suppliers' || !isSearching) {
+      setGlobalSearchResults([])
+      setSearchLoading(false)
+      return
+    }
+
+    const timer = window.setTimeout(async () => {
+      setSearchLoading(true)
+      try {
+        const params = new URLSearchParams({ q: search.trim() })
+        if (selectedType) params.set('type', selectedType)
+        const res = await fetch(`/api/catalogue/search?${params}`)
+        if (res.ok) {
+          setGlobalSearchResults((await res.json()) as Product[])
+        } else {
+          setGlobalSearchResults([])
+        }
+      } catch {
+        setGlobalSearchResults([])
+      } finally {
+        setSearchLoading(false)
+      }
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => window.clearTimeout(timer)
+  }, [search, selectedType, view, isSearching])
+
+  const matchingSupplierIds = useMemo(
+    () => new Set(globalSearchResults.map(p => p.supplier?.id).filter(Boolean) as string[]),
+    [globalSearchResults],
+  )
+
+  const filteredSummaries = useMemo(() => {
+    return baseSummaries.filter(s => {
+      if (selectedType && s.supplier.type !== selectedType) return false
       if (!isSearching) return true
-      return supplierMatches(g.supplier.name, search)
-        || g.products.some(p => productMatches(p, search))
+      return supplierMatches(s.supplier.name, search)
+        || matchingSupplierIds.has(s.supplier.id)
     })
-  }, [allGroups, selectedType, search, isSearching])
+  }, [baseSummaries, selectedType, search, isSearching, matchingSupplierIds])
 
-  /** Résultats produits à l'accueil catalogue (recherche globale). */
-  const globalProductResults = useMemo(() => {
-    if (view !== 'suppliers' || !isSearching) return []
-    return baseProducts.filter(p => {
-      if (selectedType && p.supplier?.type !== selectedType) return false
-      return productMatches(p, search)
-    })
-  }, [baseProducts, selectedType, search, isSearching, view])
-
-  /** Produits trouvés dans un fournisseur (vue catégories + recherche). */
   const supplierProductResults = useMemo(() => {
-    if (view !== 'categories' || !activeGroup || !isSearching) return []
-    return activeGroup.products.filter(p => productMatches(p, search))
-  }, [view, activeGroup, search, isSearching])
+    if (view !== 'categories' || !activeSummary || !isSearching) return []
+    if (activeProducts) {
+      return activeProducts.filter(p => productMatches(p, search))
+    }
+    return []
+  }, [view, activeSummary, activeProducts, search, isSearching])
+
+  const [supplierSearchResults, setSupplierSearchResults] = useState<Product[]>([])
+
+  useEffect(() => {
+    if (view !== 'categories' || !activeSupplierId || !isSearching || activeProducts) {
+      setSupplierSearchResults([])
+      return
+    }
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ q: search.trim(), supplierId: activeSupplierId })
+        const res = await fetch(`/api/catalogue/search?${params}`)
+        if (res.ok) setSupplierSearchResults((await res.json()) as Product[])
+      } catch {
+        setSupplierSearchResults([])
+      }
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => window.clearTimeout(timer)
+  }, [view, activeSupplierId, isSearching, search, activeProducts])
+
+  const inlineSupplierResults = activeProducts ? supplierProductResults : supplierSearchResults
 
   const filteredCategories = useMemo(() => {
-    if (!activeGroup) return []
-    if (!isSearching) return activeGroup.categories
-    return activeGroup.categories.filter(c => categoryMatches(c.name, search))
-  }, [activeGroup, search, isSearching])
+    if (!activeSummary) return []
+    if (!isSearching) return activeCategories
+    return activeCategories.filter(c => categoryMatches(c.name, search))
+  }, [activeSummary, activeCategories, search, isSearching])
 
   const displayedProducts = useMemo(() => {
-    if (!activeGroup || !activeCategory) return []
-    const cat = activeGroup.categories.find(c => c.name === activeCategory)
-    if (!cat) return []
+    if (!activeCategory) return []
+    const cat = activeCategories.find(c => c.name === activeCategory)
+    if (!cat || !activeProducts) return []
     if (!isSearching) return cat.items
     return cat.items.filter(p => productMatches(p, search))
-  }, [activeGroup, activeCategory, search, isSearching])
+  }, [activeCategory, activeCategories, activeProducts, search, isSearching])
 
-  const hasFeatured = products.some(p => p.is_featured)
+  const hasFeatured = summaries.some(s => s.hasFeatured)
 
   const searchPlaceholder =
     view === 'suppliers'
@@ -159,6 +235,7 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
     setActiveSupplierId(id)
     setActiveCategory(null)
     setSearch('')
+    setLoadError(null)
   }
 
   function openCategory(name: string) {
@@ -176,22 +253,23 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
     }
   }
 
-  function supplierStatus(group: SupplierGroup) {
-    const open = group.products.some(p => productOrderableAt(p, catalogNow))
-    if (open) return { isOpen: true, label: 'Commandes ouvertes' }
-    const next = formatOrderWindow(nextOrderWindowForSupplier(group.supplier, catalogNow))
+  function supplierStatus(summary: CatalogueSupplierSummary) {
+    if (summary.hasOpenOrders) {
+      return { isOpen: true, label: 'Commandes ouvertes' }
+    }
+    const next = formatOrderWindow(nextOrderWindowForSupplier(summary.supplier, catalogNow))
     return { isOpen: false, label: `Prochaine commande : ${next}` }
   }
 
-  const groupsByType = useMemo(() => {
-    const map = new Map<string, SupplierGroup[]>()
-    for (const g of filteredGroups) {
-      const t = g.supplier.type
+  const summariesByType = useMemo(() => {
+    const map = new Map<string, CatalogueSupplierSummary[]>()
+    for (const s of filteredSummaries) {
+      const t = s.supplier.type
       if (!map.has(t)) map.set(t, [])
-      map.get(t)!.push(g)
+      map.get(t)!.push(s)
     }
     return map
-  }, [filteredGroups])
+  }, [filteredSummaries])
 
   return (
     <div style={{ marginTop: 'calc(-1 * 1rem)' }}>
@@ -214,7 +292,7 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
           >
             Catalogue
           </button>
-          {activeGroup && (
+          {activeSummary && (
             <>
               <span aria-hidden>›</span>
               <button
@@ -227,7 +305,7 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
                   fontSize: 'inherit',
                 }}
               >
-                {activeGroup.supplier.name}
+                {activeSummary.supplier.name}
               </button>
             </>
           )}
@@ -246,15 +324,9 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
               onClick={goBack}
               aria-label="Retour"
               style={{
-                flexShrink: 0,
-                marginTop: '0.15rem',
-                width: 40, height: 40,
-                border: '1.5px solid rgba(16,24,40,0.12)',
-                borderRadius: 10,
-                background: '#fff',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                lineHeight: 1,
+                flexShrink: 0, marginTop: '0.15rem', width: 40, height: 40,
+                border: '1.5px solid rgba(16,24,40,0.12)', borderRadius: 10,
+                background: '#fff', cursor: 'pointer', fontSize: '1.2rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
@@ -264,13 +336,15 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{ marginBottom: '0.25rem' }}>
               {view === 'suppliers' && 'Catalogue de commande'}
-              {view === 'categories' && activeGroup?.supplier.name}
+              {view === 'categories' && activeSummary?.supplier.name}
               {view === 'products' && activeCategory}
             </h1>
             <p style={{ margin: 0, opacity: 0.7 }}>
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
               {view === 'categories' && 'Choisissez une catégorie pour afficher les produits.'}
-              {view === 'products' && `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeGroup?.supplier.name}`}
+              {view === 'products' && activeProducts && (
+                `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeSummary?.supplier.name}`
+              )}
             </p>
           </div>
         </div>
@@ -312,37 +386,28 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
         {view === 'suppliers' && (
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
             {hasFeatured && (
-              <button
-                type="button"
-                onClick={handleEphemereClick}
-                style={{
-                  padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                  borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
-                  background: ephemereOnly ? '#DC7F00' : '#fff',
-                  color: ephemereOnly ? '#fff' : '#1a1a2e',
-                  fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-                }}
-              >
+              <button type="button" onClick={handleEphemereClick} style={{
+                padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
+                borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
+                background: ephemereOnly ? '#DC7F00' : '#fff',
+                color: ephemereOnly ? '#fff' : '#1a1a2e',
+                fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+              }}>
                 ⏳ Éphémères
               </button>
             )}
             {!ephemereOnly && TYPE_ORDER.map(type => {
-              const count = allGroups.filter(g => g.supplier.type === type).length
+              const count = baseSummaries.filter(s => s.supplier.type === type).length
               if (count === 0) return null
               const active = selectedType === type
               return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => handleTypeClick(type)}
-                  style={{
-                    padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                    borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
-                    background: active ? '#1a1a2e' : '#fff',
-                    color: active ? '#fff' : '#1a1a2e',
-                    fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-                  }}
-                >
+                <button key={type} type="button" onClick={() => handleTypeClick(type)} style={{
+                  padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
+                  borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
+                  background: active ? '#1a1a2e' : '#fff',
+                  color: active ? '#fff' : '#1a1a2e',
+                  fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                }}>
                   {TYPE_LABELS[type] ?? type}
                   <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
                     {count}
@@ -353,31 +418,27 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
           </div>
         )}
 
-        {view === 'products' && activeGroup && (
+        {view === 'products' && activeCategories.length > 0 && (
           <div style={{
             display: 'flex', gap: '0.4rem', flexWrap: 'wrap',
             marginBottom: '1.25rem', padding: '0.5rem 0',
             position: 'sticky', top: '3.5rem', zIndex: 10,
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(6px)',
           }}>
-            {activeGroup.categories.map(({ name, items }) => (
-              <button
-                key={name}
-                type="button"
-                onClick={() => openCategory(name)}
-                style={{
-                  padding: '0.35rem 0.85rem', borderRadius: 999,
-                  border: '1px solid',
+            {activeCategories.map(({ name, items }) => {
+              const count = items.length || activeSummary?.categories.find(c => c.name === name)?.count || 0
+              return (
+                <button key={name} type="button" onClick={() => openCategory(name)} style={{
+                  padding: '0.35rem 0.85rem', borderRadius: 999, border: '1px solid',
                   borderColor: activeCategory === name ? '#DC7F00' : 'rgba(16,24,40,0.12)',
                   background: activeCategory === name ? '#DC7F00' : '#fff',
                   color: activeCategory === name ? '#fff' : '#555',
-                  fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {name} ({items.length})
-              </button>
-            ))}
+                  fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                }}>
+                  {name} ({count})
+                </button>
+              )
+            })}
           </div>
         )}
 
@@ -391,36 +452,49 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
           </div>
         )}
 
+        {loadError && (
+          <p role="alert" style={{
+            color: '#c0392b', background: '#fdf2f2', padding: '0.75rem 1rem',
+            borderRadius: 8, marginBottom: '1rem',
+          }}>
+            {loadError}
+          </p>
+        )}
+
+        {loadingSupplier && view !== 'suppliers' && (
+          <LoadingState label="Chargement des produits…" />
+        )}
+
         {/* Vue fournisseurs */}
         {view === 'suppliers' && (
           <>
-            {isSearching && globalProductResults.length > 0 && (
+            {isSearching && searchLoading && (
+              <LoadingState label="Recherche en cours…" />
+            )}
+
+            {isSearching && !searchLoading && globalSearchResults.length > 0 && (
               <SearchResultsSection
-                title={`Produits trouvés (${globalProductResults.length})`}
+                title={`Produits trouvés (${globalSearchResults.length}${globalSearchResults.length >= 100 ? '+' : ''})`}
                 subtitle="Ajoutez directement au panier ou ouvrez le fournisseur pour voir la catégorie."
               >
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  {globalProductResults.map(product => (
-                    <ProductCard key={product.id} product={product} nowMs={catalogNow} />
-                  ))}
-                </div>
+                <ProductList products={globalSearchResults} nowMs={catalogNow} />
               </SearchResultsSection>
             )}
 
-            {isSearching && globalProductResults.length > 0 && filteredGroups.length > 0 && (
+            {isSearching && !searchLoading && globalSearchResults.length > 0 && filteredSummaries.length > 0 && (
               <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
                 Fournisseurs
               </h2>
             )}
 
-            {!isSearching && filteredGroups.length === 0 ? (
+            {!isSearching && filteredSummaries.length === 0 ? (
               <EmptyState message="Aucun fournisseur disponible." />
-            ) : isSearching && filteredGroups.length === 0 && globalProductResults.length === 0 ? (
+            ) : isSearching && !searchLoading && filteredSummaries.length === 0 && globalSearchResults.length === 0 ? (
               <EmptyState message="Aucun produit ni fournisseur ne correspond à votre recherche." />
-            ) : filteredGroups.length > 0 ? (
+            ) : filteredSummaries.length > 0 ? (
               TYPE_ORDER.map(type => {
-                const groups = groupsByType.get(type)
-                if (!groups?.length) return null
+                const list = summariesByType.get(type)
+                if (!list?.length) return null
                 const showHeader = !selectedType && !ephemereOnly && !isSearching
                 return (
                   <section key={type} style={{ marginBottom: showHeader ? '2rem' : 0 }}>
@@ -434,18 +508,18 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
                       gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                       gap: '0.85rem',
                     }}>
-                      {groups.map(group => {
-                        const status = supplierStatus(group)
+                      {list.map(summary => {
+                        const status = supplierStatus(summary)
                         return (
                           <SupplierCard
-                            key={group.supplier.id}
-                            name={group.supplier.name}
-                            typeLabel={TYPE_LABELS[group.supplier.type] ?? group.supplier.type}
-                            productCount={group.products.length}
-                            categoryCount={group.categories.length}
+                            key={summary.supplier.id}
+                            name={summary.supplier.name}
+                            typeLabel={TYPE_LABELS[summary.supplier.type] ?? summary.supplier.type}
+                            productCount={summary.productCount}
+                            categoryCount={summary.categories.length}
                             isOpen={status.isOpen}
                             statusLabel={status.label}
-                            onClick={() => openSupplier(group.supplier.id)}
+                            onClick={() => openSupplier(summary.supplier.id)}
                           />
                         )
                       })}
@@ -458,18 +532,14 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
         )}
 
         {/* Vue catégories */}
-        {view === 'categories' && activeGroup && (
+        {view === 'categories' && activeSummary && !loadingSupplier && (
           <>
-            {isSearching && supplierProductResults.length > 0 && (
+            {isSearching && inlineSupplierResults.length > 0 && (
               <SearchResultsSection
-                title={`Produits trouvés (${supplierProductResults.length})`}
-                subtitle={`Dans ${activeGroup.supplier.name} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
+                title={`Produits trouvés (${inlineSupplierResults.length})`}
+                subtitle={`Dans ${activeSummary.supplier.name} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
               >
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  {supplierProductResults.map(product => (
-                    <ProductCard key={product.id} product={product} nowMs={catalogNow} />
-                  ))}
-                </div>
+                <ProductList products={inlineSupplierResults} nowMs={catalogNow} />
               </SearchResultsSection>
             )}
 
@@ -483,22 +553,29 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
                   gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                   gap: '0.75rem',
                 }}>
-                  {filteredCategories.map(({ name, items }) => (
-                    <CategoryCard
-                      key={name}
-                      name={name}
-                      productCount={items.length}
-                      orderableCount={items.filter(p => productOrderableAt(p, catalogNow)).length}
-                      onClick={() => openCategory(name)}
-                    />
-                  ))}
+                  {filteredCategories.map(({ name }) => {
+                    const meta = activeSummary.categories.find(c => c.name === name)
+                    const count = meta?.count ?? 0
+                    const orderable = activeProducts
+                      ? activeProducts.filter(p => (p.category?.trim() || 'Autres') === name && productOrderableAt(p, catalogNow)).length
+                      : count
+                    return (
+                      <CategoryCard
+                        key={name}
+                        name={name}
+                        productCount={count}
+                        orderableCount={orderable}
+                        onClick={() => openCategory(name)}
+                      />
+                    )
+                  })}
                 </div>
               </>
-            ) : filteredCategories.length === 0 && supplierProductResults.length === 0 ? (
+            ) : filteredCategories.length === 0 && inlineSupplierResults.length === 0 ? (
               <EmptyState message="Aucune catégorie ni produit ne correspond à votre recherche." />
             ) : filteredCategories.length > 0 ? (
               <>
-                {supplierProductResults.length > 0 && (
+                {inlineSupplierResults.length > 0 && (
                   <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
                     Catégories
                   </h2>
@@ -508,15 +585,19 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
                   gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                   gap: '0.75rem',
                 }}>
-                  {filteredCategories.map(({ name, items }) => (
-                    <CategoryCard
-                      key={name}
-                      name={name}
-                      productCount={items.length}
-                      orderableCount={items.filter(p => productOrderableAt(p, catalogNow)).length}
-                      onClick={() => openCategory(name)}
-                    />
-                  ))}
+                  {filteredCategories.map(({ name }) => {
+                    const meta = activeSummary.categories.find(c => c.name === name)
+                    const count = meta?.count ?? 0
+                    return (
+                      <CategoryCard
+                        key={name}
+                        name={name}
+                        productCount={count}
+                        orderableCount={count}
+                        onClick={() => openCategory(name)}
+                      />
+                    )
+                  })}
                 </div>
               </>
             ) : null}
@@ -524,15 +605,11 @@ export default function CatalogueClient({ products, initialEphemere = false }: P
         )}
 
         {/* Vue produits */}
-        {view === 'products' && (
+        {view === 'products' && !loadingSupplier && activeProducts && (
           displayedProducts.length === 0 ? (
             <EmptyState message="Aucun produit ne correspond à votre recherche." />
           ) : (
-            <div style={{ display: 'grid', gap: '0.5rem' }}>
-              {displayedProducts.map(product => (
-                <ProductCard key={product.id} product={product} nowMs={catalogNow} />
-              ))}
-            </div>
+            <ProductList products={displayedProducts} nowMs={catalogNow} />
           )
         )}
       </div>
@@ -555,6 +632,14 @@ function SearchResultsSection({
       <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', opacity: 0.6 }}>{subtitle}</p>
       {children}
     </section>
+  )
+}
+
+function LoadingState({ label }: { label: string }) {
+  return (
+    <p style={{ textAlign: 'center', padding: '2rem 0', opacity: 0.55, margin: 0 }}>
+      {label}
+    </p>
   )
 }
 

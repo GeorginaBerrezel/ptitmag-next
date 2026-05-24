@@ -1,7 +1,7 @@
-import { getProducts } from '@/lib/supabase/products'
+import { getCatalogueSummaries } from '@/lib/supabase/catalogue'
 import CatalogueClient from '@/components/CatalogueClient'
 
-/** Toujours relire le catalogue (masquage admin, produits désactivés). */
+/** Toujours relire l'index catalogue (masquage admin, produits désactivés). */
 export const dynamic = 'force-dynamic'
 
 export default async function CommandesPage({
@@ -9,12 +9,12 @@ export default async function CommandesPage({
 }: {
   searchParams: Promise<{ ephemere?: string }>
 }) {
-  const params   = await searchParams
-  const products = await getProducts()
+  const params = await searchParams
+  const summaries = await getCatalogueSummaries()
 
   return (
     <CatalogueClient
-      products={products}
+      summaries={summaries}
       initialEphemere={params.ephemere === '1'}
     />
   )
