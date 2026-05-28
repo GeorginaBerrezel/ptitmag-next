@@ -6,6 +6,12 @@ import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import { getProductImageUrl, showProductImage } from '@/lib/catalog/product-image'
+import {
+  decrementQuantity,
+  getMinAllowedQuantity,
+  incrementQuantity,
+  quantityHintText,
+} from '@/lib/catalog/quantity-rules'
 import type { Product } from '@/lib/supabase/products'
 import styles from './ProductCard.module.css'
 
@@ -32,7 +38,11 @@ function ProductCardInner({ product, nowMs }: Props) {
   const imageUrl = getProductImageUrl(product)
   const hasImage = showProductImage(product) && imageUrl
 
-  const minAllowed = product.allows_partial_order ? 1 : product.min_quantity
+  const qtyRules = {
+    minQuantity: product.min_quantity,
+    allowsPartialOrder: product.allows_partial_order,
+  }
+  const minAllowed = getMinAllowedQuantity(qtyRules)
 
   const hasSurcharge = product.allows_partial_order && qty < product.min_quantity
   const effectivePrice = product.unit_price != null
@@ -58,10 +68,10 @@ function ProductCardInner({ product, nowMs }: Props) {
   })()
 
   function decrement() {
-    setQty(q => Math.max(minAllowed, q - 1))
+    setQty(q => decrementQuantity(q, qtyRules))
   }
   function increment() {
-    setQty(q => q + 1)
+    setQty(q => incrementQuantity(q, qtyRules))
   }
 
   function handleAdd() {
@@ -224,9 +234,7 @@ function ProductCardInner({ product, nowMs }: Props) {
             </button>
 
             <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.5, lineHeight: 1.3 }}>
-              {product.allows_partial_order
-                ? `min. sans majoration : ${product.min_quantity} ${product.unit}`
-                : `minimum : ${product.min_quantity} ${product.unit}`}
+              {quantityHintText(qtyRules, product.unit)}
             </p>
           </>
         ) : (

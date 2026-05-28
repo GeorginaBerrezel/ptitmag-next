@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
+import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 
 export type CartItem = {
   productId: string
@@ -10,22 +11,13 @@ export type CartItem = {
   supplierName: string
   supplierType: string
   quantity: number
-  unitPrice: number              // prix HT de base, sans majoration
+  unitPrice: number              // prix TTC catalogue, sans majoration
   unit: string
-  minQuantity: number            // UC : quantité minimum sans majoration
-  allowsPartialOrder: boolean    // UM=1 : peut commander < UC avec +10%
+  minQuantity: number            // UC Biopartner : quantité minimum sans majoration
+  allowsPartialOrder: boolean    // peut commander < UC avec +10 % (Biopartner)
 }
 
-/**
- * Prix unitaire effectif selon la quantité.
- * Si qty < minQuantity et allowsPartialOrder → +10% de majoration.
- */
-export function getEffectiveUnitPrice(item: Pick<CartItem, 'unitPrice' | 'minQuantity' | 'allowsPartialOrder' | 'quantity'>): number {
-  if (item.allowsPartialOrder && item.quantity < item.minQuantity) {
-    return item.unitPrice * 1.1
-  }
-  return item.unitPrice
-}
+export { getEffectiveUnitPrice }
 
 type CartContextType = {
   items: CartItem[]

@@ -16,8 +16,7 @@ export type Product = {
   unit_price: number | null
   // Quantité minimum de commande sans majoration (colonne UC Biopartner)
   min_quantity: number
-  // true = on peut commander moins que min_quantity avec +10% (colonne UM=1 Biopartner)
-  // false = minimum strict, impossible de descendre en-dessous
+  // true = commande partielle autorisée (< UC avec +10 %), false = multiples stricts de UC
   allows_partial_order: boolean
   order_deadline: string | null
   is_featured: boolean

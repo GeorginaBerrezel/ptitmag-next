@@ -3,6 +3,11 @@
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
+import {
+  decrementQuantity,
+  getMinAllowedQuantity,
+  incrementQuantity,
+} from '@/lib/catalog/quantity-rules'
 import { Link } from '@/i18n/navigation'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -191,7 +196,11 @@ export default function PanierPage({
               {/* Lignes produits */}
               <div style={{ padding: '0.5rem 0' }}>
                 {supplierItems.map(item => {
-                  const minAllowed = item.allowsPartialOrder ? 1 : item.minQuantity
+                  const qtyRules = {
+                    minQuantity: item.minQuantity,
+                    allowsPartialOrder: item.allowsPartialOrder,
+                  }
+                  const minAllowed = getMinAllowedQuantity(qtyRules)
                   const hasSurcharge = item.allowsPartialOrder && item.quantity < item.minQuantity
                   const effectivePrice = getEffectiveUnitPrice(item)
                   const lineTotal = item.quantity * effectivePrice
@@ -223,7 +232,7 @@ export default function PanierPage({
                       {/* Contrôles quantité */}
                       <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
                         <button
-                          onClick={() => updateQuantity(item.productId, Math.max(minAllowed, item.quantity - 1))}
+                          onClick={() => updateQuantity(item.productId, decrementQuantity(item.quantity, qtyRules))}
                           disabled={item.quantity <= minAllowed}
                           aria-label="Diminuer"
                           style={{
@@ -242,7 +251,7 @@ export default function PanierPage({
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.productId, incrementQuantity(item.quantity, qtyRules))}
                           aria-label="Augmenter"
                           style={{
                             width: 28, height: 28,

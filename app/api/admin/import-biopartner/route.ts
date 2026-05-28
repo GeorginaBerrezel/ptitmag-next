@@ -123,6 +123,25 @@ function parsePrice(prix: string): number | null {
   return isNaN(n) ? null : n
 }
 
+/** UC Biopartner → quantité minimum (ex. 3, 6, 9). */
+function parseMinQuantity(uc: string): number {
+  const n = parseInt(uc, 10)
+  return Number.isNaN(n) || n < 1 ? 1 : n
+}
+
+/**
+ * Prix TTC affiché aux membres.
+ * UM = 0 → prix HT dans le CSV → on ajoute TVA 2.6 %.
+ * UM = 1 → prix déjà TTC dans le CSV.
+ */
+function buildUnitPrice(row: BiopartnerRow): number | null {
+  const raw = parsePrice(row.Prix)
+  if (raw == null) return null
+  const TVA_RATE = 1.026
+  const ttc = row.UM === '1' ? raw : raw * TVA_RATE
+  return Math.round(ttc * 100) / 100
+}
+
 export async function POST(request: NextRequest) {
   const user = await requireAdminUser()
   if (!user) {
@@ -180,24 +199,24 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Préparer tous les produits d'un coup ──────────────────────────────────
-  // Les prix Biopartner sont HT (hors TVA). On applique +2.6% pour obtenir le TTC.
-  const TVA_RATE = 1.026
-  const allProducts = rows.map(row => ({
-    name: buildName(row),
-    description: buildDescription(row),
-    category: buildCategory(row),
-    unit: buildUnit(row),
-    unit_price: parsePrice(row.Prix) != null
-      ? Math.round(parsePrice(row.Prix)! * TVA_RATE * 100) / 100
-      : null,
-    min_quantity: row.UC ? parseInt(row.UC) || 1 : 1,
-    allows_partial_order: row.UM === '1',
-    order_deadline: dateLimite || null,
-    supplier_id: biopartnerId,
-    supplier_ref: row.Article,
-    active: true,
-    is_featured: false,
-  }))
+  const allProducts = rows.map(row => {
+    const minQuantity = parseMinQuantity(row.UC)
+    return {
+      name: buildName(row),
+      description: buildDescription(row),
+      category: buildCategory(row),
+      unit: buildUnit(row),
+      unit_price: buildUnitPrice(row),
+      min_quantity: minQuantity,
+      // Biopartner : commande partielle (< UC avec +10 %) quand UC > 1
+      allows_partial_order: minQuantity > 1,
+      order_deadline: dateLimite || null,
+      supplier_id: biopartnerId,
+      supplier_ref: row.Article,
+      active: true,
+      is_featured: false,
+    }
+  })
 
   // ── Upsert en masse par lots de 200 ──────────────────────────────────────
   // Un seul aller-retour DB par lot au lieu de 1 requête par produit.

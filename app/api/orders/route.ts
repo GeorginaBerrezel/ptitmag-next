@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { CartItem } from '@/lib/cart/CartContext'
+import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
+import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
 import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
 
 export async function POST(request: NextRequest) {
@@ -42,7 +44,19 @@ export async function POST(request: NextRequest) {
   const emailGroups: OrderEmailGroup[] = []
 
   for (const [supplierId, supplierItems] of Object.entries(bySupplier)) {
-    const total = supplierItems.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+    const normalizedItems = supplierItems.map(item => {
+      const quantity = normalizeQuantity(item.quantity, {
+        minQuantity: item.minQuantity,
+        allowsPartialOrder: item.allowsPartialOrder,
+      })
+      const unitPrice = getEffectiveUnitPrice({ ...item, quantity })
+      return { ...item, quantity, unitPrice }
+    })
+
+    const total = normalizedItems.reduce(
+      (sum, i) => sum + i.quantity * i.unitPrice,
+      0,
+    )
 
     // Créer l'ordre pour ce fournisseur
     const { data: order, error: orderError } = await supabase
@@ -64,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Créer les lignes de commande
-    const orderItems = supplierItems.map(item => ({
+    const orderItems = normalizedItems.map(item => ({
       order_id: order.id,
       product_id: item.productId,
       quantity: item.quantity,
@@ -89,7 +103,7 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       supplierName: supplierItems[0].supplierName,
       supplierType: supplierItems[0].supplierType,
-      items: supplierItems.map(item => ({
+      items: normalizedItems.map(item => ({
         productName: item.productName,
         quantity: item.quantity,
         unit: item.unit,
