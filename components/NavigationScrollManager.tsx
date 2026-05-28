@@ -49,7 +49,7 @@ export default function NavigationScrollManager() {
 
   useEffect(() => {
     scrollPageToTopPersistently()
-    const timers = [100, 250, 500, 800, 1200].map(ms =>
+    const timers = [50, 150, 300].map(ms =>
       window.setTimeout(scrollPageToTopPersistently, ms)
     )
     return () => timers.forEach(clearTimeout)

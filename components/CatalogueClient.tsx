@@ -39,9 +39,7 @@ function cacheKey(supplierId: string, featuredOnly: boolean, category?: string |
 export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
   const { totalItems } = useCart()
   const applyTrialMarkup = useApplyTrialMarkup()
-  const stickyTop = totalItems > 0
-    ? 'calc(var(--header-height) + 2.75rem)'
-    : 'var(--header-height)'
+  const stickyTop = totalItems > 0 ? 'var(--cart-bar-height)' : '0'
 
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)

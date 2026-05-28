@@ -47,11 +47,11 @@ export function scrollPageToTopPersistently() {
     requestAnimationFrame(scrollAllRoots)
   })
 
-  for (const ms of [0, 50, 150, 300, 500, 800]) {
+  for (const ms of [0, 100, 300]) {
     window.setTimeout(scrollAllRoots, ms)
   }
 
   window.setTimeout(() => {
     if (root) root.style.scrollBehavior = prevBehavior
-  }, 850)
+  }, 350)
 }

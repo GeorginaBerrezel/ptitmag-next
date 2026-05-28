@@ -48,7 +48,7 @@ export default async function AdminLayout({
       {/* Barre de navigation admin — sticky juste sous le header du site */}
       <div style={{
         position: 'sticky',
-        top: 'var(--header-height)',
+        top: 0,
         zIndex: 80,
         background: '#0f1729',
         color: '#fff',

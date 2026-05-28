@@ -12,9 +12,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
 
   return (
     <html lang={lang}>
-      <body suppressHydrationWarning>
-        <div id="app-scroll">{children}</div>
-      </body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

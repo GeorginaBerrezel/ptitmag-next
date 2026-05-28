@@ -56,8 +56,10 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
             <NavigationScrollManager />
           </Suspense>
           <Header locale={locale} />
-          <main id="main">{props.children}</main>
-          <Footer locale={locale} />
+          <div id="app-scroll">
+            <main id="main">{props.children}</main>
+            <Footer locale={locale} />
+          </div>
         </CartProvider>
       </MemberPricingProvider>
     </NextIntlClientProvider>

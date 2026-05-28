@@ -12,9 +12,9 @@ export default function CartBar() {
   if (totalItems === 0) return null
 
   return (
-    <div style={{
+    <div className="cart-bar-sticky" style={{
       position: 'sticky',
-      top: 'var(--header-height)',
+      top: 0,
       zIndex: 90,
       background: '#1a1a2e',
       color: '#fff',

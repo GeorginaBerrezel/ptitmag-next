@@ -11,6 +11,7 @@
   --header-fg-muted: rgba(255,255,255,0.78);
   --header-sep: rgba(255, 255, 255, 0.08);
   --header-height: 72px;
+  --cart-bar-height: 2.75rem;
 }
 
 @media (prefers-color-scheme: light) {
@@ -39,14 +40,16 @@ body {
   overflow: hidden;
 }
 
-/* Seul conteneur de scroll vertical — reset fiable à chaque navigation */
+/* Panneau scrollable sous le header fixe (hors de ce conteneur) */
 #app-scroll {
-  height: 100%;
-  min-height: 100dvh;
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow-x: clip;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: var(--header-height);
   overscroll-behavior-y: contain;
 }
 
