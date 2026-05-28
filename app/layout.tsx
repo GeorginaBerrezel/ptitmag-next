@@ -3,7 +3,6 @@ import '../styles/ui.css';
 import '../styles/pages.css';
 import '../styles/theme.css';
 import '../styles/menus.css';
-import '../styles/cursor.css';
 import {cookies} from 'next/headers';
 
 export default async function RootLayout({children}: {children: React.ReactNode}) {
