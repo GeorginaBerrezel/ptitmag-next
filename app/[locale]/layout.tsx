@@ -7,6 +7,9 @@ import {getMessages, setRequestLocale} from 'next-intl/server';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CartProvider } from '@/lib/cart/CartContext';
+import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
+import { getProfile } from '@/lib/supabase/auth';
+import { isCotiseProfile } from '@/lib/members/profile';
 
 const LOCALES = ['fr', 'en'] as const;
 type Locale = (typeof LOCALES)[number];
@@ -41,14 +44,18 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
   setRequestLocale(locale);
 
   const messages = await getMessages({locale});
+  const profile = await getProfile();
+  const isCotise = profile ? isCotiseProfile(profile) : true;
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <CartProvider>
-        <Header locale={locale} />
-        <main id="main">{props.children}</main>
-        <Footer locale={locale} />
-      </CartProvider>
+      <MemberPricingProvider isCotise={isCotise}>
+        <CartProvider>
+          <Header locale={locale} />
+          <main id="main">{props.children}</main>
+          <Footer locale={locale} />
+        </CartProvider>
+      </MemberPricingProvider>
     </NextIntlClientProvider>
   );
 

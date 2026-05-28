@@ -3,6 +3,8 @@
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
+import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
+import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import {
   decrementQuantity,
   getMinAllowedQuantity,
@@ -24,6 +26,7 @@ export default function PanierPage({
 }) {
   const { locale } = use(params)
   const { items, updateQuantity, removeItem, clearCart, globalTotal } = useCart()
+  const applyTrialMarkup = useApplyTrialMarkup()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -170,9 +173,24 @@ export default function PanierPage({
           </p>
         </div>
       </div>
-      <p style={{ opacity: 0.6, marginBottom: '2rem' }}>
+      <p style={{ opacity: 0.6, marginBottom: applyTrialMarkup ? '0.75rem' : '2rem' }}>
         {supplierCount} commande{supplierCount > 1 ? 's' : ''} seront créées (une par fournisseur)
       </p>
+
+      {applyTrialMarkup && (
+        <p style={{
+          margin: '0 0 2rem',
+          padding: '0.65rem 1rem',
+          background: '#eef2ff',
+          border: '1px solid #c7d2fe',
+          borderRadius: 8,
+          color: '#4338ca',
+          fontSize: '0.88rem',
+          fontWeight: 500,
+        }}>
+          Non cotisé — les prix incluent une majoration de +20&nbsp;%.
+        </p>
+      )}
 
       {error && (
         <p role="alert" style={{ color: '#c0392b', background: '#fdf2f2', padding: '0.75rem 1rem', borderRadius: 8, marginBottom: '1.5rem' }}>
@@ -183,7 +201,10 @@ export default function PanierPage({
       {/* Sections par fournisseur */}
       <div style={{ display: 'grid', gap: '1.5rem', marginBottom: '2rem' }}>
         {Object.entries(bySupplier).map(([supplierId, supplierItems]) => {
-          const supplierTotal = supplierItems.reduce((sum, i) => sum + i.quantity * getEffectiveUnitPrice(i), 0)
+          const supplierTotal = supplierItems.reduce(
+            (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i, { applyTrialMarkup }),
+            0,
+          )
           const { supplierName, supplierType } = supplierItems[0]
 
           return (
@@ -220,8 +241,12 @@ export default function PanierPage({
                     allowsPartialOrder: item.allowsPartialOrder,
                   }
                   const minAllowed = getMinAllowedQuantity(qtyRules)
-                  const hasSurcharge = item.allowsPartialOrder && item.quantity < item.minQuantity
-                  const effectivePrice = getEffectiveUnitPrice(item)
+                  const hasSurcharge = hasUcSurcharge({
+                    minQuantity: item.minQuantity,
+                    allowsPartialOrder: item.allowsPartialOrder,
+                    quantity: item.quantity,
+                  })
+                  const effectivePrice = getEffectiveUnitPrice(item, { applyTrialMarkup })
                   const lineTotal = item.quantity * effectivePrice
 
                   return (
@@ -232,6 +257,11 @@ export default function PanierPage({
                         {item.supplierRef && (
                           <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
                             Réf. {item.supplierRef}
+                          </span>
+                        )}
+                        {applyTrialMarkup && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6bc0', fontWeight: 600 }}>
+                            +20% (non cotisé)
                           </span>
                         )}
                         {hasSurcharge && (
@@ -305,6 +335,16 @@ export default function PanierPage({
                   fontWeight: 700,
                   background: '#f8f9fa',
                 }}>
+                  {applyTrialMarkup && (
+                    <p style={{
+                      margin: '0 0 0.35rem',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      color: '#5c6bc0',
+                    }}>
+                      Majoration +20&nbsp;% (non cotisé) incluse
+                    </p>
+                  )}
                   Sous-total : CHF {supplierTotal.toFixed(2)}
                 </div>
               </div>

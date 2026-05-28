@@ -3,7 +3,7 @@ import { Link } from '@/i18n/navigation'
 import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
 import DeleteAccountSection from './DeleteAccountSection'
-import { formatCotisation } from '@/lib/members/profile'
+import { formatCotisation, isCotiseProfile } from '@/lib/members/profile'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -47,6 +47,7 @@ export default async function MonComptePage({
   const totalSpent      = activeOrders.reduce((s, o) => s + o.total, 0)
 
   const memberStatus = STATUS_LABELS[profile?.status ?? 'trial'] ?? STATUS_LABELS.trial
+  const isCotise = profile ? isCotiseProfile(profile) : true
   const showCotisation = profile?.status === 'member' || (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
 
   return (
@@ -91,6 +92,20 @@ export default async function MonComptePage({
           }}>
             {memberStatus.label}
           </span>
+
+          {!isCotise && (
+            <span style={{
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: '#4338ca',
+              background: '#eef2ff',
+              borderRadius: 999,
+              padding: '0.2rem 0.75rem',
+              whiteSpace: 'nowrap',
+            }}>
+              +20&nbsp;% sur les prix du catalogue
+            </span>
+          )}
 
           {/* Email */}
           {profile?.email && (

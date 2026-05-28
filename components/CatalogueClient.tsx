@@ -13,6 +13,7 @@ import CategoryCard from './catalogue/CategoryCard'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
 import { useCart } from '@/lib/cart/CartContext'
+import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
 
 const TYPE_LABELS: Record<string, string> = {
   local: 'Producteurs locaux',
@@ -34,6 +35,7 @@ function cacheKey(supplierId: string, featuredOnly: boolean) {
 
 export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
   const { totalItems } = useCart()
+  const applyTrialMarkup = useApplyTrialMarkup()
   const stickyTop = totalItems > 0
     ? 'calc(var(--header-height) + 2.75rem)'
     : 'var(--header-height)'
@@ -281,6 +283,19 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
   return (
     <div style={{ marginTop: 'calc(-1 * 1rem)' }}>
       <CartBar />
+      {applyTrialMarkup && (
+        <div style={{
+          background: '#eef2ff',
+          borderBottom: '1px solid #c7d2fe',
+          color: '#4338ca',
+          padding: '0.55rem 1.25rem',
+          fontSize: '0.88rem',
+          fontWeight: 500,
+          textAlign: 'center',
+        }}>
+          Non cotisé — les prix affichés incluent une majoration de +20&nbsp;%.
+        </div>
+      )}
       <div className="container" style={{ paddingTop: '1.25rem', paddingBottom: '5rem' }}>
 
         <nav aria-label="Fil d'ariane" style={{

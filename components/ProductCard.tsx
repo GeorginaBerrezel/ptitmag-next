@@ -3,6 +3,8 @@
 import { useState, memo } from 'react'
 import Image from 'next/image'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
+import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
+import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import { getProductImageUrl, showProductImage } from '@/lib/catalog/product-image'
@@ -27,6 +29,7 @@ type Props = {
 
 function ProductCardInner({ product, nowMs }: Props) {
   const { addItem, items } = useCart()
+  const applyTrialMarkup = useApplyTrialMarkup()
   const now = nowMs ?? Date.now()
 
   const [qty, setQty] = useState(product.min_quantity)
@@ -44,9 +47,21 @@ function ProductCardInner({ product, nowMs }: Props) {
   }
   const minAllowed = getMinAllowedQuantity(qtyRules)
 
-  const hasSurcharge = product.allows_partial_order && qty < product.min_quantity
+  const hasSurcharge = hasUcSurcharge({
+    minQuantity: product.min_quantity,
+    allowsPartialOrder: product.allows_partial_order,
+    quantity: qty,
+  })
   const effectivePrice = product.unit_price != null
-    ? getEffectiveUnitPrice({ unitPrice: product.unit_price, minQuantity: product.min_quantity, allowsPartialOrder: product.allows_partial_order, quantity: qty })
+    ? getEffectiveUnitPrice(
+        {
+          unitPrice: product.unit_price,
+          minQuantity: product.min_quantity,
+          allowsPartialOrder: product.allows_partial_order,
+          quantity: qty,
+        },
+        { applyTrialMarkup },
+      )
     : null
 
   const deadlineLabel = (() => {
@@ -178,6 +193,16 @@ function ProductCardInner({ product, nowMs }: Props) {
               {product.supplier?.type === 'grossiste_bio' && (
                 <p style={{ margin: '0.1rem 0 0', fontSize: '0.68rem', opacity: 0.5 }}>
                   TVA 2.6% incluse
+                </p>
+              )}
+              {applyTrialMarkup && (
+                <p style={{
+                  margin: '0.1rem 0 0',
+                  fontSize: '0.72rem',
+                  color: '#5c6bc0',
+                  fontWeight: 600,
+                }}>
+                  +20% (non cotisé)
                 </p>
               )}
               {hasSurcharge && (

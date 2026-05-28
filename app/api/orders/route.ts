@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { CartItem } from '@/lib/cart/CartContext'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
+import { isCotiseProfile } from '@/lib/members/profile'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
 import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
 
@@ -24,9 +25,11 @@ export async function POST(request: NextRequest) {
   // Récupérer le prénom/nom depuis le profil pour personnaliser l'email
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, first_name, last_name')
+    .select('full_name, first_name, last_name, status, cotisation_amount, cotisation_active')
     .eq('id', user.id)
     .single()
+
+  const applyTrialMarkup = profile ? !isCotiseProfile(profile) : false
 
   const memberName =
     profile?.full_name ||
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
         minQuantity: item.minQuantity,
         allowsPartialOrder: item.allowsPartialOrder,
       })
-      const unitPrice = getEffectiveUnitPrice({ ...item, quantity })
+      const unitPrice = getEffectiveUnitPrice({ ...item, quantity }, { applyTrialMarkup })
       return { ...item, quantity, unitPrice }
     })
 
