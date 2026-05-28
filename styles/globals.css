@@ -147,10 +147,10 @@ main {
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
   padding: 0;
   margin: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .site-nav-desktop li {
@@ -169,6 +169,11 @@ main {
 .site-nav-desktop a:hover,
 .site-nav-desktop a[aria-current="page"] {
   color: var(--header-fg);
+}
+
+.site-nav-desktop a.nav-link-catalogue:hover,
+.site-nav-desktop a.nav-link-catalogue[aria-current="page"] {
+  color: #fff;
 }
 
 /* Icônes nav */
@@ -855,7 +860,26 @@ time {
 }
 
 /* nav à droite (desktop) */
-.site-nav-desktop{ justify-self:end; }
+.site-nav-desktop{
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.header-account{
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 0.65rem;
+  margin-left: 0.15rem;
+  border-left: 1px solid rgba(255,255,255,0.22);
+}
+
+.header-account a{
+  padding: 0.35rem 0.5rem;
+}
 
 /* burger à droite (mobile) */
 .nav-toggle{ justify-self:end; }
@@ -886,8 +910,8 @@ time {
 }
 
 /* Active/hover visibles sur header bleu */
-.site-nav-desktop a[aria-current="page"],
-.site-nav-desktop a:hover{
+.site-nav-desktop a[aria-current="page"]:not(.nav-link-catalogue),
+.site-nav-desktop a:hover:not(.nav-link-catalogue){
   color: var(--header-fg);
 }
 
@@ -924,7 +948,7 @@ time {
 /* Optionnel: évite le highlight iOS noir/bleu */
 .header a,
 .header button{
-  padding: 0.75rem 0.9rem;
+  padding: 0.45rem 0.65rem;
   -webkit-tap-highlight-color: rgba(255,255,255,.25);
 }
 

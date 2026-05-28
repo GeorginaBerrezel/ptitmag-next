@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Link } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
 type Props = {
   locale: 'fr' | 'en'
   onNavigate?: () => void
+  /** mobile : lien pleine largeur dans le menu burger */
+  variant?: 'desktop' | 'mobile'
 }
 
-export default function CatalogueNavLink({ locale, onNavigate }: Props) {
+export default function CatalogueNavLink({ locale, onNavigate, variant = 'desktop' }: Props) {
   const t = useTranslations('nav')
+  const pathname = usePathname()
   const [loggedIn, setLoggedIn] = useState(false)
+
+  const isActive = pathname === '/commandes' || pathname.startsWith('/commandes/')
 
   useEffect(() => {
     const supabase = createClient()
@@ -33,11 +38,21 @@ export default function CatalogueNavLink({ locale, onNavigate }: Props) {
 
   if (!loggedIn) return null
 
-  return (
-    <li>
-      <Link href="/commandes" locale={locale} onClick={onNavigate}>
-        {t('catalogue')}
-      </Link>
-    </li>
+  const link = (
+    <Link
+      href="/commandes"
+      locale={locale}
+      onClick={onNavigate}
+      className="nav-link-catalogue"
+      aria-current={isActive ? 'page' : undefined}
+    >
+      {t('catalogue')}
+    </Link>
   )
+
+  if (variant === 'mobile') {
+    return <li className="nav-item-catalogue">{link}</li>
+  }
+
+  return <li className="nav-item-catalogue">{link}</li>
 }

@@ -61,8 +61,10 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
             <li><Link href="/membership" locale={locale}>{t('membership')}</Link></li>
             <CatalogueNavLink locale={locale} />
             <li><Link href="/contact" locale={locale}>{t('contact')}</Link></li>
-            <li><AuthLink locale={locale} /></li>
           </ul>
+          <div className="header-account">
+            <AuthLink locale={locale} />
+          </div>
         </nav>
 
 
@@ -107,10 +109,12 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
               <ul>
                 <li><Link href="/producers" locale={locale} onClick={close}>{t('producers')}</Link></li>
                 <li><Link href="/membership" locale={locale} onClick={close}>{t('membership')}</Link></li>
-                <CatalogueNavLink locale={locale} onNavigate={close} />
+                <CatalogueNavLink locale={locale} onNavigate={close} variant="mobile" />
                 <li><Link href="/contact" locale={locale} onClick={close}>{t('contact')}</Link></li>
-                <li onClick={close}><AuthLink locale={locale} /></li>
               </ul>
+              <div className="nav-mobile-account" onClick={close}>
+                <AuthLink locale={locale} />
+              </div>
             </div>
 
 
