@@ -1,6 +1,19 @@
-/** Cibles possibles du scroll (Safari iOS, Firefox, Chrome). */
+export const APP_SCROLL_ID = 'app-scroll'
+
+function getScrollRoot(): HTMLElement | null {
+  if (typeof document === 'undefined') return null
+  return document.getElementById(APP_SCROLL_ID)
+}
+
+/** Remonte le conteneur de scroll principal (et les fallbacks document). */
 function scrollAllRoots() {
   if (typeof window === 'undefined') return
+
+  const root = getScrollRoot()
+  if (root) {
+    root.scrollTop = 0
+    root.scrollLeft = 0
+  }
 
   window.scrollTo(0, 0)
   document.documentElement.scrollTop = 0
@@ -9,22 +22,23 @@ function scrollAllRoots() {
   const main = document.getElementById('main')
   if (main) main.scrollTop = 0
 
-  // Safari iOS : forcer un reflow puis re-scroll
-  void document.body.offsetHeight
-  window.scrollTo(0, 0)
+  if (root) {
+    void root.offsetHeight
+    root.scrollTop = 0
+  }
 }
 
 /**
  * Remonte en haut après navigation.
- * Next.js 16 peut restaurer l'ancienne position après le paint :
- * on force scroll-behavior: auto et on réessaie plusieurs fois.
+ * Le scroll vit dans #app-scroll (pas window) — Next.js 16 + iOS sinon
+ * restaurent l'ancienne position sur documentElement/body.
  */
 export function scrollPageToTopPersistently() {
   if (typeof window === 'undefined') return
 
-  const html = document.documentElement
-  const prevBehavior = html.style.scrollBehavior
-  html.style.scrollBehavior = 'auto'
+  const root = getScrollRoot()
+  const prevBehavior = root?.style.scrollBehavior ?? ''
+  if (root) root.style.scrollBehavior = 'auto'
 
   scrollAllRoots()
 
@@ -33,21 +47,11 @@ export function scrollPageToTopPersistently() {
     requestAnimationFrame(scrollAllRoots)
   })
 
-  for (const ms of [0, 50, 150, 300, 500]) {
+  for (const ms of [0, 50, 150, 300, 500, 800]) {
     window.setTimeout(scrollAllRoots, ms)
   }
 
   window.setTimeout(() => {
-    html.style.scrollBehavior = prevBehavior
-  }, 550)
-}
-
-/** @deprecated Utiliser scrollPageToTopPersistently */
-export function scrollPageToTop() {
-  scrollAllRoots()
-}
-
-/** @deprecated Utiliser scrollPageToTopPersistently */
-export function scrollPageToTopAfterPaint() {
-  scrollPageToTopPersistently()
+    if (root) root.style.scrollBehavior = prevBehavior
+  }, 850)
 }

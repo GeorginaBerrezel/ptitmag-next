@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useId, useState} from 'react';
+import { APP_SCROLL_ID } from '@/lib/scroll'
 import {Link, usePathname} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
 import AuthLink from '@/components/AuthLink';
@@ -15,17 +16,19 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const scrollRoot = document.getElementById(APP_SCROLL_ID);
+    const prev = scrollRoot?.style.overflow ?? '';
+    if (scrollRoot) scrollRoot.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = prev;
+      if (scrollRoot) scrollRoot.style.overflow = prev;
     };
   }, [open]);
 
-  // Ferme le menu et restaure le scroll body à chaque changement de page
+  // Ferme le menu et restaure le scroll à chaque changement de page
   useEffect(() => {
     setOpen(false);
-    document.body.style.overflow = '';
+    const scrollRoot = document.getElementById(APP_SCROLL_ID);
+    if (scrollRoot) scrollRoot.style.overflow = '';
   }, [pathname]);
 
   useEffect(() => {

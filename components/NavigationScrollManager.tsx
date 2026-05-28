@@ -18,11 +18,7 @@ function isInternalNavLink(anchor: HTMLAnchorElement): boolean {
   }
 }
 
-/**
- * Force le scroll en haut à chaque navigation.
- * Next.js 16 conserve la position par défaut — on intercepte les clics
- * et on réessaie après le changement de route.
- */
+/** Force le scroll en haut à chaque navigation (conteneur #app-scroll). */
 export default function NavigationScrollManager() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -35,7 +31,6 @@ export default function NavigationScrollManager() {
     }
   }, [])
 
-  // Scroll dès le clic, avant que Next ne navigue
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       const anchor = (event.target as Element | null)?.closest('a[href]')
@@ -54,7 +49,7 @@ export default function NavigationScrollManager() {
 
   useEffect(() => {
     scrollPageToTopPersistently()
-    const timers = [100, 250, 500, 800].map(ms =>
+    const timers = [100, 250, 500, 800, 1200].map(ms =>
       window.setTimeout(scrollPageToTopPersistently, ms)
     )
     return () => timers.forEach(clearTimeout)

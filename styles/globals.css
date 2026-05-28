@@ -35,15 +35,27 @@ body {
   margin: 0;
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
+  height: 100%;
+  overflow: hidden;
 }
 
-html:focus-within {
+/* Seul conteneur de scroll vertical — reset fiable à chaque navigation */
+#app-scroll {
+  height: 100%;
+  min-height: 100dvh;
+  overflow-x: clip;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: var(--header-height);
+  overscroll-behavior-y: contain;
+}
+
+html:focus-within #app-scroll {
   scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html:focus-within {
+  html:focus-within #app-scroll {
     scroll-behavior: auto;
   }
 }
@@ -55,7 +67,6 @@ body {
     Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   line-height: 1.5;
   font-size: 16px;
-  padding-top: var(--header-height);
 }
 
 a {
