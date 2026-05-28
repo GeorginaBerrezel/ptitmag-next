@@ -82,10 +82,19 @@ function ToggleSwitch({ active, loading, onChange, small }: {
 
 // ─── Panneau produits d'un fournisseur ────────────────────────────────────────
 
-function ProductPanel({ supplierId, onClose }: { supplierId: string; onClose: () => void }) {
+function ProductPanel({
+  supplierId,
+  onClose,
+  onProductsChanged,
+}: {
+  supplierId: string
+  onClose: () => void
+  onProductsChanged?: () => void
+}) {
   const [products, setProducts]     = useState<Product[]>([])
   const [loading, setLoading]       = useState(true)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [togglingActiveId, setTogglingActiveId] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -112,8 +121,27 @@ function ProductPanel({ supplierId, onClose }: { supplierId: string; onClose: ()
     }
   }
 
-  const featured = products.filter(p => p.is_featured)
-  const regular  = products.filter(p => !p.is_featured)
+  async function handleToggleActive(p: Product) {
+    setTogglingActiveId(p.id)
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: p.id, active: !p.active }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error)
+      setProducts(prev => prev.map(x => x.id === p.id ? { ...x, active: !x.active } : x))
+      onProductsChanged?.()
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setTogglingActiveId(null)
+    }
+  }
+
+  const visibleCount = products.filter(p => p.active).length
+  const hiddenCount = products.length - visibleCount
+  const featured = products.filter(p => p.is_featured && p.active)
 
   return (
     <div style={{
@@ -122,7 +150,7 @@ function ProductPanel({ supplierId, onClose }: { supplierId: string; onClose: ()
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
         <span style={{ fontSize: '0.8rem', fontWeight: 700, opacity: 0.6 }}>
-          Produits {!loading && `(${products.length})`}
+          Produits {!loading && `(${visibleCount} visible${visibleCount !== 1 ? 's' : ''}${hiddenCount > 0 ? ` · ${hiddenCount} masqué${hiddenCount > 1 ? 's' : ''}` : ''})`}
         </span>
         <button onClick={onClose} style={{
           background: 'none', border: 'none', cursor: 'pointer',
@@ -138,40 +166,74 @@ function ProductPanel({ supplierId, onClose }: { supplierId: string; onClose: ()
 
       {!loading && products.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: 320, overflowY: 'auto' }}>
-          {[...featured, ...regular].map(p => (
+          {products.map(p => (
             <div key={p.id} style={{
               display: 'flex', alignItems: 'center', gap: '0.6rem',
               padding: '0.35rem 0.6rem', borderRadius: 7,
-              background: p.is_featured ? '#fffbf0' : 'transparent',
-              border: `1px solid ${p.is_featured ? '#ffe082' : 'transparent'}`,
+              background: !p.active ? '#f5f5f5' : p.is_featured ? '#fffbf0' : 'transparent',
+              border: `1px solid ${!p.active ? '#e5e7eb' : p.is_featured ? '#ffe082' : 'transparent'}`,
               fontSize: '0.8rem',
+              opacity: p.active ? 1 : 0.72,
             }}>
-              {/* Bouton étoile is_featured */}
               <button
                 onClick={() => handleToggleFeatured(p)}
-                disabled={togglingId === p.id}
-                title={p.is_featured ? 'Retirer de la mise en avant' : 'Mettre en avant sur la page d\'accueil'}
+                disabled={togglingId === p.id || !p.active}
+                title={!p.active ? 'Produit masqué — réactivez-le pour le mettre en avant' : p.is_featured ? 'Retirer de la mise en avant' : 'Mettre en avant sur la page d\'accueil'}
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
+                  background: 'none', border: 'none', cursor: p.active ? 'pointer' : 'not-allowed',
                   fontSize: '1rem', lineHeight: 1, padding: 0, flexShrink: 0,
-                  opacity: togglingId === p.id ? 0.4 : 1,
+                  opacity: togglingId === p.id ? 0.4 : p.active ? 1 : 0.35,
                 }}
               >
                 {p.is_featured ? '★' : '☆'}
               </button>
-              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{
+                flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                textDecoration: p.active ? 'none' : 'line-through',
+              }}>
                 {p.name}
               </span>
+              {!p.active && (
+                <span style={{
+                  fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.4rem',
+                  borderRadius: 999, background: '#fee2e2', color: '#b91c1c', flexShrink: 0,
+                }}>
+                  Masqué
+                </span>
+              )}
               <span style={{ opacity: 0.45, whiteSpace: 'nowrap' }}>{p.unit}</span>
               <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{formatPrice(p.unit_price)}</span>
+              <button
+                type="button"
+                onClick={() => handleToggleActive(p)}
+                disabled={togglingActiveId === p.id}
+                title={p.active ? 'Masquer du catalogue membre' : 'Réafficher dans le catalogue membre'}
+                style={{
+                  background: p.active ? '#fff' : '#ecfdf5',
+                  border: `1px solid ${p.active ? 'rgba(16,24,40,0.15)' : '#6ee7b7'}`,
+                  borderRadius: 6,
+                  padding: '0.2rem 0.55rem',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  cursor: togglingActiveId === p.id ? 'not-allowed' : 'pointer',
+                  color: p.active ? '#6b7280' : '#047857',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                {p.active ? 'Masquer' : 'Afficher'}
+              </button>
             </div>
           ))}
         </div>
       )}
 
-      {!loading && featured.length > 0 && (
-        <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', opacity: 0.5 }}>
-          ★ = affiché en avant sur la page d'accueil ({featured.length} produit{featured.length > 1 ? 's' : ''})
+      {!loading && products.length > 0 && (
+        <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', opacity: 0.5, lineHeight: 1.45 }}>
+          ★ = mise en avant page d&apos;accueil
+          {featured.length > 0 && ` (${featured.length} produit${featured.length > 1 ? 's' : ''})`}
+          {' · '}
+          Masquer = invisible dans le catalogue membre (conservé en base).
         </p>
       )}
     </div>
@@ -201,6 +263,14 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
       setSuppliers((await res.json()).suppliers)
     } catch (e) { setError((e as Error).message) }
     finally { setLoading(false) }
+  }, [])
+
+  const refreshSupplierCounts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/suppliers')
+      if (!res.ok) return
+      setSuppliers((await res.json()).suppliers)
+    } catch {}
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -357,7 +427,8 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
           <div style={{ background: '#f0f9f4', borderRadius: 10, padding: '0.75rem 1rem', fontSize: '0.82rem', color: '#2d6a4f', border: '1px solid #c3e6cb', marginBottom: '0.25rem', lineHeight: 1.6 }}>
             <strong>Catalogue visible</strong> → le fournisseur apparaît dans le catalogue membre.{' '}
             <strong>Commandes ouvertes</strong> → les membres peuvent commander (délai max obligatoire).{' '}
-            <strong>★ Mise en avant</strong> → produit en haut de la page d&apos;accueil.
+            <strong>★ Mise en avant</strong> → produit en haut de la page d&apos;accueil.{' '}
+            <strong>Masquer</strong> → produit invisible catalogue membre (réversible).
           </div>
 
           {suppliers.map(s => {
@@ -513,7 +584,11 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
 
                 {/* Panneau produits (expandable) */}
                 {isExpanded && (
-                  <ProductPanel supplierId={s.id} onClose={() => setExpanded(null)} />
+                  <ProductPanel
+                    supplierId={s.id}
+                    onClose={() => setExpanded(null)}
+                    onProductsChanged={refreshSupplierCounts}
+                  />
                 )}
               </div>
             )

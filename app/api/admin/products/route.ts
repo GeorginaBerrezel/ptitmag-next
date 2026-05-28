@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     .from('products')
     .select('id, name, unit, unit_price, category, is_featured, active')
     .eq('supplier_id', supplierId)
+    .order('active', { ascending: false })
     .order('name')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -22,21 +23,32 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ products: data ?? [] })
 }
 
-// ─── PATCH — basculer is_featured d'un produit ────────────────────────────────
-
 export async function PATCH(request: NextRequest) {
   const user = await requireAdminUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
-  const body = await request.json() as { id?: string; is_featured?: boolean }
-  if (!body.id || typeof body.is_featured !== 'boolean') {
-    return NextResponse.json({ error: 'Paramètres invalides.' }, { status: 400 })
+  const body = await request.json() as {
+    id?: string
+    is_featured?: boolean
+    active?: boolean
+  }
+
+  if (!body.id) {
+    return NextResponse.json({ error: 'Paramètre id manquant.' }, { status: 400 })
+  }
+
+  const update: Record<string, boolean> = {}
+  if (typeof body.is_featured === 'boolean') update.is_featured = body.is_featured
+  if (typeof body.active === 'boolean') update.active = body.active
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: 'Aucune modification.' }, { status: 400 })
   }
 
   const admin = createAdminClient()
   const { error } = await admin
     .from('products')
-    .update({ is_featured: body.is_featured })
+    .update(update)
     .eq('id', body.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
