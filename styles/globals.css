@@ -166,15 +166,7 @@ main {
   text-decoration: none;
 }
 
-.site-nav-desktop a:hover,
-.site-nav-desktop a[aria-current="page"] {
-  color: var(--header-fg);
-}
-
-.site-nav-desktop a.nav-link-catalogue:hover,
-.site-nav-desktop a.nav-link-catalogue[aria-current="page"] {
-  color: #fff;
-}
+/* États nav desktop/mobile : voir theme.css */
 
 /* Icônes nav */
 .nav-contacts {
@@ -282,12 +274,7 @@ main {
   color: var(--header-fg);
 }
 
-
-
-.site-nav-mobile a[aria-current="page"],
-.site-nav-mobile a:hover {
-  color: var(--header-fg);
-}
+/* États nav mobile : voir theme.css */
 
 /* Contacts dans le burger */
 .nav-mobile-contacts {
@@ -909,11 +896,7 @@ time {
   .nav-overlay { display: none !important; }
 }
 
-/* Active/hover visibles sur header bleu */
-.site-nav-desktop a[aria-current="page"]:not(.nav-link-catalogue),
-.site-nav-desktop a:hover:not(.nav-link-catalogue){
-  color: var(--header-fg);
-}
+/* Active/hover : voir theme.css pour la nav */
 
 .lang-switch a[aria-current="page"],
 .lang-switch a:hover{
@@ -932,15 +915,8 @@ time {
 }
 
 
-/* ===== Header: états ACTIVE/FOCUS lisibles sur fond bleu ===== */
-.header a:active,
-.header a:focus,
-.header a:focus-visible{
-  color: var(--header-fg);
-}
-
-.header button:active,
-.header button:focus,
+/* ===== Header: focus clavier (nav détaillée dans theme.css) ===== */
+.header a:focus-visible:not(.nav-link-catalogue),
 .header button:focus-visible{
   color: var(--header-fg);
 }

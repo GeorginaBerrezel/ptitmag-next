@@ -33,6 +33,9 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
 
   const close = () => setOpen(false);
 
+  const navCurrent = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`) ? 'page' as const : undefined;
+
   return (
     <header className="header" role="banner">
       <a className="skip-link" href="#main">{t('skip')}</a>
@@ -57,10 +60,10 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
         
         <nav aria-label={t('aria')} className="site-nav-desktop">
           <ul>
-            <li><Link href="/producers" locale={locale}>{t('producers')}</Link></li>
-            <li><Link href="/membership" locale={locale}>{t('membership')}</Link></li>
+            <li><Link href="/producers" locale={locale} aria-current={navCurrent('/producers')}>{t('producers')}</Link></li>
+            <li><Link href="/membership" locale={locale} aria-current={navCurrent('/membership')}>{t('membership')}</Link></li>
             <CatalogueNavLink locale={locale} />
-            <li><Link href="/contact" locale={locale}>{t('contact')}</Link></li>
+            <li><Link href="/contact" locale={locale} aria-current={navCurrent('/contact')}>{t('contact')}</Link></li>
           </ul>
           <div className="header-account">
             <AuthLink locale={locale} />
@@ -107,10 +110,10 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
             
             <div className="nav-mobile-body">
               <ul>
-                <li><Link href="/producers" locale={locale} onClick={close}>{t('producers')}</Link></li>
-                <li><Link href="/membership" locale={locale} onClick={close}>{t('membership')}</Link></li>
+                <li><Link href="/producers" locale={locale} onClick={close} aria-current={navCurrent('/producers')}>{t('producers')}</Link></li>
+                <li><Link href="/membership" locale={locale} onClick={close} aria-current={navCurrent('/membership')}>{t('membership')}</Link></li>
                 <CatalogueNavLink locale={locale} onNavigate={close} variant="mobile" />
-                <li><Link href="/contact" locale={locale} onClick={close}>{t('contact')}</Link></li>
+                <li><Link href="/contact" locale={locale} onClick={close} aria-current={navCurrent('/contact')}>{t('contact')}</Link></li>
               </ul>
               <div className="nav-mobile-account" onClick={close}>
                 <AuthLink locale={locale} />

@@ -32,41 +32,110 @@
   text-decoration: none;
   border-radius: 999px;
   padding: .45rem .75rem;
-  transition: background-color .15s ease, box-shadow .15s ease;
+  transition: color .15s ease, background-color .15s ease, box-shadow .15s ease;
   white-space: nowrap;
 }
-.site-nav-desktop a:hover{
-  background: rgba(208, 130, 42, 0.10);
-  box-shadow: inset 0 0 0 1px rgba(208, 130, 42, 0.25);
+
+/* Liens standards */
+.site-nav-desktop ul > li:not(.nav-item-catalogue) a{
+  color: rgba(255, 255, 255, 0.88);
+}
+.site-nav-desktop ul > li:not(.nav-item-catalogue) a:hover{
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+.site-nav-desktop ul > li:not(.nav-item-catalogue) a[aria-current="page"]{
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.9);
+}
+.site-nav-desktop ul > li:not(.nav-item-catalogue) a:active{
+  background: rgba(255, 255, 255, 0.18);
 }
 
-/* CTA Catalogue — visible pour les membres connectés */
+/* Catalogue — accent orange discret (pas un gros bouton plein) */
 .nav-link-catalogue{
-  background: var(--orange);
-  color: #fff !important;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  box-shadow: 0 2px 10px rgba(208, 130, 42, 0.35);
+  color: var(--orange) !important;
+  background: transparent !important;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(208, 130, 42, 0.45) !important;
 }
-.nav-link-catalogue:hover,
-.nav-link-catalogue[aria-current="page"]{
-  background: #c97000 !important;
+.site-nav-desktop .nav-link-catalogue:hover{
   color: #fff !important;
-  box-shadow: 0 4px 14px rgba(208, 130, 42, 0.45) !important;
+  background: rgba(208, 130, 42, 0.18) !important;
+  box-shadow: inset 0 0 0 1px rgba(208, 130, 42, 0.6) !important;
+}
+.site-nav-desktop .nav-link-catalogue[aria-current="page"]{
+  color: #fff !important;
+  background: rgba(208, 130, 42, 0.22) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(208, 130, 42, 0.7),
+    inset 0 -2px 0 var(--orange) !important;
+}
+.site-nav-desktop .nav-link-catalogue:active{
+  background: rgba(208, 130, 42, 0.28) !important;
+  color: #fff !important;
+}
+
+/* Mobile nav */
+.site-nav-mobile a{
+  display: block;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  transition: color .15s ease, background-color .15s ease, border-color .15s ease;
+}
+.site-nav-mobile ul > li:not(.nav-item-catalogue) a{
+  color: rgba(255, 255, 255, 0.92);
+}
+.site-nav-mobile ul > li:not(.nav-item-catalogue) a:hover{
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+.site-nav-mobile ul > li:not(.nav-item-catalogue) a[aria-current="page"]{
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.9);
+}
+.site-nav-mobile ul > li:not(.nav-item-catalogue) a:active{
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .site-nav-mobile a.nav-link-catalogue{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 0.35rem;
-  padding: 0.85rem 1.25rem !important;
-  font-size: 1rem;
+  color: var(--orange) !important;
+  background: transparent !important;
+  border: 1px solid rgba(208, 130, 42, 0.45);
+  text-align: left;
+  margin-top: 0.15rem;
+  padding: 0.7rem 0.85rem !important;
+  font-size: inherit;
+  box-shadow: none !important;
 }
-.site-nav-mobile a.nav-link-catalogue:hover,
-.site-nav-mobile a.nav-link-catalogue[aria-current="page"]{
-  background: #c97000 !important;
+.site-nav-mobile a.nav-link-catalogue:hover{
   color: #fff !important;
+  background: rgba(208, 130, 42, 0.16) !important;
+  border-color: rgba(208, 130, 42, 0.65);
+}
+.site-nav-mobile a.nav-link-catalogue[aria-current="page"]{
+  color: #fff !important;
+  background: rgba(208, 130, 42, 0.2) !important;
+  border-color: var(--orange);
+  box-shadow: inset 3px 0 0 var(--orange) !important;
+}
+.site-nav-mobile a.nav-link-catalogue:active{
+  background: rgba(208, 130, 42, 0.28) !important;
+  color: #fff !important;
+}
+
+/* Focus clavier — tous les liens nav */
+.header .site-nav-desktop a:focus-visible,
+.header .site-nav-mobile a:focus-visible,
+.header .lang-switch a:focus-visible{
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 2px;
+}
+.header .nav-link-catalogue:focus-visible{
+  outline-color: var(--orange);
 }
 
 .nav-mobile-account{
