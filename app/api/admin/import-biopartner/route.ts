@@ -218,6 +218,20 @@ export async function POST(request: NextRequest) {
     }
   })
 
+  // ── Désactiver l'ancien catalogue avant upsert ───────────────────────────
+  // Sans ça, les anciens imports restent actifs et le compteur grossit (10k+).
+  const { error: deactErr } = await supabaseAdmin
+    .from('products')
+    .update({ active: false })
+    .eq('supplier_id', biopartnerId)
+
+  if (deactErr) {
+    return NextResponse.json(
+      { error: `Impossible de désactiver l'ancien catalogue Biopartner : ${deactErr.message}` },
+      { status: 500 },
+    )
+  }
+
   // ── Upsert en masse par lots de 200 ──────────────────────────────────────
   // Un seul aller-retour DB par lot au lieu de 1 requête par produit.
   // Nécessite la contrainte UNIQUE (supplier_id, supplier_ref) sur la table.
@@ -249,6 +263,6 @@ export async function POST(request: NextRequest) {
       errors: errors.length,
     },
     errors,
-    message: `Import Biopartner terminé : ${totalUpserted} produit(s) importé(s) en ${Math.ceil(allProducts.length / BATCH)} lot(s).`,
+    message: `Import Biopartner terminé : ${totalUpserted} produit(s) actifs (${Math.ceil(allProducts.length / BATCH)} lot(s)). Les articles absents du CSV ont été retirés du catalogue.`,
   })
 }

@@ -1,0 +1,74 @@
+.line {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid rgba(16, 24, 40, 0.05);
+}
+
+.lineInfo {
+  min-width: 0;
+}
+
+.lineQty {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.lineTotal {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #c0392b;
+  font-size: 1.25rem;
+  padding: 0.35rem 0.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.removeBtn:hover {
+  background: #fdf2f2;
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  .line {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'info remove'
+      'qty total';
+    gap: 0.65rem 0.5rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .lineInfo {
+    grid-area: info;
+  }
+
+  .lineQty {
+    grid-area: qty;
+    justify-self: start;
+  }
+
+  .lineTotal {
+    grid-area: total;
+    justify-self: end;
+    align-self: center;
+  }
+
+  .removeBtn {
+    grid-area: remove;
+    justify-self: end;
+    align-self: start;
+  }
+}

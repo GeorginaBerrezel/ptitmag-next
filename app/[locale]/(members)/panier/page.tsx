@@ -9,6 +9,7 @@ import {
   incrementQuantity,
 } from '@/lib/catalog/quantity-rules'
 import { Link } from '@/i18n/navigation'
+import styles from './panier.module.css'
 
 const TYPE_LABELS: Record<string, string> = {
   local: 'Producteur local',
@@ -139,17 +140,35 @@ export default function PanierPage({
       {/* En-tête */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <h1 style={{ margin: 0 }}>Mon panier</h1>
-        <p style={{
-          margin: 0,
-          fontSize: '1.3rem',
-          fontWeight: 700,
-          background: '#1a1a2e',
-          color: '#fff',
-          borderRadius: 10,
-          padding: '0.35rem 1rem',
-        }}>
-          Total global : CHF {globalTotal.toFixed(2)}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={clearCart}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#c0392b',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: '0.25rem 0',
+            }}
+          >
+            Vider le panier
+          </button>
+          <p style={{
+            margin: 0,
+            fontSize: '1.3rem',
+            fontWeight: 700,
+            background: '#1a1a2e',
+            color: '#fff',
+            borderRadius: 10,
+            padding: '0.35rem 1rem',
+          }}>
+            Total global : CHF {globalTotal.toFixed(2)}
+          </p>
+        </div>
       </div>
       <p style={{ opacity: 0.6, marginBottom: '2rem' }}>
         {supplierCount} commande{supplierCount > 1 ? 's' : ''} seront créées (une par fournisseur)
@@ -206,16 +225,9 @@ export default function PanierPage({
                   const lineTotal = item.quantity * effectivePrice
 
                   return (
-                    <div key={item.productId} style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr auto auto auto',
-                      gap: '0.75rem',
-                      alignItems: 'center',
-                      padding: '0.6rem 1.25rem',
-                      borderBottom: '1px solid rgba(16,24,40,0.05)',
-                    }}>
+                    <div key={item.productId} className={styles.line}>
                       {/* Nom + numéro article */}
-                      <div>
+                      <div className={styles.lineInfo}>
                         <span style={{ fontWeight: 500 }}>{item.productName}</span>
                         {item.supplierRef && (
                           <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
@@ -230,7 +242,7 @@ export default function PanierPage({
                       </div>
 
                       {/* Contrôles quantité */}
-                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                      <div className={styles.lineQty}>
                         <button
                           onClick={() => updateQuantity(item.productId, decrementQuantity(item.quantity, qtyRules))}
                           disabled={item.quantity <= minAllowed}
@@ -266,7 +278,7 @@ export default function PanierPage({
                       </div>
 
                       {/* Sous-total ligne */}
-                      <div style={{ textAlign: 'right' }}>
+                      <div className={styles.lineTotal}>
                         <span style={{ fontWeight: 600, minWidth: 80, display: 'block' }}>
                           CHF {lineTotal.toFixed(2)}
                         </span>
@@ -277,11 +289,9 @@ export default function PanierPage({
 
                       {/* Supprimer */}
                       <button
+                        type="button"
                         onClick={() => removeItem(item.productId)}
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          color: '#c0392b', fontSize: '1.1rem', padding: '0.2rem',
-                        }}
+                        className={styles.removeBtn}
                         aria-label={`Supprimer ${item.productName}`}
                       >×</button>
                     </div>
