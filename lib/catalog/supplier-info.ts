@@ -1,32 +1,15 @@
-/** Infos d'affichage catalogue (descriptions + emoji) — alignées sur la page Producteurs. */
+/** Infos d'affichage catalogue — alignées sur lib/catalog/local-producers.ts */
 
-type SupplierDisplay = {
+import { findLocalProducer, getProducerLogoPath, type LocalProducer } from './local-producers'
+
+export type SupplierDisplay = {
   description: string
   emoji: string
-}
-
-const KNOWN: Record<string, SupplierDisplay> = {
-  'lafermetteadidi':       { emoji: '🥛', description: 'Produits laitiers et de la ferme, élevage traditionnel.' },
-  'bioterroir':            { emoji: '🥬', description: 'Légumes bio de saison cultivés en Valais central.' },
-  'lesdailles':            { emoji: '🌿', description: 'Productions locales variées, respect de la terre.' },
-  'domainedelaprefecture': { emoji: '🍷', description: 'Vins valaisans issus de cépages nobles du coteau.' },
-  'gregorysermier':        { emoji: '🌱', description: 'Maraîchage et productions locales de qualité.' },
-  'brasseriesdayent':      { emoji: '🍺', description: 'Bières artisanales brassées au cœur des Alpes valaisannes.' },
-  'cherouche':             { emoji: '🫙', description: 'Charcuterie et produits locaux transformés à la ferme.' },
-  'olivetsteph':           { emoji: '🧀', description: 'Produits fermiers artisanaux, passion du terroir.' },
-  'grainesdavenir':        { emoji: '🌾', description: 'Graines, céréales et légumineuses cultivées en bio.' },
-  'lacaveaulevain':        { emoji: '🍞', description: 'Pains au levain naturel, farines bio locales.' },
-  'verenemelchior':        { emoji: '🌺', description: 'Plantes aromatiques et médicinales du plateau de Savièse.' },
-  'evoleinarhodiola':      { emoji: '🌿', description: 'Rhodiola et plantes adaptogènes cultivées en altitude.' },
-  'biopartner':            { emoji: '🏭', description: 'Grossiste bio de référence — large catalogue certifié.' },
-  'aromacos':              { emoji: '🌸', description: 'Cosmétiques et huiles essentielles naturelles.' },
-  'biopass':               { emoji: '🛒', description: 'Épicerie bio généraliste.' },
-  'novoma':                { emoji: '💊', description: 'Compléments alimentaires naturels.' },
-  'kingnature':            { emoji: '🌿', description: 'Compléments et extraits naturels.' },
-  'groenlabo':             { emoji: '🔬', description: 'Produits issus du laboratoire nature.' },
-  'phytolis':              { emoji: '🌱', description: 'Phytothérapie et plantes médicinales.' },
-  'laboratoireslrk':       { emoji: '⚗️', description: 'Formules naturelles certifiées.' },
-  'algorigin':             { emoji: '🌊', description: 'Algues, spiruline et superaliments.' },
+  products?: string
+  certification?: string
+  website?: string
+  logo?: string
+  displayName?: string
 }
 
 const TYPE_FALLBACK: Record<string, SupplierDisplay> = {
@@ -35,18 +18,45 @@ const TYPE_FALLBACK: Record<string, SupplierDisplay> = {
   autre:         { emoji: '🤝', description: 'Fournisseur partenaire du p\'tit mag.' },
 }
 
+const WHOLESALER_INFO: Record<string, SupplierDisplay> = {
+  biopartner:            { emoji: '🏭', description: 'Grossiste bio de référence — large catalogue certifié.' },
+  aromacos:              { emoji: '🌸', description: 'Cosmétiques et huiles essentielles naturelles.' },
+  biopass:               { emoji: '🛒', description: 'Épicerie bio généraliste.' },
+  novoma:                { emoji: '💊', description: 'Compléments alimentaires naturels.' },
+  kingnature:            { emoji: '🌿', description: 'Compléments et extraits naturels.' },
+  groenlabo:             { emoji: '🔬', description: 'Produits issus du laboratoire nature.' },
+  phytolis:              { emoji: '🌱', description: 'Phytothérapie et plantes médicinales.' },
+  laboratoireslrk:       { emoji: '⚗️', description: 'Formules naturelles certifiées.' },
+  algorigin:             { emoji: '🌊', description: 'Algues, spiruline et superaliments.' },
+}
+
 function normalizeKey(name: string): string {
   return name.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/[^a-z0-9]/g, '')
+}
+
+function fromLocalProducer(producer: LocalProducer): SupplierDisplay {
+  return {
+    displayName: producer.displayName,
+    description: producer.description,
+    emoji: producer.emoji,
+    products: producer.products,
+    certification: producer.certification,
+    website: producer.website,
+    logo: getProducerLogoPath(producer),
+  }
 }
 
 export function getSupplierDisplayInfo(
   name: string,
   type: string,
 ): SupplierDisplay {
-  const key = normalizeKey(name)
-  if (KNOWN[key]) return KNOWN[key]
+  const local = findLocalProducer(name)
+  if (local) return fromLocalProducer(local)
 
-  for (const [knownKey, info] of Object.entries(KNOWN)) {
+  const key = normalizeKey(name)
+  if (WHOLESALER_INFO[key]) return WHOLESALER_INFO[key]
+
+  for (const [knownKey, info] of Object.entries(WHOLESALER_INFO)) {
     if (key.includes(knownKey) || knownKey.includes(key)) return info
   }
 

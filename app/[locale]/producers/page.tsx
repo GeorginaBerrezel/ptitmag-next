@@ -1,37 +1,13 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
-
-// ─── Données ─────────────────────────────────────────────────────────────────
-// Les noms et lieux sont extraits de la liste d'origine "Nom - Lieu".
-// Les emojis et descriptions sont ajoutés pour rendre la page plus vivante.
-
-type LocalProducer = {
-  name: string
-  location: string
-  emoji: string
-  description: string
-}
+import ProducerCard from '@/components/ProducerCard'
+import { LOCAL_PRODUCERS } from '@/lib/catalog/local-producers'
 
 type Wholesaler = {
   name: string
   emoji: string
   description: string
 }
-
-const LOCAL_PRODUCERS: LocalProducer[] = [
-  { name: 'La Fermette à Didi',        location: 'Icôgne',     emoji: '🥛', description: 'Produits laitiers et de la ferme, élevage traditionnel.' },
-  { name: 'Bioterroir',                 location: 'Bramois',    emoji: '🥬', description: 'Légumes bio de saison cultivés en Valais central.' },
-  { name: 'Les Dailles',                location: 'St-Léonard', emoji: '🌿', description: 'Productions locales variées, respect de la terre.' },
-  { name: 'Domaine de la Préfecture',   location: 'Vétroz',     emoji: '🍷', description: 'Vins valaisans issus de cépages nobles du coteau.' },
-  { name: 'Grégory Sermier',            location: 'Arbaz',      emoji: '🌱', description: 'Maraîchage et productions locales de qualité.' },
-  { name: "Brasseries d'Ayent",         location: 'Ayent',      emoji: '🍺', description: 'Bières artisanales brassées au cœur des Alpes valaisannes.' },
-  { name: 'Chèrouche',                  location: 'Ayent',      emoji: '🫙', description: 'Charcuterie et produits locaux transformés à la ferme.' },
-  { name: 'Oliv et Stéph',              location: 'Itravers',   emoji: '🧀', description: 'Produits fermiers artisanaux, passion du terroir.' },
-  { name: "Graines d'Avenir",           location: 'Montana',    emoji: '🌾', description: 'Graines, céréales et légumineuses cultivées en bio.' },
-  { name: 'La Cave à levain',           location: 'Champlan',   emoji: '🍞', description: 'Pains au levain naturel, farines bio locales.' },
-  { name: 'Vérène Melchior',            location: 'Savièse',    emoji: '🌺', description: 'Plantes aromatiques et médicinales du plateau de Savièse.' },
-  { name: 'Evoleina Rhodiola',          location: 'Evolène',    emoji: '🌿', description: 'Rhodiola et plantes adaptogènes cultivées en altitude.' },
-]
 
 const WHOLESALERS: Wholesaler[] = [
   { name: 'Biopartner',          emoji: '🏭', description: 'Grossiste bio de référence en Suisse' },
@@ -116,62 +92,7 @@ export default async function ProducersPage({
           gap: '1rem',
         }}>
           {LOCAL_PRODUCERS.map(producer => (
-            <div
-              key={producer.name}
-              style={{
-                background: '#fff',
-                border: '1px solid rgba(16,24,40,0.08)',
-                borderRadius: 16,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'box-shadow 0.2s, transform 0.2s',
-              }}
-            >
-              {/* En-tête de la carte */}
-              <div style={{
-                background: 'linear-gradient(135deg, #f0f7f0, #e8f5e9)',
-                padding: '1.25rem 1.25rem 1rem',
-                display: 'flex',
-                gap: '0.85rem',
-                alignItems: 'flex-start',
-              }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: '50%',
-                  background: '#fff',
-                  fontSize: '1.4rem',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-                }}>
-                  {producer.emoji}
-                </div>
-                <div>
-                  <h3 style={{ margin: '0 0 0.25rem', fontSize: '0.95rem', fontWeight: 700, lineHeight: 1.3 }}>
-                    {producer.name}
-                  </h3>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
-                    fontSize: '0.76rem', color: '#245c2a', fontWeight: 600,
-                    background: '#fff', borderRadius: 999,
-                    padding: '0.1rem 0.5rem',
-                    border: '1px solid #c8e6c9',
-                  }}>
-                    📍 {producer.location}
-                  </span>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div style={{ padding: '0.85rem 1.25rem 1.25rem', flexGrow: 1 }}>
-                <p style={{
-                  margin: 0, fontSize: '0.84rem',
-                  color: 'rgba(16,24,40,0.65)', lineHeight: 1.55,
-                }}>
-                  {producer.description}
-                </p>
-              </div>
-            </div>
+            <ProducerCard key={producer.slug} producer={producer} />
           ))}
         </div>
       </section>

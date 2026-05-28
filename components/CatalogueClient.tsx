@@ -519,6 +519,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                             typeLabel={TYPE_LABELS[summary.supplier.type] ?? summary.supplier.type}
                             description={display.description}
                             emoji={display.emoji}
+                            logo={display.logo}
                             productCount={summary.productCount}
                             categoryCount={summary.categories.length}
                             isOpen={status.isOpen}

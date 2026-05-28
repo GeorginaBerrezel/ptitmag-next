@@ -1,10 +1,13 @@
 'use client'
 
+import ProducerAvatar from '@/components/ProducerAvatar'
+
 type Props = {
   name: string
   typeLabel: string
   description?: string
   emoji?: string
+  logo?: string
   productCount: number
   categoryCount: number
   isOpen: boolean
@@ -17,6 +20,7 @@ export default function SupplierCard({
   typeLabel,
   description,
   emoji,
+  logo,
   productCount,
   categoryCount,
   isOpen,
@@ -56,23 +60,7 @@ export default function SupplierCard({
       <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', minWidth: 0, flex: 1 }}>
           {emoji && (
-            <span
-              aria-hidden
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: '#f3f4f6',
-                border: '1px solid rgba(16,24,40,0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.35rem',
-                flexShrink: 0,
-              }}
-            >
-              {emoji}
-            </span>
+            <ProducerAvatar logo={logo} emoji={emoji} name={name} size={44} />
           )}
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, fontWeight: 700, fontSize: '1.05rem', color: '#1a1a2e', lineHeight: 1.25 }}>{name}</p>
