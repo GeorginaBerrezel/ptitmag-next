@@ -915,9 +915,12 @@ time {
 }
 
 
-/* ===== Header: focus clavier (nav détaillée dans theme.css) ===== */
+/* Focus clavier (nav détaillée dans theme.css) */
 .header a:focus-visible:not(.nav-link-catalogue),
 .header button:focus-visible{
+  color: var(--header-fg);
+}
+.header .lang-switch a:focus-visible{
   color: var(--header-fg);
 }
 

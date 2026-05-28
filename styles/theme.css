@@ -26,116 +26,84 @@
   text-decoration: none;
 }
 
-/* Desktop nav links: hover orange minimal */
-.site-nav-desktop a{
-  color: var(--header-fg);
+/* ===== Navigation header — sobre, lisible, sans effets lourds ===== */
+
+.site-nav-desktop a,
+.site-nav-mobile a{
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
-  border-radius: 999px;
-  padding: .45rem .75rem;
-  transition: color .15s ease, background-color .15s ease, box-shadow .15s ease;
-  white-space: nowrap;
-}
-
-/* Liens standards */
-.site-nav-desktop ul > li:not(.nav-item-catalogue) a{
-  color: rgba(255, 255, 255, 0.88);
-}
-.site-nav-desktop ul > li:not(.nav-item-catalogue) a:hover{
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: none;
-}
-.site-nav-desktop ul > li:not(.nav-item-catalogue) a[aria-current="page"]{
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.9);
-}
-.site-nav-desktop ul > li:not(.nav-item-catalogue) a:active{
-  background: rgba(255, 255, 255, 0.18);
-}
-
-/* Catalogue — accent orange discret (pas un gros bouton plein) */
-.nav-link-catalogue{
-  color: var(--orange) !important;
   background: transparent !important;
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(208, 130, 42, 0.45) !important;
-}
-.site-nav-desktop .nav-link-catalogue:hover{
-  color: #fff !important;
-  background: rgba(208, 130, 42, 0.18) !important;
-  box-shadow: inset 0 0 0 1px rgba(208, 130, 42, 0.6) !important;
-}
-.site-nav-desktop .nav-link-catalogue[aria-current="page"]{
-  color: #fff !important;
-  background: rgba(208, 130, 42, 0.22) !important;
-  box-shadow:
-    inset 0 0 0 1px rgba(208, 130, 42, 0.7),
-    inset 0 -2px 0 var(--orange) !important;
-}
-.site-nav-desktop .nav-link-catalogue:active{
-  background: rgba(208, 130, 42, 0.28) !important;
-  color: #fff !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0;
+  padding: 0.45rem 0.35rem;
+  white-space: nowrap;
+  text-underline-offset: 0.28em;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
-/* Mobile nav */
+.site-nav-desktop a:hover,
+.site-nav-mobile a:hover{
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  text-decoration-thickness: 1px;
+}
+
+.site-nav-desktop a[aria-current="page"],
+.site-nav-mobile a[aria-current="page"]{
+  color: #fff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #fff;
+  text-decoration-thickness: 2px;
+}
+
+/* Catalogue : même blanc, séparé visuellement (pas d’orange sur vert) */
+.nav-item-catalogue{
+  position: relative;
+  margin-left: 0.35rem;
+  padding-left: 0.85rem;
+}
+.nav-item-catalogue::before{
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 1em;
+  background: rgba(255, 255, 255, 0.35);
+}
+.nav-link-catalogue{
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Mobile : liste simple, séparateur horizontal avant Catalogue */
 .site-nav-mobile a{
   display: block;
-  padding: 0.7rem 0.85rem;
-  border-radius: 10px;
-  transition: color .15s ease, background-color .15s ease, border-color .15s ease;
+  padding: 0.65rem 0.25rem;
+  white-space: normal;
 }
-.site-nav-mobile ul > li:not(.nav-item-catalogue) a{
-  color: rgba(255, 255, 255, 0.92);
+.site-nav-mobile .nav-item-catalogue{
+  margin-left: 0;
+  padding-left: 0;
+  margin-top: 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
 }
-.site-nav-mobile ul > li:not(.nav-item-catalogue) a:hover{
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-}
-.site-nav-mobile ul > li:not(.nav-item-catalogue) a[aria-current="page"]{
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.9);
-}
-.site-nav-mobile ul > li:not(.nav-item-catalogue) a:active{
-  background: rgba(255, 255, 255, 0.16);
+.site-nav-mobile .nav-item-catalogue::before{
+  display: none;
 }
 
-.site-nav-mobile a.nav-link-catalogue{
-  color: var(--orange) !important;
-  background: transparent !important;
-  border: 1px solid rgba(208, 130, 42, 0.45);
-  text-align: left;
-  margin-top: 0.15rem;
-  padding: 0.7rem 0.85rem !important;
-  font-size: inherit;
-  box-shadow: none !important;
-}
-.site-nav-mobile a.nav-link-catalogue:hover{
-  color: #fff !important;
-  background: rgba(208, 130, 42, 0.16) !important;
-  border-color: rgba(208, 130, 42, 0.65);
-}
-.site-nav-mobile a.nav-link-catalogue[aria-current="page"]{
-  color: #fff !important;
-  background: rgba(208, 130, 42, 0.2) !important;
-  border-color: var(--orange);
-  box-shadow: inset 3px 0 0 var(--orange) !important;
-}
-.site-nav-mobile a.nav-link-catalogue:active{
-  background: rgba(208, 130, 42, 0.28) !important;
-  color: #fff !important;
-}
-
-/* Focus clavier — tous les liens nav */
+/* Focus clavier */
 .header .site-nav-desktop a:focus-visible,
 .header .site-nav-mobile a:focus-visible,
 .header .lang-switch a:focus-visible{
-  outline: 2px solid rgba(255, 255, 255, 0.85);
-  outline-offset: 2px;
-}
-.header .nav-link-catalogue:focus-visible{
-  outline-color: var(--orange);
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 .nav-mobile-account{
