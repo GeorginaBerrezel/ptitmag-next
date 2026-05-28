@@ -1,25 +1,9 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import ProducerCard from '@/components/ProducerCard'
+import WholesalerCard from '@/components/WholesalerCard'
 import { LOCAL_PRODUCERS } from '@/lib/catalog/local-producers'
-
-type Wholesaler = {
-  name: string
-  emoji: string
-  description: string
-}
-
-const WHOLESALERS: Wholesaler[] = [
-  { name: 'Biopartner',          emoji: '🏭', description: 'Grossiste bio de référence en Suisse' },
-  { name: 'Aromacos',            emoji: '🌸', description: 'Cosmétiques & huiles essentielles' },
-  { name: 'Bio-pass',            emoji: '🛒', description: 'Épicerie bio généraliste' },
-  { name: 'Novoma',              emoji: '💊', description: 'Compléments alimentaires naturels' },
-  { name: 'Kingnature',          emoji: '🌿', description: 'Compléments & extraits naturels' },
-  { name: 'Groen Labo',          emoji: '🔬', description: 'Produits issus du laboratoire nature' },
-  { name: 'Phytolis',            emoji: '🌱', description: 'Phytothérapie & plantes médicinales' },
-  { name: 'Laboratoires LRK',    emoji: '⚗️', description: 'Formules naturelles certifiées' },
-  { name: 'Algorigin',           emoji: '🌊', description: 'Algues, spiruline & superaliments' },
-]
+import { WHOLESALERS } from '@/lib/catalog/wholesalers'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -115,27 +99,8 @@ export default async function ProducersPage({
           gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
           gap: '0.75rem',
         }}>
-          {WHOLESALERS.map(supplier => (
-            <div
-              key={supplier.name}
-              style={{
-                background: '#fff',
-                border: '1px solid rgba(16,24,40,0.08)',
-                borderRadius: 12,
-                padding: '1rem 1.1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-              }}
-            >
-              <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{supplier.emoji}</span>
-              <div>
-                <p className="card-title" style={{ fontSize: '0.88rem' }}>{supplier.name}</p>
-                <p className="card-text" style={{ fontSize: '0.77rem', marginTop: '0.1rem' }}>
-                  {supplier.description}
-                </p>
-              </div>
-            </div>
+          {WHOLESALERS.map(wholesaler => (
+            <WholesalerCard key={wholesaler.slug} wholesaler={wholesaler} />
           ))}
         </div>
       </section>
