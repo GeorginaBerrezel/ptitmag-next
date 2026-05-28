@@ -62,8 +62,8 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
           <ul>
             <li><Link href="/producers" locale={locale} aria-current={navCurrent('/producers')}>{t('producers')}</Link></li>
             <li><Link href="/membership" locale={locale} aria-current={navCurrent('/membership')}>{t('membership')}</Link></li>
-            <CatalogueNavLink locale={locale} />
             <li><Link href="/contact" locale={locale} aria-current={navCurrent('/contact')}>{t('contact')}</Link></li>
+            <CatalogueNavLink locale={locale} />
           </ul>
           <div className="header-account">
             <AuthLink locale={locale} />
@@ -112,8 +112,8 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
               <ul>
                 <li><Link href="/producers" locale={locale} onClick={close} aria-current={navCurrent('/producers')}>{t('producers')}</Link></li>
                 <li><Link href="/membership" locale={locale} onClick={close} aria-current={navCurrent('/membership')}>{t('membership')}</Link></li>
-                <CatalogueNavLink locale={locale} onNavigate={close} variant="mobile" />
                 <li><Link href="/contact" locale={locale} onClick={close} aria-current={navCurrent('/contact')}>{t('contact')}</Link></li>
+                <CatalogueNavLink locale={locale} onNavigate={close} variant="mobile" />
               </ul>
               <div className="nav-mobile-account" onClick={close}>
                 <AuthLink locale={locale} />

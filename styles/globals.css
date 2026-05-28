@@ -859,9 +859,9 @@ time {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  padding-left: 0.65rem;
-  margin-left: 0.15rem;
-  border-left: 1px solid rgba(255,255,255,0.22);
+  padding-left: 0.85rem;
+  margin-left: 0.5rem;
+  border-left: 1px solid rgba(255,255,255,0.28);
 }
 
 .header-account a{
@@ -916,11 +916,8 @@ time {
 
 
 /* Focus clavier (nav détaillée dans theme.css) */
-.header a:focus-visible:not(.nav-link-catalogue),
+.header a:focus-visible,
 .header button:focus-visible{
-  color: var(--header-fg);
-}
-.header .lang-switch a:focus-visible{
   color: var(--header-fg);
 }
 

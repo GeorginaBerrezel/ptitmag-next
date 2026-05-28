@@ -43,7 +43,6 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
       href="/commandes"
       locale={locale}
       onClick={onNavigate}
-      className="nav-link-catalogue"
       aria-current={isActive ? 'page' : undefined}
     >
       {t('catalogue')}
@@ -51,8 +50,8 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
   )
 
   if (variant === 'mobile') {
-    return <li className="nav-item-catalogue">{link}</li>
+    return <li>{link}</li>
   }
 
-  return <li className="nav-item-catalogue">{link}</li>
+  return <li>{link}</li>
 }

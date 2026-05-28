@@ -59,51 +59,19 @@
   text-decoration-thickness: 2px;
 }
 
-/* Catalogue : même blanc, séparé visuellement (pas d’orange sur vert) */
-.nav-item-catalogue{
-  position: relative;
-  margin-left: 0.35rem;
-  padding-left: 0.85rem;
-}
-.nav-item-catalogue::before{
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 1em;
-  background: rgba(255, 255, 255, 0.35);
-}
-.nav-link-catalogue{
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-/* Mobile : liste simple, séparateur horizontal avant Catalogue */
+/* Mobile : liste simple */
 .site-nav-mobile a{
   display: block;
   padding: 0.65rem 0.25rem;
   white-space: normal;
-}
-.site-nav-mobile .nav-item-catalogue{
-  margin-left: 0;
-  padding-left: 0;
-  margin-top: 0.35rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
-}
-.site-nav-mobile .nav-item-catalogue::before{
-  display: none;
 }
 
 /* Focus clavier */
 .header .site-nav-desktop a:focus-visible,
 .header .site-nav-mobile a:focus-visible,
 .header .lang-switch a:focus-visible{
-  outline: 2px solid #fff;
-  outline-offset: 3px;
-  border-radius: 2px;
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 2px;
 }
 
 .nav-mobile-account{
