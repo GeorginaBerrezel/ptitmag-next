@@ -96,8 +96,8 @@ export default async function ProducersPage({
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
-          gap: '0.75rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: '1rem',
         }}>
           {WHOLESALERS.map(wholesaler => (
             <WholesalerCard key={wholesaler.slug} wholesaler={wholesaler} />
