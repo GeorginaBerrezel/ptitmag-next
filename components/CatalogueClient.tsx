@@ -110,6 +110,10 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     : activeSummary ? 'categories'
     : 'suppliers'
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [view, activeSupplierId, activeCategory])
+
   const isSearching = search.trim().length > 0
 
   useEffect(() => {
@@ -352,7 +356,10 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
       )}
       <div className="container" style={{ paddingTop: '1.25rem', paddingBottom: '5rem' }}>
 
-        <nav aria-label="Fil d'ariane" style={{
+        <nav
+          aria-label="Fil d'ariane"
+          className={view === 'products' ? 'catalogue-breadcrumb catalogue-breadcrumb--mobile-hidden' : 'catalogue-breadcrumb'}
+          style={{
           display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap',
           fontSize: '0.8rem', color: 'rgba(16,24,40,0.4)', marginBottom: '1.25rem',
         }}>
@@ -393,7 +400,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           )}
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div className={`catalogue-page-head${view === 'products' ? ' catalogue-page-head--compact' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1.5rem' }}>
           {view !== 'suppliers' && (
             <button
               type="button"
@@ -415,7 +422,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
               {view === 'categories' && activeSummary?.supplier.name}
               {view === 'products' && activeCategory}
             </h1>
-            <p style={{ margin: 0, opacity: 0.7 }}>
+            <p className="catalogue-page-sub" style={{ margin: 0, opacity: 0.7 }}>
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
               {view === 'categories' && (
                 isLargeCatalog
@@ -429,7 +436,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           </div>
         </div>
 
-        <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
+        <div className="catalogue-search" style={{ position: 'relative', marginBottom: '1.25rem' }}>
           <span style={{
             position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
             fontSize: '1rem', opacity: 0.4, pointerEvents: 'none',
@@ -464,7 +471,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
         </div>
 
         {view === 'suppliers' && (
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <div className="catalogue-type-filters" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
             {hasFeatured && (
               <button type="button" onClick={handleEphemereClick} style={{
                 padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
