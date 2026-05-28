@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getProductsBySupplier } from '@/lib/supabase/catalogue'
 
-/** GET /api/catalogue/products?supplierId=…&featured=1 */
+/** GET /api/catalogue/products?supplierId=…&category=…&featured=1 */
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   }
 
   const featuredOnly = request.nextUrl.searchParams.get('featured') === '1'
-  const products = await getProductsBySupplier(supplierId, { featuredOnly })
+  const category = request.nextUrl.searchParams.get('category')?.trim() || undefined
+  const products = await getProductsBySupplier(supplierId, { featuredOnly, category })
   return NextResponse.json(products)
 }

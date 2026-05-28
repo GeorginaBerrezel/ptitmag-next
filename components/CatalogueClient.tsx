@@ -8,6 +8,7 @@ import { groupProductsByCategory } from '@/lib/catalog/group-by-category'
 import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
+import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 import SupplierCard from './catalogue/SupplierCard'
 import CategoryCard from './catalogue/CategoryCard'
 import ProductList from './catalogue/ProductList'
@@ -29,7 +30,8 @@ type Props = {
   initialEphemere?: boolean
 }
 
-function cacheKey(supplierId: string, featuredOnly: boolean) {
+function cacheKey(supplierId: string, featuredOnly: boolean, category?: string | null) {
+  if (category) return `${supplierId}:cat:${category}`
   return featuredOnly ? `${supplierId}:featured` : supplierId
 }
 
@@ -79,16 +81,29 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     [baseSummaries, activeSupplierId],
   )
 
+  const isLargeCatalog = activeSummary
+    ? isBiopartnerSupplierName(activeSummary.supplier.name)
+    : false
+
   const activeProducts = useMemo(() => {
     if (!activeSupplierId) return null
+    if (isLargeCatalog && !ephemereOnly) return null
     return productCache.get(cacheKey(activeSupplierId, ephemereOnly)) ?? null
-  }, [activeSupplierId, ephemereOnly, productCache])
+  }, [activeSupplierId, ephemereOnly, productCache, isLargeCatalog])
+
+  const categoryProducts = useMemo(() => {
+    if (!activeSupplierId || !activeCategory || !isLargeCatalog) return null
+    return productCache.get(cacheKey(activeSupplierId, false, activeCategory)) ?? null
+  }, [activeSupplierId, activeCategory, isLargeCatalog, productCache])
 
   const activeCategories = useMemo(() => {
+    if (isLargeCatalog && activeSummary) {
+      return activeSummary.categories.map(c => ({ name: c.name, items: [] as Product[] }))
+    }
     if (activeProducts) return groupProductsByCategory(activeProducts)
     if (!activeSummary) return []
     return activeSummary.categories.map(c => ({ name: c.name, items: [] as Product[] }))
-  }, [activeProducts, activeSummary])
+  }, [activeProducts, activeSummary, isLargeCatalog])
 
   const view: 'suppliers' | 'categories' | 'products' =
     activeSummary && activeCategory ? 'products'
@@ -99,6 +114,8 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
 
   useEffect(() => {
     if (!activeSupplierId) return
+    if (isLargeCatalog && !ephemereOnly) return
+
     const key = cacheKey(activeSupplierId, ephemereOnly)
     if (loadedKeys.current.has(key)) return
 
@@ -126,7 +143,41 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     })()
 
     return () => { cancelled = true }
-  }, [activeSupplierId, ephemereOnly])
+  }, [activeSupplierId, ephemereOnly, isLargeCatalog])
+
+  useEffect(() => {
+    if (!activeSupplierId || !activeCategory || !isLargeCatalog) return
+
+    const key = cacheKey(activeSupplierId, false, activeCategory)
+    if (loadedKeys.current.has(key)) return
+
+    let cancelled = false
+    loadedKeys.current.add(key)
+
+    ;(async () => {
+      setLoadingSupplier(true)
+      setLoadError(null)
+      try {
+        const params = new URLSearchParams({
+          supplierId: activeSupplierId,
+          category: activeCategory,
+        })
+        const res = await fetch(`/api/catalogue/products?${params}`)
+        if (!res.ok) throw new Error('Chargement impossible')
+        const data = (await res.json()) as Product[]
+        if (!cancelled) {
+          setProductCache(prev => new Map(prev).set(key, data))
+        }
+      } catch {
+        loadedKeys.current.delete(key)
+        if (!cancelled) setLoadError('Impossible de charger les produits. Réessayez.')
+      } finally {
+        if (!cancelled) setLoadingSupplier(false)
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [activeSupplierId, activeCategory, isLargeCatalog])
 
   useEffect(() => {
     if (view !== 'suppliers' || !isSearching) {
@@ -209,11 +260,18 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
 
   const displayedProducts = useMemo(() => {
     if (!activeCategory) return []
+
+    if (isLargeCatalog) {
+      const items = categoryProducts ?? []
+      if (!isSearching) return items
+      return items.filter(p => productMatches(p, search))
+    }
+
     const cat = activeCategories.find(c => c.name === activeCategory)
     if (!cat || !activeProducts) return []
     if (!isSearching) return cat.items
     return cat.items.filter(p => productMatches(p, search))
-  }, [activeCategory, activeCategories, activeProducts, search, isSearching])
+  }, [activeCategory, activeCategories, activeProducts, categoryProducts, isLargeCatalog, search, isSearching])
 
   const hasFeatured = summaries.some(s => s.hasFeatured)
 
@@ -359,7 +417,11 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
             </h1>
             <p style={{ margin: 0, opacity: 0.7 }}>
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
-              {view === 'categories' && 'Choisissez une catégorie pour afficher les produits.'}
+              {view === 'categories' && (
+                isLargeCatalog
+                  ? 'Choisissez une catégorie ou recherchez un produit — pas de liste complète.'
+                  : 'Choisissez une catégorie pour afficher les produits.'
+              )}
               {view === 'products' && activeProducts && (
                 `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeSummary?.supplier.name}`
               )}
@@ -617,8 +679,10 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
         )}
 
         {/* Vue produits */}
-        {view === 'products' && !loadingSupplier && activeProducts && (
-          displayedProducts.length === 0 ? (
+        {view === 'products' && !loadingSupplier && (activeProducts || categoryProducts || isLargeCatalog) && (
+          displayedProducts.length === 0 && isLargeCatalog && !categoryProducts ? (
+            <LoadingState label="Chargement de la catégorie…" />
+          ) : displayedProducts.length === 0 ? (
             <EmptyState message="Aucun produit ne correspond à votre recherche." />
           ) : (
             <ProductList products={displayedProducts} nowMs={catalogNow} />

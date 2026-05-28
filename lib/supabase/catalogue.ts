@@ -119,7 +119,7 @@ export async function getCatalogueSummaries(): Promise<CatalogueSupplierSummary[
 /** Produits actifs d'un fournisseur (chargement à la demande). */
 export async function getProductsBySupplier(
   supplierId: string,
-  options: { featuredOnly?: boolean } = {},
+  options: { featuredOnly?: boolean; category?: string } = {},
 ): Promise<Product[]> {
   const supabase = await createClient()
 
@@ -133,6 +133,14 @@ export async function getProductsBySupplier(
       .order('name')
 
     if (options.featuredOnly) q = q.eq('is_featured', true)
+
+    if (options.category) {
+      if (options.category === 'Autres') {
+        q = q.or('category.is.null,category.eq.')
+      } else {
+        q = q.eq('category', options.category)
+      }
+    }
 
     const { data, error } = await q.range(from, to)
     return { data: data as Product[] | null, error }
