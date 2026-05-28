@@ -3,6 +3,7 @@
 import { use, useCallback, useEffect, useState } from 'react'
 import { nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import { formatSupplierOrderDeadline } from '@/lib/catalog/supplier-orders'
+import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -439,6 +440,7 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
             const isExpanded  = expanded === s.id
             const isConfirm   = confirmDelete === s.id
             const deadlineDraft = getDeadlineDraft(s)
+            const isBiopartnerCatalog = isBiopartnerSupplierName(s.name)
 
             return (
               <div key={s.id} style={{
@@ -534,7 +536,8 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
                   {/* Actions */}
                   <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
 
-                    {/* Voir produits */}
+                    {/* Voir produits (locaux uniquement — Biopartner = trop volumineux) */}
+                    {!isBiopartnerCatalog && (
                     <button
                       onClick={() => setExpanded(isExpanded ? null : s.id)}
                       style={{
@@ -547,6 +550,7 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
                     >
                       {isExpanded ? 'Masquer ▲' : `Produits ▾`}
                     </button>
+                    )}
 
                     {/* Supprimer */}
                     {!isConfirm ? (
@@ -583,12 +587,21 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
                 </div>
 
                 {/* Panneau produits (expandable) */}
-                {isExpanded && (
+                {isExpanded && !isBiopartnerCatalog && (
                   <ProductPanel
                     supplierId={s.id}
                     onClose={() => setExpanded(null)}
                     onProductsChanged={refreshSupplierCounts}
                   />
+                )}
+                {isBiopartnerCatalog && (
+                  <p style={{
+                    margin: '0.75rem 0 0', paddingTop: '0.75rem',
+                    borderTop: '1px solid rgba(16,24,40,0.06)',
+                    fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.45,
+                  }}>
+                    Catalogue volumineux — gestion produit par produit via import CSV (Admin → Import).
+                  </p>
                 )}
               </div>
             )

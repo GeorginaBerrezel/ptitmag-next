@@ -1,145 +1,32 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
+import {
+  findBiopartnerCatalogByImportKey,
+  LEGACY_BIOPARTNER_NAME,
+} from '@/lib/import/biopartner-catalogs'
+import { parseBiopartnerCsv, rowToProduct } from '@/lib/import/biopartner-csv'
 
-// Colonnes du fichier "Liste de commandes personnelle" Biopartner (séparateur ;)
-type BiopartnerRow = {
-  Article: string
-  Désignation: string
-  'Désignation 2': string
-  Unité: string        // KG | PCE
-  UM: string           // 0 = HT, 1 = TTC
-  UC: string           // quantité minimum de commande
-  'Unité Prix': string
-  Prix: string         // ex: "6,25" → virgule décimale
-  Origine: string      // code pays (CH, ES, IT, FR…)
-  Certifcation: string // EB, DM, KCH, CHB…
-  Emballage: string    // "Barquette de 25", "Brique de 1 l", "non défini"…
-  Facteur: string
-  'Groupe produit principal': string // "1 - Fruits et légumes"
-  Marque: string
-  'Categorie produit': string        // "Légumes", "Agrumes", "Lait/crème"…
-}
+async function getOrCreateSupplier(admin: ReturnType<typeof createAdminClient>, name: string) {
+  const { data: existing } = await admin
+    .from('suppliers')
+    .select('id')
+    .eq('name', name)
+    .maybeSingle()
 
-/**
- * Parse le CSV Biopartner (séparateur ;, virgule décimale).
- * Les 7 premières lignes sont des métadonnées → on cherche la ligne d'en-têtes
- * qui commence par "Article;".
- */
-function parseBiopartnerCsv(text: string): BiopartnerRow[] {
-  const lines = text
-    .split('\n')
-    .map(l => l.trim())
-    .filter(Boolean)
+  if (existing) return existing.id as string
 
-  const headerIdx = lines.findIndex(l => l.startsWith('Article;'))
-  if (headerIdx === -1) {
-    throw new Error(
-      'En-têtes Biopartner introuvables. Vérifiez que le fichier commence bien par "Article;Désignation;…"'
-    )
+  const { data: created, error } = await admin
+    .from('suppliers')
+    .insert({ name, type: 'grossiste_bio', active: true })
+    .select('id')
+    .single()
+
+  if (error || !created) {
+    throw new Error(`Impossible de créer le fournisseur ${name} : ${error?.message}`)
   }
 
-  const headers = lines[headerIdx].split(';')
-
-  return lines
-    .slice(headerIdx + 1)
-    .map(line => {
-      const values = line.split(';')
-      return Object.fromEntries(
-        headers.map((h, i) => [h, values[i]?.trim() ?? ''])
-      ) as BiopartnerRow
-    })
-    .filter(row => row.Article && row.Désignation)
-}
-
-/** "Courgette" + "cal. 14-21" → "Courgette – cal. 14-21" */
-function buildName(row: BiopartnerRow): string {
-  const d2 = row['Désignation 2']?.trim()
-  return d2 ? `${row.Désignation} – ${d2}` : row.Désignation
-}
-
-/**
- * Unité lisible pour les membres.
- * Priorité : Emballage (si défini) > Unité de base (KG → "kg", PCE → "pièce").
- */
-function buildUnit(row: BiopartnerRow): string {
-  const emb = row.Emballage?.trim()
-  if (emb && emb !== 'non défini') return emb
-  if (row.Unité === 'KG') return 'kg'
-  if (row.Unité === 'PCE') return 'pièce'
-  return row.Unité?.toLowerCase() || 'pièce'
-}
-
-/**
- * Description pour les membres : origine, certification bio, sous-catégorie.
- * Format lisible, uniquement les valeurs non vides / utiles.
- */
-function buildDescription(row: BiopartnerRow): string | null {
-  const parts: string[] = []
-
-  const cert = row.Certifcation?.trim()
-  if (cert) {
-    const certLabels: Record<string, string> = {
-      EB: 'Bio EU',
-      DM: 'Demeter',
-      KCH: 'Bio Suisse',
-      CHB: 'Bio Suisse',
-      K: 'Bio',
-      FT: 'Fairtrade',
-    }
-    const certParts = cert.split('/').map(c => certLabels[c.trim()] ?? c.trim())
-    parts.push(certParts.join(' · '))
-  }
-
-  const origine = row.Origine?.trim()
-  if (origine) {
-    const pays: Record<string, string> = {
-      CH: 'Suisse', ES: 'Espagne', IT: 'Italie', FR: 'France',
-      PE: 'Pérou', EC: 'Équateur', CO: 'Colombie', DE: 'Allemagne',
-    }
-    parts.push(`Origine : ${pays[origine] ?? origine}`)
-  }
-
-  const subcat = row['Categorie produit']?.trim()
-  if (subcat) parts.push(subcat)
-
-  const marque = row.Marque?.trim()
-  if (marque && marque !== 'nicht definiert') parts.push(marque)
-
-  return parts.length > 0 ? parts.join(' · ') : null
-}
-
-/** "1 - Fruits et légumes" → "Fruits et légumes" */
-function buildCategory(row: BiopartnerRow): string | null {
-  const raw = row['Groupe produit principal']?.trim()
-  if (!raw) return null
-  return raw.replace(/^\d+\s*-\s*/, '').trim()
-}
-
-/** "6,25" → 6.25 */
-function parsePrice(prix: string): number | null {
-  if (!prix) return null
-  const n = parseFloat(prix.replace(',', '.'))
-  return isNaN(n) ? null : n
-}
-
-/** UC Biopartner → quantité minimum (ex. 3, 6, 9). */
-function parseMinQuantity(uc: string): number {
-  const n = parseInt(uc, 10)
-  return Number.isNaN(n) || n < 1 ? 1 : n
-}
-
-/**
- * Prix TTC affiché aux membres.
- * UM = 0 → prix HT dans le CSV → on ajoute TVA 2.6 %.
- * UM = 1 → prix déjà TTC dans le CSV.
- */
-function buildUnitPrice(row: BiopartnerRow): number | null {
-  const raw = parsePrice(row.Prix)
-  if (raw == null) return null
-  const TVA_RATE = 1.026
-  const ttc = row.UM === '1' ? raw : raw * TVA_RATE
-  return Math.round(ttc * 100) / 100
+  return created.id as string
 }
 
 export async function POST(request: NextRequest) {
@@ -152,7 +39,12 @@ export async function POST(request: NextRequest) {
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
-  const dateLimite = (formData.get('date_limite_commande') as string | null)?.trim() || null
+  const catalogKey = (formData.get('catalog') as string | null)?.trim() || 'biopartner_general'
+
+  const catalog = findBiopartnerCatalogByImportKey(catalogKey)
+  if (!catalog) {
+    return NextResponse.json({ error: 'Catalogue Biopartner invalide.' }, { status: 400 })
+  }
 
   if (!file) {
     return NextResponse.json({ error: 'Aucun fichier fourni.' }, { status: 400 })
@@ -160,9 +52,9 @@ export async function POST(request: NextRequest) {
 
   const text = await file.text()
 
-  let rows: BiopartnerRow[]
+  let rows
   try {
-    rows = parseBiopartnerCsv(text)
+    rows = parseBiopartnerCsv(text).rows
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 400 })
   }
@@ -171,70 +63,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Aucun produit trouvé dans le fichier.' }, { status: 400 })
   }
 
-  // Créer ou récupérer le fournisseur "Biopartner"
-  const { data: existingBp } = await supabaseAdmin
-    .from('suppliers')
-    .select('id')
-    .eq('name', 'Biopartner')
-    .single()
-
-  let biopartnerId: string
-
-  if (existingBp) {
-    biopartnerId = existingBp.id
-  } else {
-    const { data: newBp, error: bpError } = await supabaseAdmin
-      .from('suppliers')
-      .insert({ name: 'Biopartner', type: 'grossiste_bio', active: true })
-      .select('id')
-      .single()
-
-    if (bpError || !newBp) {
-      return NextResponse.json(
-        { error: `Impossible de créer le fournisseur Biopartner : ${bpError?.message}` },
-        { status: 500 }
-      )
-    }
-    biopartnerId = newBp.id
+  let supplierId: string
+  try {
+    supplierId = await getOrCreateSupplier(supabaseAdmin, catalog.name)
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 
-  // ── Préparer tous les produits d'un coup ──────────────────────────────────
-  const allProducts = rows.map(row => {
-    const minQuantity = parseMinQuantity(row.UC)
-    return {
-      name: buildName(row),
-      description: buildDescription(row),
-      category: buildCategory(row),
-      unit: buildUnit(row),
-      unit_price: buildUnitPrice(row),
-      min_quantity: minQuantity,
-      // Biopartner : commande partielle (< UC avec +10 %) quand UC > 1
-      allows_partial_order: minQuantity > 1,
-      order_deadline: dateLimite || null,
-      supplier_id: biopartnerId,
-      supplier_ref: row.Article,
-      active: true,
-      is_featured: false,
-    }
-  })
+  const allProducts = rows.map(row => rowToProduct(row, supplierId))
 
-  // ── Désactiver l'ancien catalogue avant upsert ───────────────────────────
-  // Sans ça, les anciens imports restent actifs et le compteur grossit (10k+).
   const { error: deactErr } = await supabaseAdmin
     .from('products')
     .update({ active: false })
-    .eq('supplier_id', biopartnerId)
+    .eq('supplier_id', supplierId)
 
   if (deactErr) {
     return NextResponse.json(
-      { error: `Impossible de désactiver l'ancien catalogue Biopartner : ${deactErr.message}` },
+      { error: `Impossible de désactiver l'ancien catalogue ${catalog.shortLabel} : ${deactErr.message}` },
       { status: 500 },
     )
   }
 
-  // ── Upsert en masse par lots de 200 ──────────────────────────────────────
-  // Un seul aller-retour DB par lot au lieu de 1 requête par produit.
-  // Nécessite la contrainte UNIQUE (supplier_id, supplier_ref) sur la table.
   const BATCH = 200
   const errors: string[] = []
   let totalUpserted = 0
@@ -263,6 +112,38 @@ export async function POST(request: NextRequest) {
       errors: errors.length,
     },
     errors,
-    message: `Import Biopartner terminé : ${totalUpserted} produit(s) actifs (${Math.ceil(allProducts.length / BATCH)} lot(s)). Les articles absents du CSV ont été retirés du catalogue.`,
+    catalog: catalog.name,
+    message: `Import ${catalog.name} terminé : ${totalUpserted} produit(s) actifs. Les articles absents de ce CSV ont été retirés de ce catalogue.`,
+  })
+}
+
+/** Désactive l'ancien fournisseur « Biopartner » unique (migration one-shot). */
+export async function DELETE() {
+  const user = await requireAdminUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Accès réservé à l\'administrateur.' }, { status: 403 })
+  }
+
+  const admin = createAdminClient()
+
+  const { data: legacy } = await admin
+    .from('suppliers')
+    .select('id')
+    .eq('name', LEGACY_BIOPARTNER_NAME)
+    .maybeSingle()
+
+  if (!legacy) {
+    return NextResponse.json({ success: true, message: 'Ancien catalogue Biopartner déjà migré ou absent.' })
+  }
+
+  await admin.from('products').update({ active: false }).eq('supplier_id', legacy.id)
+  await admin
+    .from('suppliers')
+    .update({ active: false, orders_open: false })
+    .eq('id', legacy.id)
+
+  return NextResponse.json({
+    success: true,
+    message: `Ancien fournisseur « ${LEGACY_BIOPARTNER_NAME} » masqué et ses produits désactivés.`,
   })
 }
