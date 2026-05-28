@@ -11,7 +11,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
   const lang = cookieLocale === 'en' ? 'en' : 'fr';
 
   return (
-    <html lang={lang}>
+    <html lang={lang} data-scroll-behavior="smooth">
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

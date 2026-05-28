@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef, type ReactNode } from 'react'
+import { scrollPageToTopPersistently } from '@/lib/scroll'
 import type { Product } from '@/lib/supabase/products'
 import type { CatalogueSupplierSummary } from '@/lib/supabase/catalogue'
 import { productOrderableAt } from '@/lib/catalog/orderable'
@@ -111,7 +112,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     : 'suppliers'
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    scrollPageToTopPersistently()
   }, [view, activeSupplierId, activeCategory])
 
   const isSearching = search.trim().length > 0
@@ -339,7 +340,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
   }, [filteredSummaries])
 
   return (
-    <div style={{ marginTop: 'calc(-1 * 1rem)' }}>
+    <div style={{ marginTop: 'calc(-1 * 1rem)', maxWidth: '100%', overflowX: 'clip' }}>
       <CartBar />
       {applyTrialMarkup && (
         <div style={{

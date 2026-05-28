@@ -1,12 +1,12 @@
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
-
+import {Suspense} from 'react';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, setRequestLocale} from 'next-intl/server';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import ScrollToTop from '@/components/ScrollToTop';
+import NavigationScrollManager from '@/components/NavigationScrollManager';
 import { CartProvider } from '@/lib/cart/CartContext';
 import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
 import { getProfile } from '@/lib/supabase/auth';
@@ -52,7 +52,9 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <MemberPricingProvider isCotise={isCotise}>
         <CartProvider>
-          <ScrollToTop />
+          <Suspense fallback={null}>
+            <NavigationScrollManager />
+          </Suspense>
           <Header locale={locale} />
           <main id="main">{props.children}</main>
           <Footer locale={locale} />

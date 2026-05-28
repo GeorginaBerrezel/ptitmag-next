@@ -33,8 +33,9 @@ html,
 body {
   padding: 0;
   margin: 0;
+  width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 html:focus-within {
@@ -54,6 +55,7 @@ body {
     Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   line-height: 1.5;
   font-size: 16px;
+  padding-top: var(--header-height);
 }
 
 a {
@@ -74,11 +76,23 @@ button {
   font: inherit;
 }
 
-/* main : commence sous le header (marge externe), avec un léger padding interne */
+/* main : léger padding interne (le décalage header est sur body, pas margin-top) */
 main {
-  margin-top: var(--header-height);
   padding-top: 1rem;
   padding-bottom: 2rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+/* Lignes scrollables horizontales : le scroll reste dans la zone, pas sur toute la page */
+.scroll-x-row {
+  display: flex;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 /* focus visibles */
@@ -103,6 +117,8 @@ main {
   height: var(--header-height);
   display: flex;
   align-items: center;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .header .container {
@@ -832,6 +848,7 @@ time {
   grid-template-columns: auto 1fr auto auto; /* lang | centre | nav | burger */
   gap:.75rem;
   width:100%;
+  min-width: 0;
 }
 
 /* langue à gauche */

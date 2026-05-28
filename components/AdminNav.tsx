@@ -43,6 +43,7 @@ export default function AdminNav({
   return (
     <nav
       aria-label="Navigation admin"
+      className="admin-nav"
       style={{
         display: 'flex',
         alignItems: 'stretch',

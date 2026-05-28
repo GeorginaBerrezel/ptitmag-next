@@ -150,10 +150,8 @@ export default async function FeaturedProducts({ locale }: Props) {
         </div>
 
         {/* Cartes produits — scroll horizontal sur mobile */}
-        <div style={{
-          display: 'flex',
+        <div className="scroll-x-row" style={{
           gap: '0.75rem',
-          overflowX: 'auto',
           paddingBottom: '0.5rem',
           scrollbarWidth: 'thin',
           scrollbarColor: '#DC7F00 transparent',

@@ -22,6 +22,12 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
     };
   }, [open]);
 
+  // Ferme le menu et restaure le scroll body à chaque changement de page
+  useEffect(() => {
+    setOpen(false);
+    document.body.style.overflow = '';
+  }, [pathname]);
+
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {

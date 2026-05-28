@@ -24,6 +24,8 @@ export default function CartBar() {
       alignItems: 'center',
       gap: '0.75rem',
       flexWrap: 'wrap',
+      maxWidth: '100%',
+      overflowX: 'clip',
     }}>
       <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>
         🛒 <span>{totalItems} produit{totalItems > 1 ? 's' : ''}</span>
