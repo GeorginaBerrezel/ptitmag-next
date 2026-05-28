@@ -6,7 +6,7 @@ import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
-import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
+import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { getProductImageUrl, showProductImage } from '@/lib/catalog/product-image'
 import {
   decrementQuantity,
@@ -19,6 +19,11 @@ import styles from './ProductCard.module.css'
 
 function daysLeft(deadline: string, nowMs: number): number {
   return Math.ceil((new Date(deadline).getTime() - nowMs) / 86400000)
+}
+
+function supplierDeadlineDaysLeft(supplier: Product['supplier'], nowMs: number): number | null {
+  if (!supplier?.order_deadline) return null
+  return daysLeft(supplier.order_deadline, nowMs)
 }
 
 type Props = {
@@ -36,7 +41,10 @@ function ProductCardInner({ product, nowMs }: Props) {
   const [added, setAdded] = useState(false)
 
   const orderable = productOrderableAt(product, now)
-  const days = product.order_deadline ? daysLeft(product.order_deadline, now) : null
+  const supplierStatus = product.supplier
+    ? supplierOrderStatusLabel(product.supplier, now)
+    : { isOpen: false, label: 'Commandes fermées' }
+  const days = supplierDeadlineDaysLeft(product.supplier, now)
   const inCart = items.some(i => i.productId === product.id)
   const imageUrl = getProductImageUrl(product)
   const hasImage = showProductImage(product) && imageUrl
@@ -65,21 +73,12 @@ function ProductCardInner({ product, nowMs }: Props) {
     : null
 
   const deadlineLabel = (() => {
-    if (!product.order_deadline) return null
-    if (orderable) {
-      return `Commandez avant le ${new Date(product.order_deadline).toLocaleString('fr-CH', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      })}`
+    if (!product.supplier) return null
+    if (orderable && product.supplier.order_deadline) {
+      return `Commandez avant le ${formatSupplierOrderDeadline(product.supplier.order_deadline)}`
     }
-    if (product.supplier) {
-      const next = formatOrderWindow(nextOrderWindowForSupplier(product.supplier, now))
-      return `Commande fermée — prochaine : ${next}`
-    }
-    return 'Commande fermée'
+    if (!orderable) return supplierStatus.label
+    return null
   })()
 
   function decrement() {

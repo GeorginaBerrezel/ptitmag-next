@@ -5,7 +5,7 @@ import type { Product } from '@/lib/supabase/products'
 import type { CatalogueSupplierSummary } from '@/lib/supabase/catalogue'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { groupProductsByCategory } from '@/lib/catalog/group-by-category'
-import { formatOrderWindow, nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
+import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import SupplierCard from './catalogue/SupplierCard'
@@ -263,11 +263,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
   }
 
   function supplierStatus(summary: CatalogueSupplierSummary) {
-    if (summary.hasOpenOrders) {
-      return { isOpen: true, label: 'Commandes ouvertes' }
-    }
-    const next = formatOrderWindow(nextOrderWindowForSupplier(summary.supplier, catalogNow))
-    return { isOpen: false, label: `Prochaine commande : ${next}` }
+    return supplierOrderStatusLabel(summary.supplier, catalogNow)
   }
 
   const summariesByType = useMemo(() => {
@@ -572,9 +568,12 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                   {filteredCategories.map(({ name }) => {
                     const meta = activeSummary.categories.find(c => c.name === name)
                     const count = meta?.count ?? 0
-                    const orderable = activeProducts
-                      ? activeProducts.filter(p => (p.category?.trim() || 'Autres') === name && productOrderableAt(p, catalogNow)).length
-                      : count
+                    const orderable = activeProducts && activeSummary
+                      ? activeProducts.filter(p =>
+                          (p.category?.trim() || 'Autres') === name &&
+                          productOrderableAt(p, catalogNow),
+                        ).length
+                      : (activeSummary && supplierOrderStatusLabel(activeSummary.supplier, catalogNow).isOpen ? count : 0)
                     return (
                       <CategoryCard
                         key={name}
@@ -600,12 +599,13 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                   {filteredCategories.map(({ name }) => {
                     const meta = activeSummary.categories.find(c => c.name === name)
                     const count = meta?.count ?? 0
+                    const open = supplierOrderStatusLabel(activeSummary.supplier, catalogNow).isOpen
                     return (
                       <CategoryCard
                         key={name}
                         name={name}
                         productCount={count}
-                        orderableCount={count}
+                        orderableCount={open ? count : 0}
                         onClick={() => openCategory(name)}
                       />
                     )

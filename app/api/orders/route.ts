@@ -5,6 +5,7 @@ import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 import { isCotiseProfile } from '@/lib/members/profile'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
 import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
+import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -42,6 +43,30 @@ export async function POST(request: NextRequest) {
     acc[item.supplierId].push(item)
     return acc
   }, {})
+
+  const supplierIds = Object.keys(bySupplier)
+  const { data: supplierRows, error: supplierErr } = await supabase
+    .from('suppliers')
+    .select('id, name, orders_open, order_deadline')
+    .in('id', supplierIds)
+
+  if (supplierErr) {
+    return NextResponse.json({ error: supplierErr.message }, { status: 500 })
+  }
+
+  const supplierMap = new Map((supplierRows ?? []).map(s => [s.id as string, s]))
+  const nowMs = Date.now()
+
+  for (const supplierId of supplierIds) {
+    const supplier = supplierMap.get(supplierId)
+    if (!supplier || !supplierOrdersOpenAt(supplier, nowMs)) {
+      const name = supplier?.name ?? bySupplier[supplierId]?.[0]?.supplierName ?? 'ce fournisseur'
+      return NextResponse.json(
+        { error: `Les commandes sont fermées pour ${name}.` },
+        { status: 400 },
+      )
+    }
+  }
 
   const createdOrders: string[] = []
   const emailGroups: OrderEmailGroup[] = []

@@ -2,6 +2,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
 
+type PatchBody = {
+  id?: string
+  active?: boolean
+  orders_open?: boolean
+  order_deadline?: string | null
+}
+
 // ─── GET — liste des fournisseurs avec nombre de produits ─────────────────────
 
 export async function GET() {
@@ -12,7 +19,7 @@ export async function GET() {
 
   const { data: suppliers, error: sErr } = await admin
     .from('suppliers')
-    .select('id, name, type, active')
+    .select('id, name, type, active, orders_open, order_deadline')
     .order('name')
 
   if (sErr) return NextResponse.json({ error: sErr.message }, { status: 500 })
@@ -29,26 +36,14 @@ export async function GET() {
     countMap[p.supplier_id] = (countMap[p.supplier_id] ?? 0) + 1
   }
 
-  const { data: deadlines } = await admin
-    .from('products')
-    .select('supplier_id, order_deadline')
-    .not('order_deadline', 'is', null)
-    .order('order_deadline', { ascending: false })
-
-  const deadlineMap: Record<string, string> = {}
-  for (const p of deadlines ?? []) {
-    if (!deadlineMap[p.supplier_id]) {
-      deadlineMap[p.supplier_id] = p.order_deadline!
-    }
-  }
-
   const result = (suppliers ?? []).map(s => ({
     id: s.id,
     name: s.name,
     type: s.type,
     active: s.active ?? true,
+    orders_open: s.orders_open ?? false,
+    order_deadline: s.order_deadline ?? null,
     productCount: countMap[s.id] ?? 0,
-    lastDeadline: deadlineMap[s.id] ?? null,
   }))
 
   return NextResponse.json({ suppliers: result })
@@ -58,15 +53,67 @@ export async function PATCH(request: NextRequest) {
   const user = await requireAdminUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
-  const body = await request.json() as { id?: string; active?: boolean }
-  if (!body.id || typeof body.active !== 'boolean') {
-    return NextResponse.json({ error: 'Paramètres invalides.' }, { status: 400 })
+  const body = await request.json() as PatchBody
+  if (!body.id) {
+    return NextResponse.json({ error: 'Paramètre id manquant.' }, { status: 400 })
   }
 
   const admin = createAdminClient()
+
+  const { data: current, error: fetchErr } = await admin
+    .from('suppliers')
+    .select('orders_open, order_deadline')
+    .eq('id', body.id)
+    .single()
+
+  if (fetchErr || !current) {
+    return NextResponse.json({ error: fetchErr?.message ?? 'Fournisseur introuvable.' }, { status: 404 })
+  }
+
+  const nextOrdersOpen = body.orders_open ?? current.orders_open ?? false
+  const nextDeadline = body.order_deadline !== undefined
+    ? body.order_deadline
+    : current.order_deadline
+
+  if (body.active !== undefined && typeof body.active !== 'boolean') {
+    return NextResponse.json({ error: 'Paramètre active invalide.' }, { status: 400 })
+  }
+  if (body.orders_open !== undefined && typeof body.orders_open !== 'boolean') {
+    return NextResponse.json({ error: 'Paramètre orders_open invalide.' }, { status: 400 })
+  }
+
+  if (nextOrdersOpen && !nextDeadline) {
+    return NextResponse.json(
+      { error: 'Un délai max de commande est obligatoire pour ouvrir les commandes.' },
+      { status: 400 },
+    )
+  }
+
+  if (nextDeadline) {
+    const deadlineMs = new Date(nextDeadline).getTime()
+    if (Number.isNaN(deadlineMs)) {
+      return NextResponse.json({ error: 'Délai de commande invalide.' }, { status: 400 })
+    }
+    if (nextOrdersOpen && deadlineMs <= Date.now()) {
+      return NextResponse.json(
+        { error: 'Le délai doit être dans le futur pour ouvrir les commandes.' },
+        { status: 400 },
+      )
+    }
+  }
+
+  const update: Record<string, unknown> = {}
+  if (body.active !== undefined) update.active = body.active
+  if (body.orders_open !== undefined) update.orders_open = body.orders_open
+  if (body.order_deadline !== undefined) update.order_deadline = body.order_deadline
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: 'Aucune modification.' }, { status: 400 })
+  }
+
   const { error } = await admin
     .from('suppliers')
-    .update({ active: body.active })
+    .update(update)
     .eq('id', body.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -5,6 +5,9 @@ export type Supplier = {
   name: string
   website: string | null
   type: 'local' | 'grossiste_bio' | 'autre'
+  active?: boolean
+  orders_open?: boolean
+  order_deadline?: string | null
 }
 
 export type Product = {
@@ -41,7 +44,7 @@ export async function getProducts(): Promise<Product[]> {
       id, name, description, category,
       unit, unit_price, min_quantity, allows_partial_order,
       order_deadline, is_featured, supplier_ref,
-      supplier:suppliers(id, name, website, type)
+      supplier:suppliers(id, name, website, type, active, orders_open, order_deadline)
     `
 
   const rows: Product[] = []

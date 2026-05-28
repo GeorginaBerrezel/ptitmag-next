@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Product, Supplier } from '@/lib/supabase/products'
 import { productMatches } from '@/lib/catalog/search'
-import { productOrderableAt } from '@/lib/catalog/orderable'
+import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
 
 const PAGE = 1000
 
@@ -9,12 +9,12 @@ const FULL_SELECT = `
   id, name, description, category,
   unit, unit_price, min_quantity, allows_partial_order,
   order_deadline, is_featured, supplier_ref,
-  supplier:suppliers(id, name, website, type)
+  supplier:suppliers(id, name, website, type, active, orders_open, order_deadline)
 `
 
 const SUMMARY_SELECT = `
   id, category, is_featured, order_deadline,
-  supplier:suppliers(id, name, website, type)
+  supplier:suppliers(id, name, website, type, active, orders_open, order_deadline)
 `
 
 export type CategorySummary = {
@@ -84,7 +84,7 @@ export async function getCatalogueSummaries(): Promise<CatalogueSupplierSummary[
   }>()
 
   for (const row of rows) {
-    if (!row.supplier) continue
+    if (!row.supplier || row.supplier.active === false) continue
     const id = row.supplier.id
     if (!map.has(id)) {
       map.set(id, {
@@ -92,7 +92,7 @@ export async function getCatalogueSummaries(): Promise<CatalogueSupplierSummary[
         productCount: 0,
         categoryCounts: new Map(),
         hasFeatured: false,
-        hasOpenOrders: false,
+        hasOpenOrders: supplierOrdersOpenAt(row.supplier, nowMs),
       })
     }
     const g = map.get(id)!
@@ -100,7 +100,7 @@ export async function getCatalogueSummaries(): Promise<CatalogueSupplierSummary[
     const cat = row.category?.trim() || 'Autres'
     g.categoryCounts.set(cat, (g.categoryCounts.get(cat) ?? 0) + 1)
     if (row.is_featured) g.hasFeatured = true
-    if (productOrderableAt(row as unknown as Product, nowMs)) g.hasOpenOrders = true
+    if (supplierOrdersOpenAt(row.supplier, nowMs)) g.hasOpenOrders = true
   }
 
   return Array.from(map.values())

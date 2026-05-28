@@ -1,7 +1,8 @@
 import type { Product } from '@/lib/supabase/products'
+import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
 
-/** Encore commandable à l'instant `nowMs` : pas de deadline ou deadline ≥ now */
+/** Peut-on ajouter ce produit au panier ? (dépend du fournisseur, pas du CSV produit). */
 export function productOrderableAt(p: Product, nowMs: number): boolean {
-  if (!p.order_deadline) return true
-  return new Date(p.order_deadline).getTime() >= nowMs
+  if (!p.supplier) return false
+  return supplierOrdersOpenAt(p.supplier, nowMs)
 }
