@@ -55,19 +55,18 @@ export async function POST(request: NextRequest) {
     }, { status: 400 })
   }
 
-  const { count, error } = await upsertLocalSupplier(admin, config, parsed, dateLimite)
+  const { count, inserted, updated, error } = await upsertLocalSupplier(admin, config, parsed, dateLimite)
 
   if (error) return NextResponse.json({ error }, { status: 500 })
 
   return NextResponse.json({
     success: true,
-    message: `${config.supplierName} — ${count} produit${count > 1 ? 's' : ''} importé${count > 1 ? 's' : ''}.`,
+    message: `${config.supplierName} — ${count} produit${count > 1 ? 's' : ''} synchronisé${count > 1 ? 's' : ''} (${inserted} nouveau${inserted > 1 ? 'x' : ''}, ${updated} mis à jour). Les produits absents du fichier restent en base — masquez-les dans Fournisseurs si besoin.`,
     stats: {
-      productsCreated: count,
-      productsUpdated: 0,
+      productsCreated: inserted,
+      productsUpdated: updated,
       errors: 0,
-      /** Liste effacée puis réécrite : pas d’UPDATE SQL, d’où « Mis à jour » à 0 dans l’ancien affichage */
-      importStrategy: 'replace' as const,
+      importStrategy: 'upsert' as const,
     },
     errors: [],
   })

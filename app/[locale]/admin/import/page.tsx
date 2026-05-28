@@ -12,8 +12,8 @@ type ImportResult = {
     productsUpdated: number
     errors: number
     sheetResults?: Record<string, { count: number; supplierName: string }>
-    /** replace = ancienne liste supprimée puis nouvelles lignes insérées (fiches locales hebdo) */
-    importStrategy?: 'replace'
+    /** upsert = mise à jour sans effacer ; replace = ancienne stratégie (effacement) */
+    importStrategy?: 'upsert' | 'replace'
   }
   errors: string[]
 }
@@ -52,6 +52,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
           <>
             <strong>Un seul fichier Excel</strong> pour importer tous les producteurs locaux de la semaine.<br />
             Onglets importés : <strong>Bioterroir, Fermette à Didi, Graines d&apos;Avenir, Brasseries d&apos;Ayent, Vins bio et nature, Truffes</strong>.<br />
+            <span style={{ opacity: 0.75 }}>Le catalogue n&apos;est plus effacé — produits absents du fichier : masquer dans Fournisseurs.</span><br />
             <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé via CSV).</span>
           </>
         ),
@@ -704,7 +705,31 @@ export default function ImportPage({
           <p style={{ margin: '0 0 1rem', fontWeight: 700, fontSize: '0.95rem' }}>
             {result.stats.errors === 0 ? '✓ ' : '⚠ '}{result.message}
           </p>
-          {result.stats.importStrategy === 'replace' ? (
+          {result.stats.importStrategy === 'upsert' ? (
+            <div style={{
+              background: '#fff', borderRadius: 8, padding: '1rem',
+              border: '1px solid rgba(16,24,40,0.08)',
+              marginBottom: (result.stats.sheetResults || result.errors.length > 0) ? '1rem' : 0,
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0.75rem' }}>
+                {[
+                  { label: 'Nouveaux produits', value: result.stats.productsCreated, color: '#2e7d32' },
+                  { label: 'Mis à jour', value: result.stats.productsUpdated, color: '#DC7F00' },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign: 'center' }}>
+                    <p style={{ margin: '0 0 0.2rem', fontSize: '1.35rem', fontWeight: 700, color: s.color }}>
+                      {s.value}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.65 }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+              <p style={{ margin: '0.75rem 0 0', fontSize: '0.76rem', opacity: 0.58, lineHeight: 1.5 }}>
+                Le catalogue n&apos;est plus effacé à chaque import. Un produit absent du fichier reste visible
+                jusqu&apos;à ce que Joel le <strong>masque</strong> dans Admin → Fournisseurs → Produits.
+              </p>
+            </div>
+          ) : result.stats.importStrategy === 'replace' ? (
             <div style={{
               background: '#fff', borderRadius: 8, padding: '1rem',
               border: '1px solid rgba(16,24,40,0.08)',

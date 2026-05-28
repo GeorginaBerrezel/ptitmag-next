@@ -25,7 +25,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Impossible de lire le fichier Excel. Assurez-vous que c'est un fichier .xlsx valide." }, { status: 400 })
   }
 
-  const globalStats = { sheetsProcessed: 0, productsImported: 0, errors: [] as string[] }
+  const globalStats = {
+    sheetsProcessed: 0,
+    productsImported: 0,
+    productsInserted: 0,
+    productsUpdated: 0,
+    errors: [] as string[],
+  }
   const sheetResults: Record<string, { count: number; supplierName: string }> = {}
 
   for (const sheetName of workbook.SheetNames) {
@@ -41,12 +47,14 @@ export async function POST(request: NextRequest) {
     }
 
     const deadline = config.deadlineGroup === 'mercredi' ? dateLimiteMercredi : dateLimiteJeudi
-    const { count, error } = await upsertLocalSupplier(admin, config, parsed, deadline)
+    const { count, inserted, updated, error } = await upsertLocalSupplier(admin, config, parsed, deadline)
 
     if (error) { globalStats.errors.push(`${sheetName} : ${error}`); continue }
 
     globalStats.sheetsProcessed++
     globalStats.productsImported += count
+    globalStats.productsInserted += inserted
+    globalStats.productsUpdated += updated
     sheetResults[sheetName] = { count, supplierName: config.supplierName }
   }
 
@@ -58,11 +66,11 @@ export async function POST(request: NextRequest) {
     success: globalStats.sheetsProcessed > 0,
     message,
     stats: {
-      productsCreated: globalStats.productsImported,
-      productsUpdated: 0,
+      productsCreated: globalStats.productsInserted,
+      productsUpdated: globalStats.productsUpdated,
       errors: globalStats.errors.length,
       sheetResults,
-      importStrategy: 'replace' as const,
+      importStrategy: 'upsert' as const,
     },
     errors: globalStats.errors,
   })
