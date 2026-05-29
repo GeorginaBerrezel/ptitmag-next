@@ -15,6 +15,8 @@ import { isCotiseProfile } from '@/lib/members/profile';
 const LOCALES = ['fr', 'en'] as const;
 type Locale = (typeof LOCALES)[number];
 
+export const dynamic = 'force-dynamic';
+
 function getSiteUrl(): string {
   let raw = process.env.NEXT_PUBLIC_SITE_URL ?? '';
 

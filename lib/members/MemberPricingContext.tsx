@@ -1,6 +1,8 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { isCotiseProfile } from '@/lib/members/profile'
 
 type MemberPricingContextType = {
   isCotise: boolean
@@ -10,13 +12,52 @@ const MemberPricingContext = createContext<MemberPricingContextType>({
   isCotise: true,
 })
 
+/**
+ * Statut cotisation pour les prix (+20 % si non cotisé).
+ * Valeur initiale du serveur + resync client (session Supabase) pour éviter
+ * un layout figé après connexion / navigation client.
+ */
 export function MemberPricingProvider({
-  isCotise,
+  isCotise: initialIsCotise,
   children,
 }: {
   isCotise: boolean
   children: React.ReactNode
 }) {
+  const [isCotise, setIsCotise] = useState(initialIsCotise)
+
+  useEffect(() => {
+    setIsCotise(initialIsCotise)
+  }, [initialIsCotise])
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    async function syncFromSession() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setIsCotise(true)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('status, cotisation_amount, cotisation_active')
+        .eq('id', user.id)
+        .single()
+
+      setIsCotise(profile ? isCotiseProfile(profile) : true)
+    }
+
+    syncFromSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      syncFromSession()
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
   return (
     <MemberPricingContext.Provider value={{ isCotise }}>
       {children}

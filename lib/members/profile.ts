@@ -13,6 +13,7 @@ export type ProfileCotisation = {
 
 export function isCotiseProfile(p: ProfileCotisation): boolean {
   if (p.status === 'member') return true
+  if (p.status === 'trial') return false
   const amount = p.cotisation_amount
   return amount != null && amount > 0
 }
