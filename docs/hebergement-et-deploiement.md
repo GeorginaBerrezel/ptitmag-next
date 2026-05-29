@@ -14,16 +14,22 @@
 | **Déploiement app** | Vercel, branche `main` | ✅ |
 | **Données** | Supabase prod | ✅ |
 | **Backup URL** | ptitmag-next.vercel.app | ✅ |
-| **Préprod** | preprod.leptitmag.org | 🔲 À mettre en place (ci-dessous) |
+| **Préprod** | [preprod.leptitmag.org](https://preprod.leptitmag.org) · branche `staging` | ✅ En ligne |
+| **Protection preview** | Vérifier Deployment Protection Vercel (pas de login requis pour Joel) | ⚠️ À confirmer |
 
-### Variables prod (Vercel)
+### Variables Vercel (2 lignes distinctes)
 
-- `NEXT_PUBLIC_SITE_URL` = `https://www.leptitmag.org`
+| `NEXT_PUBLIC_SITE_URL` | Environnement | Valeur |
+|------------------------|---------------|--------|
+| Ligne 1 | **Production** | `https://www.leptitmag.org` |
+| Ligne 2 | **Preview** | `https://preprod.leptitmag.org` |
+
+Après toute modif de variable → **Redeploy** la branche concernée (`main` ou `staging`).
 
 ### Supabase prod
 
 - **Site URL** = `https://www.leptitmag.org`
-- **Redirect URLs** : inclure `www`, `leptitmag.org`, `ptitmag-next.vercel.app`, `localhost`
+- **Redirect URLs** : `www`, `leptitmag.org`, `preprod.leptitmag.org`, `ptitmag-next.vercel.app`, `localhost`
 
 ---
 

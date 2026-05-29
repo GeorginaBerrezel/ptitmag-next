@@ -2,7 +2,7 @@
 
 **Site en production :** [www.leptitmag.org](https://www.leptitmag.org)  
 **Domaine :** Infomaniak · **Déploiement :** Vercel · **Données :** Supabase · **Code :** GitHub privé `ptitmag-next`  
-**Préprod (en cours) :** preprod.leptitmag.org · branche `staging`  
+**Préprod :** [preprod.leptitmag.org](https://preprod.leptitmag.org) · branche `staging` ✅
 **Date :** mai 2026  
 **Pour :** Joel & l'association Le P'tit Mag · Georgina Berrezel
 
@@ -135,7 +135,7 @@ UM/UC · +10 % si quantité &lt; UC · import CSV désactive l'ancien catalogue 
 
 - Message email « lien expiré » alors que le compte fonctionne déjà (cosmétique)
 - Vrais logos fournisseurs (emoji + description aujourd'hui)
-- Préprod **preprod.leptitmag.org** — voir [hebergement-et-deploiement.md](./hebergement-et-deploiement.md)
+- Préprod **preprod.leptitmag.org** — ✅ en place · voir [hebergement-et-deploiement.md](./hebergement-et-deploiement.md)
 - Migrations SQL prod — à confirmer si déjà exécutées (Phases 2 et 4)
 
 ---
@@ -187,7 +187,7 @@ Maintenance optionnelle proposée : **120 CHF/mois**. Grille prospects : [grille
 | 2 | Régularisation devis / solde | Asso + Georgina |
 | 3 | Confirmer migrations SQL prod (Phases 2 & 4) | Georgina |
 | 4 | ~~Pointer **leptitmag.org** (DNS Infomaniak → Vercel)~~ | ✅ Fait (29 mai) |
-| 5 | Mettre en place **preprod** (`preprod.leptitmag.org` + branche `staging`) | Georgina |
+| 5 | ~~Mettre en place **preprod**~~ | ✅ Fait (29 mai) |
 | 6 | Améliorations mineures (email, logos) | Quand besoin |
 
 → Détail étape par étape : [hebergement-et-deploiement.md](./hebergement-et-deploiement.md)
