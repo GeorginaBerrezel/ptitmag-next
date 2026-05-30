@@ -1,12 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getProductsBySupplier } from '@/lib/supabase/catalogue'
+import { catalogAccessDeniedResponse, getCatalogAccessState } from '@/lib/members/catalog-access'
 
 /** GET /api/catalogue/products?supplierId=…&category=…&featured=1 */
 export async function GET(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user, allowed } = await getCatalogAccessState()
   if (!user) return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 })
+  if (!allowed) return catalogAccessDeniedResponse()
 
   const supplierId = request.nextUrl.searchParams.get('supplierId')
   if (!supplierId) {

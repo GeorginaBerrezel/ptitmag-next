@@ -40,6 +40,7 @@ export default function InscriptionPage({
         phone: phone || undefined,
         password,
         locale,
+        siteOrigin: window.location.origin,
       }),
     })
 

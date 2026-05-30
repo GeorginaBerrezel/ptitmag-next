@@ -5,15 +5,9 @@ import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
 import DeleteAccountSection from './DeleteAccountSection'
 import CompteConfirmeBanner from './CompteConfirmeBanner'
-import { formatCotisation, isCotiseProfile } from '@/lib/members/profile'
+import { formatCotisation, isCotiseProfile, canAccessCatalog, getMemberStatusDisplay } from '@/lib/members/profile'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
-
-const STATUS_LABELS: Record<string, { label: string; bg: string; color: string }> = {
-  trial:  { label: 'Non cotisé', bg: '#f3f4f6', color: '#4b5563' },
-  member: { label: 'Cotisé',     bg: '#e8f5e9', color: '#2e7d32' },
-  admin:  { label: 'Administrateur·rice', bg: '#e3f2fd', color: '#1565c0' },
-}
 
 const ORDER_STATUS: Record<string, { label: string; bg: string; color: string }> = {
   draft:     { label: 'Brouillon',  bg: '#f3f4f6', color: '#374151' },
@@ -48,9 +42,14 @@ export default async function MonComptePage({
   const confirmedOrders = orders.filter(o => o.status === 'confirmed')
   const totalSpent      = activeOrders.reduce((s, o) => s + o.total, 0)
 
-  const memberStatus = STATUS_LABELS[profile?.status ?? 'trial'] ?? STATUS_LABELS.trial
+  const memberStatus = getMemberStatusDisplay(profile?.status)
+  const hasCatalogAccess = profile ? canAccessCatalog(profile) : false
   const isCotise = profile ? isCotiseProfile(profile) : true
-  const showCotisation = profile?.status === 'member' || (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
+  const showCotisation =
+    profile?.status === 'ciel' ||
+    profile?.status === 'terre' ||
+    profile?.status === 'member' ||
+    (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
 
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 700 }}>
@@ -70,6 +69,22 @@ export default async function MonComptePage({
         <Suspense fallback={null}>
           <CompteConfirmeBanner />
         </Suspense>
+
+        {!hasCatalogAccess && (
+          <div style={{
+            background: '#f0f7ff',
+            border: '1px solid #bfdbfe',
+            borderRadius: 12,
+            padding: '1rem 1.15rem',
+            fontSize: '0.92rem',
+            lineHeight: 1.6,
+            color: '#1e3a5f',
+          }}>
+            <strong>Adhésion en attente.</strong> Joel validera votre statut membre
+            (Ciel ou Terre) avant l&apos;accès au catalogue. Il peut vous contacter via
+            le téléphone ou l&apos;e-mail indiqués à l&apos;inscription si besoin.
+          </div>
+        )}
 
         {/* ── Profil ── */}
         {/* ProfileHeader gère l'avatar + pseudo éditable */}
@@ -99,7 +114,7 @@ export default async function MonComptePage({
             {memberStatus.label}
           </span>
 
-          {!isCotise && (
+          {!isCotise && hasCatalogAccess && (
             <span style={{
               fontSize: '0.82rem',
               fontWeight: 600,
@@ -127,7 +142,7 @@ export default async function MonComptePage({
             </span>
           )}
 
-          {/* CTA commander — aligné à droite */}
+          {hasCatalogAccess && (
           <Link
             href="/commandes"
             style={{
@@ -147,6 +162,7 @@ export default async function MonComptePage({
           >
             + Commander
           </Link>
+          )}
         </div>
 
         {/* ── Mes commandes ── */}
@@ -187,6 +203,7 @@ export default async function MonComptePage({
               <p style={{ margin: '0 0 1.25rem', opacity: 0.6 }}>
                 Vous n&apos;avez pas encore passé de commande.
               </p>
+              {hasCatalogAccess ? (
               <Link
                 href="/commandes"
                 style={{
@@ -201,6 +218,11 @@ export default async function MonComptePage({
               >
                 Voir le catalogue →
               </Link>
+              ) : (
+                <p style={{ margin: 0, opacity: 0.55, fontSize: '0.9rem' }}>
+                  Le catalogue sera accessible après validation de votre adhésion.
+                </p>
+              )}
             </div>
           )}
 

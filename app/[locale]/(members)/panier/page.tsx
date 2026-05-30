@@ -1,7 +1,10 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { canAccessCatalog } from '@/lib/members/profile'
+import CatalogueAccessPending from '@/components/CatalogueAccessPending'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
@@ -28,6 +31,44 @@ export default function PanierPage({
   const { items, updateQuantity, removeItem, clearCart, globalTotal } = useCart()
   const applyTrialMarkup = useApplyTrialMarkup()
   const router = useRouter()
+  const [catalogAccess, setCatalogAccess] = useState<'loading' | 'allowed' | 'denied'>('loading')
+  const [profileEmail, setProfileEmail] = useState<string | null>(null)
+  const [profilePhone, setProfilePhone] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    void (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('status, email, phone')
+        .single()
+
+      if (data && canAccessCatalog(data)) {
+        setCatalogAccess('allowed')
+      } else {
+        setProfileEmail(data?.email ?? null)
+        setProfilePhone(data?.phone ?? null)
+        setCatalogAccess('denied')
+      }
+    })()
+  }, [])
+
+  if (catalogAccess === 'loading') {
+    return (
+      <main className="container" style={{ paddingTop: '3rem', textAlign: 'center', opacity: 0.5 }}>
+        Chargement…
+      </main>
+    )
+  }
+
+  if (catalogAccess === 'denied') {
+    return (
+      <CatalogueAccessPending
+        locale={locale}
+        profile={{ email: profileEmail, phone: profilePhone }}
+      />
+    )
+  }
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)

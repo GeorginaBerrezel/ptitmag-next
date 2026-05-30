@@ -6,6 +6,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const DEFAULT_MEMBER_STATUS = 'non_membre'
 
+type RegisterBody = RegistrationInput & { locale?: string; siteOrigin?: string }
+
 function createAuthClient() {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +21,7 @@ function createAuthClient() {
  * Statut initial = non_membre (accès catalogue après validation Joel).
  */
 export async function POST(request: NextRequest) {
-  let body: RegistrationInput & { locale?: string }
+  let body: RegisterBody
 
   try {
     body = await request.json()
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
 
   const data = normalizeRegistration(body)
   const locale = body.locale === 'en' ? 'en' : 'fr'
-  const siteOrigin = siteOriginFromRequest(request)
+  const siteOrigin = body.siteOrigin ?? siteOriginFromRequest(request)
   const auth = createAuthClient()
 
   const { data: authData, error: authError } = await auth.auth.signUp({
