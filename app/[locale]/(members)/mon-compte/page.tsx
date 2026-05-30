@@ -5,7 +5,7 @@ import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
 import DeleteAccountSection from './DeleteAccountSection'
 import CompteConfirmeBanner from './CompteConfirmeBanner'
-import { formatCotisation, isCotiseProfile, canAccessCatalog, getMemberStatusDisplay } from '@/lib/members/profile'
+import { formatCotisation, applyCielMarkup, canAccessCatalog, getMemberStatusDisplay } from '@/lib/members/profile'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ export default async function MonComptePage({
 
   const memberStatus = getMemberStatusDisplay(profile?.status)
   const hasCatalogAccess = profile ? canAccessCatalog(profile) : false
-  const isCotise = profile ? isCotiseProfile(profile) : true
+  const showCielMarkup = profile ? applyCielMarkup(profile) : false
   const showCotisation =
     profile?.status === 'ciel' ||
     profile?.status === 'terre' ||
@@ -114,7 +114,7 @@ export default async function MonComptePage({
             {memberStatus.label}
           </span>
 
-          {!isCotise && hasCatalogAccess && (
+          {showCielMarkup && hasCatalogAccess && (
             <span style={{
               fontSize: '0.82rem',
               fontWeight: 600,
@@ -124,7 +124,21 @@ export default async function MonComptePage({
               padding: '0.2rem 0.75rem',
               whiteSpace: 'nowrap',
             }}>
-              +20&nbsp;% sur les prix du catalogue
+              +20&nbsp;% (membre Ciel)
+            </span>
+          )}
+
+          {hasCatalogAccess && profile?.status === 'terre' && (
+            <span style={{
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: '#2e7d32',
+              background: '#e8f5e9',
+              borderRadius: 999,
+              padding: '0.2rem 0.75rem',
+              whiteSpace: 'nowrap',
+            }}>
+              Prix juste (membre Terre)
             </span>
           )}
 

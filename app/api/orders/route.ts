@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { CartItem } from '@/lib/cart/CartContext'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
-import { isCotiseProfile, canAccessCatalog } from '@/lib/members/profile'
+import { applyCielMarkup, canAccessCatalog } from '@/lib/members/profile'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
 import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
 import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const applyTrialMarkup = !isCotiseProfile(profile)
+  const applyCielMarkupFlag = applyCielMarkup(profile)
 
   const memberName =
     profile?.full_name ||
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         minQuantity: item.minQuantity,
         allowsPartialOrder: item.allowsPartialOrder,
       })
-      const unitPrice = getEffectiveUnitPrice({ ...item, quantity }, { applyTrialMarkup })
+      const unitPrice = getEffectiveUnitPrice({ ...item, quantity }, { applyCielMarkup: applyCielMarkupFlag })
       return { ...item, quantity, unitPrice }
     })
 

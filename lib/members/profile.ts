@@ -27,12 +27,19 @@ export function canAccessCatalog(p: ProfileCotisation): boolean {
   return s === 'ciel' || s === 'terre'
 }
 
-/** Prix sans majoration (Terre) — étape tarifs ; conservé pour compat. */
+/** Membre Terre : prix catalogue sans marge (+ legacy member). */
+export function hasTerrePricing(p: ProfileCotisation): boolean {
+  return p.status === 'terre' || p.status === 'member'
+}
+
+/** Membre Ciel : majoration +20 % sur le catalogue. */
+export function applyCielMarkup(p: ProfileCotisation): boolean {
+  return p.status === 'ciel'
+}
+
+/** @deprecated Préférer hasTerrePricing / applyCielMarkup */
 export function isCotiseProfile(p: ProfileCotisation): boolean {
-  if (p.status === 'terre' || p.status === 'member') return true
-  if (p.status === 'ciel' || p.status === 'trial' || p.status === 'non_membre') return false
-  const amount = p.cotisation_amount
-  return amount != null && amount > 0
+  return hasTerrePricing(p)
 }
 
 export function formatCotisation(amount: number | null | undefined): string {

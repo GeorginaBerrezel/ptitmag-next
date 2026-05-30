@@ -3,7 +3,7 @@
 import { useState, memo } from 'react'
 import Image from 'next/image'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
-import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
+import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
@@ -34,7 +34,7 @@ type Props = {
 
 function ProductCardInner({ product, nowMs }: Props) {
   const { addItem, items } = useCart()
-  const applyTrialMarkup = useApplyTrialMarkup()
+  const applyCielMarkup = useApplyCielMarkup()
   const now = nowMs ?? Date.now()
 
   const [qty, setQty] = useState(product.min_quantity)
@@ -68,7 +68,7 @@ function ProductCardInner({ product, nowMs }: Props) {
           allowsPartialOrder: product.allows_partial_order,
           quantity: qty,
         },
-        { applyTrialMarkup },
+        { applyCielMarkup },
       )
     : null
 
@@ -194,14 +194,14 @@ function ProductCardInner({ product, nowMs }: Props) {
                   TVA 2.6% incluse
                 </p>
               )}
-              {applyTrialMarkup && (
+              {applyCielMarkup && (
                 <p style={{
                   margin: '0.1rem 0 0',
                   fontSize: '0.72rem',
                   color: '#5c6bc0',
                   fontWeight: 600,
                 }}>
-                  +20% (non cotisé)
+                  +20% (membre Ciel)
                 </p>
               )}
               {hasSurcharge && (

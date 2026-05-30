@@ -2,33 +2,33 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { isCotiseProfile } from '@/lib/members/profile'
+import { applyCielMarkup } from '@/lib/members/profile'
 
 type MemberPricingContextType = {
-  isCotise: boolean
+  /** true = membre Ciel → +20 % sur le catalogue */
+  applyCielMarkup: boolean
 }
 
 const MemberPricingContext = createContext<MemberPricingContextType>({
-  isCotise: true,
+  applyCielMarkup: false,
 })
 
 /**
- * Statut cotisation pour les prix (+20 % si non cotisé).
- * Valeur initiale du serveur + resync client (session Supabase) pour éviter
- * un layout figé après connexion / navigation client.
+ * Tarification selon statut : Ciel (+20 %) · Terre (prix juste).
+ * Valeur initiale serveur + resync client après connexion.
  */
 export function MemberPricingProvider({
-  isCotise: initialIsCotise,
+  applyCielMarkup: initialApplyCielMarkup,
   children,
 }: {
-  isCotise: boolean
+  applyCielMarkup: boolean
   children: React.ReactNode
 }) {
-  const [isCotise, setIsCotise] = useState(initialIsCotise)
+  const [markup, setMarkup] = useState(initialApplyCielMarkup)
 
   useEffect(() => {
-    setIsCotise(initialIsCotise)
-  }, [initialIsCotise])
+    setMarkup(initialApplyCielMarkup)
+  }, [initialApplyCielMarkup])
 
   useEffect(() => {
     const supabase = createClient()
@@ -36,7 +36,7 @@ export function MemberPricingProvider({
     async function syncFromSession() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        setIsCotise(true)
+        setMarkup(false)
         return
       }
 
@@ -46,7 +46,7 @@ export function MemberPricingProvider({
         .eq('id', user.id)
         .single()
 
-      setIsCotise(profile ? isCotiseProfile(profile) : true)
+      setMarkup(profile ? applyCielMarkup(profile) : false)
     }
 
     syncFromSession()
@@ -59,7 +59,7 @@ export function MemberPricingProvider({
   }, [])
 
   return (
-    <MemberPricingContext.Provider value={{ isCotise }}>
+    <MemberPricingContext.Provider value={{ applyCielMarkup: markup }}>
       {children}
     </MemberPricingContext.Provider>
   )
@@ -69,8 +69,12 @@ export function useMemberPricing() {
   return useContext(MemberPricingContext)
 }
 
-/** true si le membre non cotisé paie +20 % sur le catalogue. */
+/** true si membre Ciel → +20 % sur les prix catalogue. */
+export function useApplyCielMarkup(): boolean {
+  return useContext(MemberPricingContext).applyCielMarkup
+}
+
+/** @deprecated Préférer useApplyCielMarkup */
 export function useApplyTrialMarkup(): boolean {
-  const { isCotise } = useMemberPricing()
-  return !isCotise
+  return useApplyCielMarkup()
 }
