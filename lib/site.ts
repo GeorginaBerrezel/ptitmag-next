@@ -17,12 +17,8 @@ export const site = {
 
   openingHours: [
     {
-      days: ["Wednesday"],
-      ranges: ["09:00-12:00"],
-    },
-    {
       days: ["Friday"],
-      ranges: ["09:00-12:00", "16:30-18:30"],
+      ranges: ["16:30-18:30"],
     },
     {
       days: ["Saturday"],

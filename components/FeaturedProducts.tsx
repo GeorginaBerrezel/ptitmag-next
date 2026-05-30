@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { getProfile } from '@/lib/supabase/auth'
+import { canAccessCatalog } from '@/lib/members/profile'
 import { Link } from '@/i18n/navigation'
 import type { FeaturedProduct } from '@/app/api/featured-products/route'
 
@@ -33,6 +35,8 @@ export default async function FeaturedProducts({ locale }: Props) {
 
   const { data: { user } } = await supabase.auth.getUser()
   const isLoggedIn = !!user
+  const profile = isLoggedIn ? await getProfile() : null
+  const canOrder = profile ? canAccessCatalog(profile) : false
 
   const now = new Date().toISOString()
   const { data, error } = await admin
@@ -104,7 +108,7 @@ export default async function FeaturedProducts({ locale }: Props) {
           </p>
 
           {/* CTA inline — pointe sur la vue filtrée éphémères */}
-          {isLoggedIn ? (
+          {isLoggedIn && canOrder ? (
             <Link
               href="/commandes?ephemere=1"
               locale={locale}
@@ -124,6 +128,27 @@ export default async function FeaturedProducts({ locale }: Props) {
               }}
             >
               🛒 {t('order_btn')}
+            </Link>
+          ) : isLoggedIn ? (
+            <Link
+              href="/mon-compte"
+              locale={locale}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: '#0E1726',
+                color: '#fff',
+                padding: '0.45rem 1.1rem',
+                borderRadius: 8,
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              Adhésion en attente
             </Link>
           ) : (
             <Link

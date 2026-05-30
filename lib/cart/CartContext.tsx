@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
-import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
+import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 
 export type CartItem = {
   productId: string
@@ -33,7 +33,7 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | null>(null)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const applyTrialMarkup = useApplyTrialMarkup()
+  const applyCielMarkup = useApplyCielMarkup()
   const [items, setItems] = useState<CartItem[]>([])
   const [hydrated, setHydrated] = useState(false)
 
@@ -78,7 +78,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const totalItems = items.length
   const globalTotal = items.reduce(
-    (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i, { applyTrialMarkup }),
+    (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i, { applyCielMarkup }),
     0,
   )
 

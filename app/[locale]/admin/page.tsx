@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react'
 import { Link } from '@/i18n/navigation'
+import { MEMBER_STATUS_LABELS } from '@/lib/members/profile'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,8 +38,9 @@ type RecentMember = {
 type DashboardData = {
   memberStats: {
     total: number
-    cotised: number
-    nonCotise: number
+    nonMembre: number
+    ciel: number
+    terre: number
     cotisationActive: number
     totalCotisations: number
   }
@@ -49,18 +51,15 @@ type DashboardData = {
   recentMembers: RecentMember[]
 }
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
-
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   confirmed: { label: 'Confirmée', color: '#DC7F00', bg: '#fff8e6' },
   delivered: { label: 'Livrée',    color: '#1565c0', bg: '#e3f2fd' },
   cancelled: { label: 'Annulée',   color: '#c0392b', bg: '#fdecea' },
 }
 
-const MEMBER_STATUS: Record<string, { label: string; color: string; bg: string }> = {
-  trial:  { label: 'Non cotisé', color: '#4b5563', bg: '#f3f4f6' },
-  member: { label: 'Cotisé',     color: '#2e7d32', bg: '#e8f5e9' },
-}
+const MEMBER_STATUS = Object.fromEntries(
+  Object.entries(MEMBER_STATUS_LABELS).map(([k, v]) => [k, { label: v.label, color: v.color, bg: v.bg }]),
+) as Record<string, { label: string; color: string; bg: string }>
 
 function formatDateShort(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
@@ -228,19 +227,27 @@ export default function AdminDashboardPage({
                 href: `/${locale}/admin/commandes`,
               },
               {
-                label: 'Non cotisés',
-                value: data.memberStats.nonCotise,
+                label: 'En attente (non membre)',
+                value: data.memberStats.nonMembre,
                 color: '#4b5563',
-                highlight: data.memberStats.nonCotise > 0,
-                icon: '👤',
+                highlight: data.memberStats.nonMembre > 0,
+                icon: '⏳',
                 href: `/${locale}/admin/membres`,
               },
               {
-                label: 'Membres cotisés',
-                value: data.memberStats.cotised,
+                label: 'Membres Ciel',
+                value: data.memberStats.ciel,
+                color: '#1565c0',
+                highlight: false,
+                icon: '☁️',
+                href: `/${locale}/admin/membres`,
+              },
+              {
+                label: 'Membres Terre',
+                value: data.memberStats.terre,
                 color: '#2e7d32',
                 highlight: false,
-                icon: '✓',
+                icon: '🌍',
                 href: `/${locale}/admin/membres`,
               },
               {
@@ -327,10 +334,10 @@ export default function AdminDashboardPage({
             }}>
               <div style={{ marginBottom: '1.25rem' }}>
                 <h3 style={{ margin: '0 0 0.15rem', fontSize: '0.95rem', fontWeight: 700 }}>
-                  Membres cotisés par mois
+                  Membres actifs par mois
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.5 }}>
-                  Cumul des inscrits avec statut cotisé
+                  Cumul Ciel + Terre (accès catalogue)
                 </p>
               </div>
               <MonthlyChart data={data.monthlyMembers.map(m => ({ ...m, revenue: 0 }))} barColor="#2e7d32" />
@@ -424,7 +431,7 @@ export default function AdminDashboardPage({
               ) : (
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
                   {data.recentMembers.map(member => {
-                    const st = MEMBER_STATUS[member.status] ?? MEMBER_STATUS.trial
+                    const st = MEMBER_STATUS[member.status] ?? MEMBER_STATUS.non_membre
                     const initial = member.name[0]?.toUpperCase() ?? '?'
                     return (
                       <div key={member.id} style={{

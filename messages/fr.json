@@ -29,7 +29,7 @@
     "block1_text": "Auprès de producteurs locaux → de grossistes bio → au prix revendeur, sans marge → dans une ambiance conviviale.",
     "block2_text": "Commandez depuis chez vous et retirez vos achats dans notre local à St-Romain. On se retrouve, on discute, on joue aux cartes — un vrai moment de vie associative !",
     "block3_title": "Envie d’en savoir plus ?",
-    "block3_text": "Rue de l’Église 2, St-Romain (mercredi 9h-12h, vendredi 9h-12h & 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
+    "block3_text": "Rue de l’Église 2, St-Romain (vendredi 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
     "how_title": "Comment ça marche",
     "how_steps": "1)Tester le fonctionnement, 2) Adhérer à l’association. 3) Commander via les listes de commande. 4) Retirer vos achats au local.",
     "how_steps_detail": [
@@ -58,6 +58,14 @@
   "membership": {
     "title": "Adhésion",
     "intro": "En adhérant à l’association, vous faites un pas vers votre souveraineté alimentaire et soutenez la production locale.",
+    "statusTitle": "Les statuts membres",
+    "statusIntro": "Après inscription, Joel valide votre adhésion et vous attribue un statut. C’est ce statut qui détermine votre accès au catalogue et la façon dont les prix sont calculés. Vous recevrez un e-mail dès que votre statut sera activé ou modifié.",
+    "feesTitle": "Cotisations indicatives",
+    "feesIntro": "Les montants ci-dessous sont des repères pour le statut Terre (prix juste, sans marge). Joel fixe le montant exact dans votre fiche membre.",
+    "regularTitle": "Cotisation ordinaire",
+    "regularText": "Par adulte — statut Terre : prix juste (sans marge) sur le catalogue.",
+    "softTitle": "Cotisation douce",
+    "softText": "Tarif solidaire — même statut Terre, mêmes droits d’accès.",
     "regular": "Cotisation ordinaire : CHF 30.- par mois et par adulte",
     "soft": "Cotisation douce : CHF 15.- par mois et par adulte",
     "don": "Don récurrent possible",

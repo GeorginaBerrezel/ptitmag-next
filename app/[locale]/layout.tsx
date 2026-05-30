@@ -10,7 +10,7 @@ import NavigationScrollManager from '@/components/NavigationScrollManager';
 import { CartProvider } from '@/lib/cart/CartContext';
 import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
 import { getProfile } from '@/lib/supabase/auth';
-import { isCotiseProfile } from '@/lib/members/profile';
+import { applyCielMarkup } from '@/lib/members/profile';
 
 const LOCALES = ['fr', 'en'] as const;
 type Locale = (typeof LOCALES)[number];
@@ -48,11 +48,11 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
 
   const messages = await getMessages({locale});
   const profile = await getProfile();
-  const isCotise = profile ? isCotiseProfile(profile) : true;
+  const cielMarkup = profile ? applyCielMarkup(profile) : false;
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <MemberPricingProvider isCotise={isCotise}>
+      <MemberPricingProvider applyCielMarkup={cielMarkup}>
         <CartProvider>
           <Suspense fallback={null}>
             <NavigationScrollManager />

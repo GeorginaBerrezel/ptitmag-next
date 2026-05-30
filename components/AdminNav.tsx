@@ -10,14 +10,14 @@ type NavLink = {
   href: '/admin' | '/admin/commandes' | '/admin/membres' | '/admin/import' | '/admin/fournisseurs'
   label: string
   exact: boolean
-  badgeKey: 'confirmed' | 'trial' | null
+  badgeKey: 'confirmed' | 'pending' | null
   badgeColor: string
 }
 
 const NAV_LINKS: NavLink[] = [
   { href: '/admin',              label: 'Tableau de bord', exact: true,  badgeKey: null,        badgeColor: '' },
   { href: '/admin/commandes',    label: 'Commandes',        exact: false, badgeKey: 'confirmed', badgeColor: '#DC7F00' },
-  { href: '/admin/membres',      label: 'Membres',          exact: false, badgeKey: 'trial',     badgeColor: '#5c6bc0' },
+  { href: '/admin/membres',      label: 'Membres',          exact: false, badgeKey: 'pending',   badgeColor: '#5c6bc0' },
   { href: '/admin/fournisseurs', label: 'Fournisseurs',     exact: false, badgeKey: null,        badgeColor: '' },
   { href: '/admin/import',       label: 'Import produits',  exact: false, badgeKey: null,        badgeColor: '' },
 ]
@@ -25,18 +25,18 @@ const NAV_LINKS: NavLink[] = [
 export default function AdminNav({
   locale,
   confirmedCount = 0,
-  trialCount = 0,
+  pendingCount = 0,
 }: {
   locale: string
   confirmedCount?: number
-  trialCount?: number
+  pendingCount?: number
 }) {
   const pathname = usePathname()
   const [hovered, setHovered] = useState<string | null>(null)
 
-  function getBadgeCount(key: 'confirmed' | 'trial' | null) {
+  function getBadgeCount(key: 'confirmed' | 'pending' | null) {
     if (key === 'confirmed') return confirmedCount
-    if (key === 'trial')     return trialCount
+    if (key === 'pending')   return pendingCount
     return 0
   }
 

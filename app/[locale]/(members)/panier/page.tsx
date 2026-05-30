@@ -1,9 +1,12 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { canAccessCatalog } from '@/lib/members/profile'
+import CatalogueAccessPending from '@/components/CatalogueAccessPending'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
-import { useApplyTrialMarkup } from '@/lib/members/MemberPricingContext'
+import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import {
   decrementQuantity,
@@ -26,11 +29,49 @@ export default function PanierPage({
 }) {
   const { locale } = use(params)
   const { items, updateQuantity, removeItem, clearCart, globalTotal } = useCart()
-  const applyTrialMarkup = useApplyTrialMarkup()
+  const applyCielMarkup = useApplyCielMarkup()
   const router = useRouter()
+  const [catalogAccess, setCatalogAccess] = useState<'loading' | 'allowed' | 'denied'>('loading')
+  const [profileEmail, setProfileEmail] = useState<string | null>(null)
+  const [profilePhone, setProfilePhone] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    void (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('status, email, phone')
+        .single()
+
+      if (data && canAccessCatalog(data)) {
+        setCatalogAccess('allowed')
+      } else {
+        setProfileEmail(data?.email ?? null)
+        setProfilePhone(data?.phone ?? null)
+        setCatalogAccess('denied')
+      }
+    })()
+  }, [])
+
+  if (catalogAccess === 'loading') {
+    return (
+      <main className="container" style={{ paddingTop: '3rem', textAlign: 'center', opacity: 0.5 }}>
+        Chargement…
+      </main>
+    )
+  }
+
+  if (catalogAccess === 'denied') {
+    return (
+      <CatalogueAccessPending
+        locale={locale}
+        profile={{ email: profileEmail, phone: profilePhone }}
+      />
+    )
+  }
 
   // Grouper par fournisseur
   const bySupplier = items.reduce<Record<string, typeof items>>((acc, item) => {
@@ -173,11 +214,11 @@ export default function PanierPage({
           </p>
         </div>
       </div>
-      <p style={{ opacity: 0.6, marginBottom: applyTrialMarkup ? '0.75rem' : '2rem' }}>
+      <p style={{ opacity: 0.6, marginBottom: applyCielMarkup ? '0.75rem' : '2rem' }}>
         {supplierCount} commande{supplierCount > 1 ? 's' : ''} seront créées (une par fournisseur)
       </p>
 
-      {applyTrialMarkup && (
+      {applyCielMarkup && (
         <p style={{
           margin: '0 0 2rem',
           padding: '0.65rem 1rem',
@@ -188,7 +229,7 @@ export default function PanierPage({
           fontSize: '0.88rem',
           fontWeight: 500,
         }}>
-          Non cotisé — les prix incluent une majoration de +20&nbsp;%.
+          Membre Ciel — les prix incluent une majoration de +20&nbsp;%.
         </p>
       )}
 
@@ -202,7 +243,7 @@ export default function PanierPage({
       <div style={{ display: 'grid', gap: '1.5rem', marginBottom: '2rem' }}>
         {Object.entries(bySupplier).map(([supplierId, supplierItems]) => {
           const supplierTotal = supplierItems.reduce(
-            (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i, { applyTrialMarkup }),
+            (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i, { applyCielMarkup }),
             0,
           )
           const { supplierName, supplierType } = supplierItems[0]
@@ -246,7 +287,7 @@ export default function PanierPage({
                     allowsPartialOrder: item.allowsPartialOrder,
                     quantity: item.quantity,
                   })
-                  const effectivePrice = getEffectiveUnitPrice(item, { applyTrialMarkup })
+                  const effectivePrice = getEffectiveUnitPrice(item, { applyCielMarkup })
                   const lineTotal = item.quantity * effectivePrice
 
                   return (
@@ -259,9 +300,9 @@ export default function PanierPage({
                             Réf. {item.supplierRef}
                           </span>
                         )}
-                        {applyTrialMarkup && (
+                        {applyCielMarkup && (
                           <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6bc0', fontWeight: 600 }}>
-                            +20% (non cotisé)
+                            +20% (membre Ciel)
                           </span>
                         )}
                         {hasSurcharge && (
@@ -335,14 +376,14 @@ export default function PanierPage({
                   fontWeight: 700,
                   background: '#f8f9fa',
                 }}>
-                  {applyTrialMarkup && (
+                  {applyCielMarkup && (
                     <p style={{
                       margin: '0 0 0.35rem',
                       fontSize: '0.78rem',
                       fontWeight: 600,
                       color: '#5c6bc0',
                     }}>
-                      Majoration +20&nbsp;% (non cotisé) incluse
+                      Majoration +20&nbsp;% (membre Ciel) incluse
                     </p>
                   )}
                   Sous-total : CHF {supplierTotal.toFixed(2)}

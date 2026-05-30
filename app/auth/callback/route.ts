@@ -41,7 +41,11 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      const confirmParam = next.includes('mon-compte') ? '?compte_confirme=1' : ''
+      const dest = next.includes('?') && confirmParam
+        ? `${next}&compte_confirme=1`
+        : `${next}${confirmParam}`
+      return NextResponse.redirect(`${origin}${dest}`)
     }
   }
 

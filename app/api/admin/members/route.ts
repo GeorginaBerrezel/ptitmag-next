@@ -1,13 +1,21 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
-
-const VALID_STATUSES = ['trial', 'member']
+import {
+  sendMemberStatusNotification,
+  shouldSendMemberStatusEmail,
+} from '@/lib/email/sendMemberStatusNotification'
+import { ADMIN_MEMBER_STATUSES, normalizeMemberStatus } from '@/lib/members/profile'
 
 type ProfileRow = {
   id: string
   email: string | null
   full_name: string | null
+  first_name: string | null
+  last_name: string | null
+  phone: string | null
+  postal_code: string | null
+  commune: string | null
   username: string | null
   avatar_url: string | null
   status: string | null
@@ -16,7 +24,8 @@ type ProfileRow = {
   cotisation_active: boolean | null
 }
 
-const PROFILE_SELECT = 'id, email, full_name, username, avatar_url, status, created_at, cotisation_amount, cotisation_active'
+const PROFILE_SELECT =
+  'id, email, full_name, first_name, last_name, phone, postal_code, commune, username, avatar_url, status, created_at, cotisation_amount, cotisation_active'
 
 export async function GET() {
   const user = await requireAdminUser()
@@ -80,21 +89,29 @@ export async function GET() {
 
   const profiles = (profilesResult.data ?? []) as ProfileRow[]
 
-  const members = profiles.map(p => ({
-    id: p.id,
-    email: p.email,
-    full_name: p.full_name,
-    username: p.username,
-    avatar_url: p.avatar_url,
-    status: p.status ?? 'trial',
-    cotisation_amount: p.cotisation_amount != null ? Number(p.cotisation_amount) : null,
-    cotisation_active: p.cotisation_active ?? false,
-    created_at: p.created_at,
-    orderCount: ordersByMember[p.id]?.count ?? 0,
-    orderTotal: ordersByMember[p.id]?.total ?? 0,
-    lastOrderDate: ordersByMember[p.id]?.lastDate ?? null,
-    recentOrders: ordersByMember[p.id]?.recent ?? [],
-  }))
+  const members = profiles.map(p => {
+    const status = normalizeMemberStatus(p.status)
+    return {
+      id: p.id,
+      email: p.email,
+      full_name: p.full_name,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      phone: p.phone,
+      postal_code: p.postal_code,
+      commune: p.commune,
+      username: p.username,
+      avatar_url: p.avatar_url,
+      status,
+      cotisation_amount: p.cotisation_amount != null ? Number(p.cotisation_amount) : null,
+      cotisation_active: p.cotisation_active ?? false,
+      created_at: p.created_at,
+      orderCount: ordersByMember[p.id]?.count ?? 0,
+      orderTotal: ordersByMember[p.id]?.total ?? 0,
+      lastOrderDate: ordersByMember[p.id]?.lastDate ?? null,
+      recentOrders: ordersByMember[p.id]?.recent ?? [],
+    }
+  })
 
   const totalCotisations = members.reduce(
     (sum, m) => sum + (m.cotisation_amount ?? 0),
@@ -106,8 +123,9 @@ export async function GET() {
     stats: {
       totalCotisations,
       cotisationActive: members.filter(m => m.cotisation_active).length,
-      cotised: members.filter(m => m.status === 'member').length,
-      nonCotise: members.filter(m => m.status !== 'member').length,
+      nonMembre: members.filter(m => m.status === 'non_membre').length,
+      ciel: members.filter(m => m.status === 'ciel').length,
+      terre: members.filter(m => m.status === 'terre').length,
     },
   })
 }
@@ -133,7 +151,7 @@ export async function PATCH(request: NextRequest) {
   const updates: Record<string, unknown> = {}
 
   if (status !== undefined) {
-    if (!VALID_STATUSES.includes(status)) {
+    if (!ADMIN_MEMBER_STATUSES.includes(status as (typeof ADMIN_MEMBER_STATUSES)[number])) {
       return NextResponse.json({ error: 'Statut invalide.' }, { status: 400 })
     }
     updates.status = status
@@ -155,11 +173,60 @@ export async function PATCH(request: NextRequest) {
   }
 
   const admin = createAdminClient()
+
+  const { data: existing, error: fetchError } = await admin
+    .from('profiles')
+    .select('email, first_name, last_name, full_name, status, cotisation_amount, cotisation_active')
+    .eq('id', memberId)
+    .single()
+
+  if (fetchError || !existing) {
+    console.error('[admin/members PATCH] profile fetch error:', fetchError)
+    return NextResponse.json({ error: 'Membre introuvable.' }, { status: 404 })
+  }
+
+  const oldStatus = normalizeMemberStatus(existing.status as string)
+
   const { error } = await admin.from('profiles').update(updates).eq('id', memberId)
 
   if (error) {
     console.error('[admin/members PATCH] Supabase error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  const newStatus = status !== undefined
+    ? normalizeMemberStatus(status)
+    : oldStatus
+
+  const memberName = [existing.first_name, existing.last_name].filter(Boolean).join(' ').trim()
+    || (existing.full_name as string | null)
+    || null
+
+  const cotisationAmount = cotisation_amount !== undefined
+    ? cotisation_amount
+    : existing.cotisation_amount != null ? Number(existing.cotisation_amount) : null
+
+  const cotisationActive = cotisation_active !== undefined
+    ? Boolean(cotisation_active)
+    : Boolean(existing.cotisation_active)
+
+  if (
+    status !== undefined &&
+    existing.email &&
+    shouldSendMemberStatusEmail(oldStatus, newStatus)
+  ) {
+    try {
+      await sendMemberStatusNotification({
+        memberEmail: existing.email as string,
+        memberName,
+        oldStatus,
+        newStatus,
+        cotisationAmount,
+        cotisationActive,
+      })
+    } catch (err) {
+      console.error('[email] Échec notification statut membre :', err)
+    }
   }
 
   return NextResponse.json({ success: true })

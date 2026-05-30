@@ -27,10 +27,9 @@ export default async function AdminLayout({
     redirect(`/${locale}`)
   }
 
-  // Badges de la nav : commandes à traiter + membres non cotisés
-  // Les deux requêtes tournent en parallèle pour ne pas ralentir le chargement.
+  // Badges de la nav : commandes à traiter + membres en attente (non membre)
   const admin = createAdminClient()
-  const [{ count: confirmedCount }, { count: trialCount }] = await Promise.all([
+  const [{ count: confirmedCount }, { count: pendingNonMembre }, { count: pendingTrial }] = await Promise.all([
     admin
       .from('orders')
       .select('id', { count: 'exact', head: true })
@@ -38,8 +37,13 @@ export default async function AdminLayout({
     admin
       .from('profiles')
       .select('id', { count: 'exact', head: true })
+      .eq('status', 'non_membre'),
+    admin
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
       .eq('status', 'trial'),
   ])
+  const pendingCount = (pendingNonMembre ?? 0) + (pendingTrial ?? 0)
 
   return (
     // Le margin-top négatif annule le padding-top: 1rem de la règle globale "main",
@@ -56,7 +60,7 @@ export default async function AdminLayout({
         display: 'flex',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <AdminNav locale={locale} confirmedCount={confirmedCount ?? 0} trialCount={trialCount ?? 0} />
+        <AdminNav locale={locale} confirmedCount={confirmedCount ?? 0} pendingCount={pendingCount ?? 0} />
       </div>
 
       {children}

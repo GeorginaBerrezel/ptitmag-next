@@ -1,7 +1,8 @@
 'use client'
 
 import { use, useCallback, useEffect, useState } from 'react'
-import { MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
+import { ADMIN_MEMBER_STATUSES, MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
+import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/status-guide'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,6 +18,11 @@ type Member = {
   id: string
   email: string | null
   full_name: string | null
+  first_name: string | null
+  last_name: string | null
+  phone: string | null
+  postal_code: string | null
+  commune: string | null
   username: string | null
   avatar_url: string | null
   status: string
@@ -32,9 +38,12 @@ type Member = {
 type ApiStats = {
   totalCotisations: number
   cotisationActive: number
-  cotised: number
-  nonCotise: number
+  nonMembre: number
+  ciel: number
+  terre: number
 }
+
+type AdminMemberStatus = (typeof ADMIN_MEMBER_STATUSES)[number]
 
 // ─── Constantes d'affichage ───────────────────────────────────────────────────
 
@@ -48,8 +57,15 @@ const ORDER_STATUS: Record<string, { label: string; color: string }> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const STATUS_BUTTON_LABELS: Record<AdminMemberStatus, string> = {
+  non_membre: 'Non membre',
+  ciel:       'Ciel · +20 %',
+  terre:      'Terre · prix juste (sans marge)',
+}
+
 function getMemberName(m: Member) {
-  return m.full_name || m.username || m.email?.split('@')[0] || 'Membre inconnu'
+  const fromParts = [m.first_name, m.last_name].filter(Boolean).join(' ').trim()
+  return fromParts || m.full_name || m.username || m.email?.split('@')[0] || 'Membre inconnu'
 }
 
 function getInitial(m: Member) {
@@ -60,6 +76,15 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
+}
+
+function formatLocation(m: Member) {
+  const parts = [m.postal_code, m.commune].filter(Boolean)
+  return parts.length > 0 ? parts.join(' ') : null
+}
+
+function cotisationHint(status: string) {
+  return getCotisationHint(status)
 }
 
 function formatDateShort(iso: string) {
@@ -82,7 +107,8 @@ export default function AdminMembresPage({
   const [loading, setLoading]         = useState(true)
   const [error, setError]             = useState<string | null>(null)
   const [search, setSearch]           = useState('')
-  const [filterStatus, setFilterStatus] = useState<'' | 'trial' | 'member'>('')
+  const [filterStatus, setFilterStatus] = useState<'' | AdminMemberStatus>('')
+  const [filterCommune, setFilterCommune] = useState('')
   const [updating, setUpdating]       = useState<string | null>(null)
   const [cotisationDraft, setCotisationDraft] = useState<Record<string, { amount: string; active: boolean }>>({})
 
@@ -109,21 +135,34 @@ export default function AdminMembresPage({
 
   const filtered = members.filter(m => {
     if (filterStatus && m.status !== filterStatus) return false
+    if (filterCommune && m.commune !== filterCommune) return false
     if (search) {
       const q    = search.toLowerCase()
       const name  = getMemberName(m).toLowerCase()
       const email = (m.email ?? '').toLowerCase()
-      if (!name.includes(q) && !email.includes(q)) return false
+      const phone = (m.phone ?? '').toLowerCase()
+      const commune = (m.commune ?? '').toLowerCase()
+      const postal = (m.postal_code ?? '').toLowerCase()
+      if (
+        !name.includes(q) &&
+        !email.includes(q) &&
+        !phone.includes(q) &&
+        !commune.includes(q) &&
+        !postal.includes(q)
+      ) return false
     }
     return true
   })
+
+  const communeOptions = [...new Set(members.map(m => m.commune).filter(Boolean))].sort() as string[]
 
   // ── Statistiques ─────────────────────────────────────────────────────────
 
   const stats = {
     total:      members.length,
-    nonCotise:  members.filter(m => m.status !== 'member').length,
-    cotised:    members.filter(m => m.status === 'member').length,
+    nonMembre:  members.filter(m => m.status === 'non_membre').length,
+    ciel:       members.filter(m => m.status === 'ciel').length,
+    terre:      members.filter(m => m.status === 'terre').length,
     withOrders: members.filter(m => m.orderCount > 0).length,
     totalCotisations: apiStats?.totalCotisations ?? members.reduce((s, m) => s + (m.cotisation_amount ?? 0), 0),
     cotisationActive: apiStats?.cotisationActive ?? members.filter(m => m.cotisation_active).length,
@@ -148,7 +187,7 @@ export default function AdminMembresPage({
 
     if (!res.ok) {
       setMembers(prev => prev.map(m =>
-        m.id === memberId ? { ...m, status: prevStatus ?? 'trial' } : m
+        m.id === memberId ? { ...m, status: prevStatus ?? 'non_membre' } : m
       ))
       alert('Erreur lors de la mise à jour. Réessaie.')
     }
@@ -232,9 +271,28 @@ export default function AdminMembresPage({
 
       {/* En-tête */}
       <h1 style={{ margin: '0 0 0.2rem' }}>Gestion des membres</h1>
-      <p style={{ opacity: 0.55, margin: '0 0 1.5rem', fontSize: '0.85rem' }}>
+      <p style={{ opacity: 0.55, margin: '0 0 1rem', fontSize: '0.85rem' }}>
         Consulte les profils, gère les cotisations et suis l&apos;activité.
       </p>
+
+      {/* Rappel statuts */}
+      <div style={{
+        background: '#f0f7ff',
+        border: '1px solid #bfdbfe',
+        borderRadius: 12,
+        padding: '0.85rem 1.1rem',
+        marginBottom: '1.25rem',
+        fontSize: '0.82rem',
+        lineHeight: 1.65,
+        color: '#1e3a5f',
+      }}>
+        <p style={{ margin: '0 0 0.45rem', fontWeight: 700 }}>Rappel des statuts</p>
+        <ul style={{ margin: 0, paddingLeft: '1.15rem' }}>
+          {ADMIN_MEMBER_STATUS_REMINDER.map(line => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </div>
 
       {/* Statistiques */}
       <div style={{
@@ -243,12 +301,13 @@ export default function AdminMembresPage({
         gap: '0.75rem', marginBottom: '1.25rem',
       }}>
         {[
-          { label: 'Total inscrits',     value: stats.total,      color: '#1a1a2e' },
-          { label: 'Non cotisés',        value: stats.nonCotise,  color: '#4b5563', highlight: stats.nonCotise > 0 },
-          { label: 'Cotisés',            value: stats.cotised,    color: '#2e7d32' },
-          { label: 'Total cotisations',  value: `CHF ${stats.totalCotisations.toFixed(0)}`, color: '#1565c0' },
-          { label: 'Cotisations actives', value: stats.cotisationActive, color: '#5c6bc0' },
-          { label: 'Ont commandé',       value: stats.withOrders, color: '#DC7F00' },
+          { label: 'Total inscrits',      value: stats.total,      color: '#1a1a2e' },
+          { label: 'Non membres',         value: stats.nonMembre,  color: '#4b5563', highlight: stats.nonMembre > 0 },
+          { label: 'Membres Ciel',        value: stats.ciel,     color: '#1565c0' },
+          { label: 'Membres Terre',       value: stats.terre,    color: '#2e7d32' },
+          { label: 'Total cotisations',   value: `CHF ${stats.totalCotisations.toFixed(0)}`, color: '#5c6bc0' },
+          { label: 'Cotisations actives', value: stats.cotisationActive, color: '#7b1fa2' },
+          { label: 'Ont commandé',        value: stats.withOrders, color: '#DC7F00' },
         ].map(s => (
           <div key={s.label} style={{
             background: '#fff',
@@ -277,21 +336,36 @@ export default function AdminMembresPage({
           }}>
             <span>Répartition des statuts</span>
             <span>
-              {stats.cotised} cotisé·e·s · {stats.nonCotise} non cotisé·e·s
+              {stats.ciel} Ciel · {stats.terre} Terre · {stats.nonMembre} non membre{stats.nonMembre !== 1 ? 's' : ''}
             </span>
           </div>
-          <div style={{ height: 8, borderRadius: 999, background: '#e0e0e0', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: stats.total > 0 ? `${(stats.cotised / stats.total) * 100}%` : '0%',
-              background: 'linear-gradient(90deg, #2e7d32, #66bb6a)',
-              borderRadius: 999,
-              transition: 'width 0.6s ease',
-            }} />
+          <div style={{ display: 'flex', height: 8, borderRadius: 999, background: '#e0e0e0', overflow: 'hidden' }}>
+            {stats.ciel > 0 && (
+              <div style={{
+                width: `${(stats.ciel / stats.total) * 100}%`,
+                background: '#1565c0',
+                transition: 'width 0.6s ease',
+              }} />
+            )}
+            {stats.terre > 0 && (
+              <div style={{
+                width: `${(stats.terre / stats.total) * 100}%`,
+                background: '#2e7d32',
+                transition: 'width 0.6s ease',
+              }} />
+            )}
+            {stats.nonMembre > 0 && (
+              <div style={{
+                width: `${(stats.nonMembre / stats.total) * 100}%`,
+                background: '#9ca3af',
+                transition: 'width 0.6s ease',
+              }} />
+            )}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginTop: '0.3rem', opacity: 0.5 }}>
-            <span style={{ color: '#2e7d32' }}>■ Cotisé·e·s ({Math.round(stats.cotised / stats.total * 100)}%)</span>
-            <span style={{ color: '#4b5563' }}>■ Non cotisé·e·s ({Math.round(stats.nonCotise / stats.total * 100)}%)</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.72rem', marginTop: '0.3rem', opacity: 0.55 }}>
+            <span style={{ color: '#1565c0' }}>■ Ciel ({Math.round(stats.ciel / stats.total * 100)}%)</span>
+            <span style={{ color: '#2e7d32' }}>■ Terre ({Math.round(stats.terre / stats.total * 100)}%)</span>
+            <span style={{ color: '#4b5563' }}>■ Non membre ({Math.round(stats.nonMembre / stats.total * 100)}%)</span>
           </div>
         </div>
       )}
@@ -305,23 +379,36 @@ export default function AdminMembresPage({
       }}>
         <input
           type="text"
-          placeholder="Rechercher par nom ou email…"
+          placeholder="Rechercher nom, email, téléphone, commune…"
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ ...controlStyle, flexGrow: 1, minWidth: 200 }}
         />
         <select
           value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value as '' | 'trial' | 'member')}
+          onChange={e => setFilterStatus(e.target.value as '' | AdminMemberStatus)}
           style={controlStyle}
         >
           <option value="">Tous les statuts</option>
-          <option value="trial">Non cotisés</option>
-          <option value="member">Cotisés</option>
+          <option value="non_membre">Non membres</option>
+          <option value="ciel">Membres Ciel</option>
+          <option value="terre">Membres Terre</option>
         </select>
-        {(search || filterStatus) && (
+        {communeOptions.length > 0 && (
+          <select
+            value={filterCommune}
+            onChange={e => setFilterCommune(e.target.value)}
+            style={controlStyle}
+          >
+            <option value="">Toutes les communes</option>
+            {communeOptions.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        )}
+        {(search || filterStatus || filterCommune) && (
           <button
-            onClick={() => { setSearch(''); setFilterStatus('') }}
+            onClick={() => { setSearch(''); setFilterStatus(''); setFilterCommune('') }}
             style={{ ...controlStyle, cursor: 'pointer', color: '#c0392b', background: '#fff' }}
           >
             ✕ Réinitialiser
@@ -358,7 +445,7 @@ export default function AdminMembresPage({
       {/* Vide */}
       {!loading && !error && filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 1rem', opacity: 0.5 }}>
-          {search || filterStatus
+          {search || filterStatus || filterCommune
             ? 'Aucun membre ne correspond à ces critères.'
             : 'Aucun membre trouvé.'}
         </div>
@@ -368,8 +455,9 @@ export default function AdminMembresPage({
       {!loading && !error && filtered.length > 0 && (
         <div style={{ display: 'grid', gap: '0.6rem' }}>
           {filtered.map(member => {
-            const st         = MEMBER_STATUS[member.status] ?? MEMBER_STATUS.trial
+            const st         = MEMBER_STATUS[member.status] ?? MEMBER_STATUS.non_membre
             const name       = getMemberName(member)
+            const location   = formatLocation(member)
             const isUpdating = updating === member.id
 
             return (
@@ -419,6 +507,8 @@ export default function AdminMembresPage({
                     </div>
                     <div style={{ fontSize: '0.78rem', opacity: 0.5, display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                       {member.email && <span>✉ {member.email}</span>}
+                      {member.phone && <span>📞 {member.phone}</span>}
+                      {location && <span>📍 {location}</span>}
                       {member.created_at && (
                         <span>Inscrit·e le {formatDate(member.created_at)}</span>
                       )}
@@ -459,6 +549,9 @@ export default function AdminMembresPage({
                     borderBottom: '1px solid rgba(16,24,40,0.06)',
                   }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Cotisation</span>
+                    <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.55, lineHeight: 1.4 }}>
+                      {cotisationHint(member.status)}
+                    </p>
                     <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
                       <label style={{ fontSize: '0.8rem', opacity: 0.6 }}>Montant (CHF)</label>
                       <input
@@ -517,7 +610,7 @@ export default function AdminMembresPage({
                     borderBottom: '1px solid rgba(16,24,40,0.06)',
                   }}>
                     <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Changer le statut :</span>
-                    {(['trial', 'member'] as const).map(key => {
+                    {ADMIN_MEMBER_STATUSES.map(key => {
                       const cfg       = MEMBER_STATUS[key]
                       const isCurrent = member.status === key
                       return (
@@ -537,7 +630,7 @@ export default function AdminMembresPage({
                             transition: 'all 0.15s',
                           }}
                         >
-                          {cfg.label}
+                          {STATUS_BUTTON_LABELS[key]}
                         </button>
                       )
                     })}
