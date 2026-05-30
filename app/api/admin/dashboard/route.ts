@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminUser } from '@/lib/admin/auth'
 import { NextResponse } from 'next/server'
+import { isActiveMemberStatus, normalizeMemberStatus } from '@/lib/members/profile'
 
 /**
  * GET /api/admin/dashboard
@@ -35,9 +36,10 @@ export async function GET() {
 
   // ── Statistiques membres ──────────────────────────────────────────────────
   const memberStats = {
-    total:  profiles.length,
-    cotised: profiles.filter(p => (p.status as string) === 'member').length,
-    nonCotise: profiles.filter(p => (p.status as string) !== 'member').length,
+    total: profiles.length,
+    nonMembre: profiles.filter(p => normalizeMemberStatus(p.status as string) === 'non_membre').length,
+    ciel: profiles.filter(p => normalizeMemberStatus(p.status as string) === 'ciel').length,
+    terre: profiles.filter(p => normalizeMemberStatus(p.status as string) === 'terre').length,
     cotisationActive: profiles.filter(p => p.cotisation_active === true).length,
     totalCotisations: profiles.reduce(
       (sum, p) => sum + (p.cotisation_amount != null ? Number(p.cotisation_amount) : 0),
@@ -77,7 +79,7 @@ export async function GET() {
     const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`
     const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0, 23, 59, 59)
     const count = profiles.filter(p => {
-      if ((p.status as string) !== 'member') return false
+      if (!isActiveMemberStatus(p.status as string)) return false
       if (!p.created_at) return false
       return new Date(p.created_at as string) <= endOfMonth
     }).length
@@ -121,7 +123,7 @@ export async function GET() {
   // ── Membres récents (5 derniers inscrits) ─────────────────────────────────
   const recentMembers = profiles.slice(0, 5).map(p => ({
     id:         p.id,
-    status:     p.status ?? 'trial',
+    status:     normalizeMemberStatus(p.status as string),
     created_at: p.created_at,
     name:       (p.full_name as string | null) || (p.username as string | null) || (p.email as string | null)?.split('@')[0] || 'Membre',
   }))

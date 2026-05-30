@@ -46,3 +46,20 @@ export function formatCotisation(amount: number | null | undefined): string {
   if (amount == null || amount <= 0) return '—'
   return `CHF ${amount.toFixed(2)}`
 }
+
+/** Statuts modifiables par Joel dans l'admin. */
+export const ADMIN_MEMBER_STATUSES = ['non_membre', 'ciel', 'terre'] as const
+export type AdminMemberStatus = (typeof ADMIN_MEMBER_STATUSES)[number]
+
+/** Normalise les anciens statuts trial/member encore en base. */
+export function normalizeMemberStatus(status?: string | null): AdminMemberStatus {
+  if (!status || status === 'trial') return 'non_membre'
+  if (status === 'member') return 'terre'
+  if (status === 'ciel' || status === 'terre' || status === 'non_membre') return status
+  return 'non_membre'
+}
+
+export function isActiveMemberStatus(status?: string | null): boolean {
+  const s = normalizeMemberStatus(status)
+  return s === 'ciel' || s === 'terre'
+}
