@@ -1,8 +1,10 @@
 import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
+import { Suspense } from 'react'
 import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
 import DeleteAccountSection from './DeleteAccountSection'
+import CompteConfirmeBanner from './CompteConfirmeBanner'
 import { formatCotisation, isCotiseProfile } from '@/lib/members/profile'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -64,6 +66,10 @@ export default async function MonComptePage({
       </nav>
 
       <div style={{ display: 'grid', gap: '1rem' }}>
+
+        <Suspense fallback={null}>
+          <CompteConfirmeBanner />
+        </Suspense>
 
         {/* ── Profil ── */}
         {/* ProfileHeader gère l'avatar + pseudo éditable */}

@@ -35,6 +35,10 @@ WHERE full_name IS NOT NULL
 -- ── 2. Migration des statuts ────────────────────────────────────────────────
 -- Ancien trial  → non_membre (pas d'accès catalogue)
 -- Ancien member → terre      (prix juste, comme les cotisés actuels)
+--
+-- La table avait une contrainte CHECK (trial | member) — il faut l'élargir.
+
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_status_check;
 
 UPDATE profiles SET status = 'terre' WHERE status = 'member';
 
@@ -46,6 +50,10 @@ WHERE status = 'trial'
 
 -- Nouvelles inscriptions : non membre par défaut
 ALTER TABLE profiles ALTER COLUMN status SET DEFAULT 'non_membre';
+
+ALTER TABLE profiles
+  ADD CONSTRAINT profiles_status_check
+  CHECK (status IN ('non_membre', 'ciel', 'terre'));
 
 COMMENT ON COLUMN profiles.status IS 'non_membre | ciel (+20 % marge) | terre (prix juste)';
 

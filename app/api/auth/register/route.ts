@@ -1,6 +1,6 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { authCallbackUrl } from '@/lib/auth/urls'
+import { siteOriginFromRequest, authCallbackUrl } from '@/lib/auth/urls'
 import { normalizeRegistration, validateRegistration, type RegistrationInput } from '@/lib/members/registration'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
 
   const data = normalizeRegistration(body)
   const locale = body.locale === 'en' ? 'en' : 'fr'
+  const siteOrigin = siteOriginFromRequest(request)
   const auth = createAuthClient()
 
   const { data: authData, error: authError } = await auth.auth.signUp({
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
         postal_code: data.postal_code,
         commune: data.commune,
       },
-      emailRedirectTo: authCallbackUrl(`/${locale}/mon-compte`),
+      emailRedirectTo: authCallbackUrl(`/${locale}/mon-compte`, siteOrigin),
     },
   })
 

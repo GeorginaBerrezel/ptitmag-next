@@ -78,6 +78,8 @@ export default function InscriptionPage({
         </div>
         <p style={{ opacity: 0.7, marginTop: '1rem', fontSize: '0.9rem' }}>
           Vous pouvez fermer cette page. Le lien est valable 24 heures.
+          Ouvrez le lien <strong>sur le même site</strong> où vous vous êtes inscrit·e
+          (preprod ou site officiel).
         </p>
       </main>
     )
