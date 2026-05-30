@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import MemberStatusGuide from '@/components/MemberStatusGuide'
 
 // ─── Données statiques ────────────────────────────────────────────────────────
 // Les clés "why" dans l'ordre de la traduction, avec un emoji représentatif
@@ -66,11 +67,38 @@ export default async function MembershipPage({
         </p>
       </div>
 
-      {/* ── Cotisations ── */}
+      {/* ── Statuts membres (Ciel / Terre) ── */}
       <section style={{ marginBottom: '3rem' }}>
-        <h2 style={{ margin: '0 0 1.25rem', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
-          Cotisations
+        <h2 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
+          {t('statusTitle')}
         </h2>
+        <p style={{
+          margin: '0 0 1.25rem',
+          fontSize: '0.92rem',
+          opacity: 0.7,
+          lineHeight: 1.65,
+          maxWidth: 620,
+        }}>
+          {t('statusIntro')}
+        </p>
+
+        <MemberStatusGuide locale={locale} variant="full" includeNonMembre />
+      </section>
+
+      {/* ── Cotisations indicatives ── */}
+      <section style={{ marginBottom: '3rem' }}>
+        <h2 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
+          {t('feesTitle')}
+        </h2>
+        <p style={{
+          margin: '0 0 1.25rem',
+          fontSize: '0.88rem',
+          opacity: 0.65,
+          lineHeight: 1.6,
+          maxWidth: 620,
+        }}>
+          {t('feesIntro')}
+        </p>
 
         <div style={{
           display: 'grid',
@@ -78,34 +106,34 @@ export default async function MembershipPage({
           gap: '1rem',
           marginBottom: '1rem',
         }}>
-          {/* Cotisation ordinaire */}
+          {/* Cotisation ordinaire → statut Terre */}
           <div style={{
-            background: '#fff', border: '2px solid #0E1726',
+            background: '#fff', border: '2px solid #2e7d32',
             borderRadius: 16, padding: '1.5rem',
             display: 'flex', flexDirection: 'column', gap: '0.5rem',
           }}>
-            <span style={{ fontSize: '1.75rem' }}>🌱</span>
-            <p className="card-title" style={{ fontSize: '1.1rem' }}>Ordinaire</p>
+            <span style={{ fontSize: '1.75rem' }} aria-hidden>🌍</span>
+            <p className="card-title" style={{ fontSize: '1.1rem' }}>{t('regularTitle')}</p>
             <p style={{
               margin: 0, fontSize: '1.6rem', fontWeight: 800,
-              color: '#0E1726',
+              color: '#2e7d32',
             }}>
               CHF 30
               <span style={{ fontSize: '0.9rem', fontWeight: 400, opacity: 0.6 }}> /mois</span>
             </p>
             <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.65, lineHeight: 1.5 }}>
-              Par adulte — accès complet au catalogue et aux commandes groupées.
+              {t('regularText')}
             </p>
           </div>
 
-          {/* Cotisation douce */}
+          {/* Cotisation douce → statut Terre */}
           <div style={{
             background: '#fff', border: '1px solid rgba(16,24,40,0.1)',
             borderRadius: 16, padding: '1.5rem',
             display: 'flex', flexDirection: 'column', gap: '0.5rem',
           }}>
-            <span style={{ fontSize: '1.75rem' }}>🤲</span>
-            <p className="card-title" style={{ fontSize: '1.1rem' }}>Douce</p>
+            <span style={{ fontSize: '1.75rem' }} aria-hidden>🤲</span>
+            <p className="card-title" style={{ fontSize: '1.1rem' }}>{t('softTitle')}</p>
             <p style={{
               margin: 0, fontSize: '1.6rem', fontWeight: 800,
               color: '#245c2a',
@@ -114,7 +142,7 @@ export default async function MembershipPage({
               <span style={{ fontSize: '0.9rem', fontWeight: 400, opacity: 0.6 }}> /mois</span>
             </p>
             <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.65, lineHeight: 1.5 }}>
-              Tarif solidaire — mêmes droits, même accès.
+              {t('softText')}
             </p>
           </div>
 

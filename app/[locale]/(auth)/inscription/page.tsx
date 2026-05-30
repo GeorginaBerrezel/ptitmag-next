@@ -91,7 +91,10 @@ export default function InscriptionPage({
       <h1 style={{ marginBottom: '0.25rem' }}>Créer un compte</h1>
       <p style={{ marginBottom: '1.75rem', opacity: 0.7, lineHeight: 1.55 }}>
         Inscription gratuite. L&apos;accès au catalogue sera activé par Joel après validation
-        de votre adhésion.
+        de votre adhésion.{' '}
+        <Link href="/membership" locale={locale as 'fr' | 'en'} style={{ color: '#1565c0', fontWeight: 600 }}>
+          Comprendre les statuts Ciel et Terre →
+        </Link>
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>

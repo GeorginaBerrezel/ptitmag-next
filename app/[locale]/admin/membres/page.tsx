@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from 'react'
 import { ADMIN_MEMBER_STATUSES, MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
+import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/status-guide'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ const ORDER_STATUS: Record<string, { label: string; color: string }> = {
 const STATUS_BUTTON_LABELS: Record<AdminMemberStatus, string> = {
   non_membre: 'Non membre',
   ciel:       'Ciel · +20 %',
-  terre:      'Terre · prix juste',
+  terre:      'Terre · prix juste (sans marge)',
 }
 
 function getMemberName(m: Member) {
@@ -83,9 +84,7 @@ function formatLocation(m: Member) {
 }
 
 function cotisationHint(status: string) {
-  if (status === 'ciel') return 'Cotisation annuelle (ex. 120 CHF/an). Peut être 0 CHF pour les tests.'
-  if (status === 'terre') return 'Cotisation mensuelle (exceptions possibles).'
-  return 'Accorde le statut Ciel ou Terre pour ouvrir l\'accès au catalogue.'
+  return getCotisationHint(status)
 }
 
 function formatDateShort(iso: string) {
@@ -272,9 +271,28 @@ export default function AdminMembresPage({
 
       {/* En-tête */}
       <h1 style={{ margin: '0 0 0.2rem' }}>Gestion des membres</h1>
-      <p style={{ opacity: 0.55, margin: '0 0 1.5rem', fontSize: '0.85rem' }}>
+      <p style={{ opacity: 0.55, margin: '0 0 1rem', fontSize: '0.85rem' }}>
         Consulte les profils, gère les cotisations et suis l&apos;activité.
       </p>
+
+      {/* Rappel statuts */}
+      <div style={{
+        background: '#f0f7ff',
+        border: '1px solid #bfdbfe',
+        borderRadius: 12,
+        padding: '0.85rem 1.1rem',
+        marginBottom: '1.25rem',
+        fontSize: '0.82rem',
+        lineHeight: 1.65,
+        color: '#1e3a5f',
+      }}>
+        <p style={{ margin: '0 0 0.45rem', fontWeight: 700 }}>Rappel des statuts</p>
+        <ul style={{ margin: 0, paddingLeft: '1.15rem' }}>
+          {ADMIN_MEMBER_STATUS_REMINDER.map(line => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </div>
 
       {/* Statistiques */}
       <div style={{

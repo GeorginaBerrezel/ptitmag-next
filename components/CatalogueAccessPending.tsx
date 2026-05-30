@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import MemberStatusGuide from '@/components/MemberStatusGuide'
 import { site } from '@/lib/site'
 import type { Profile } from '@/lib/supabase/auth'
 
@@ -25,10 +26,14 @@ export default function CatalogueAccessPending({ locale = 'fr', profile }: Props
           Accès catalogue en attente
         </h1>
         <p style={{ margin: '0 0 1rem', lineHeight: 1.65, opacity: 0.8 }}>
-          Votre compte est en attente de validation. Joel validera votre adhésion
-          (statut <strong>Ciel</strong> ou <strong>Terre</strong>) avant l&apos;accès
-          au catalogue et aux prix.
+          Votre compte est créé. Joel validera votre adhésion et vous attribuera
+          l&apos;un des deux statuts membres ci-dessous avant l&apos;accès au catalogue.
         </p>
+
+        <div style={{ marginBottom: '1.25rem' }}>
+          <MemberStatusGuide locale={locale} linkToMembership />
+        </div>
+
         <p style={{ margin: '0 0 1.25rem', lineHeight: 1.65, opacity: 0.8 }}>
           Joel peut vous contacter via les coordonnées indiquées à l&apos;inscription
           {profile?.phone ? <> (téléphone ou e-mail)</> : <> (e-mail{profile?.email ? ` : ${profile.email}` : ''})</>}.

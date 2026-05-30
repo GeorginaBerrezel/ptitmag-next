@@ -5,7 +5,8 @@ import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
 import DeleteAccountSection from './DeleteAccountSection'
 import CompteConfirmeBanner from './CompteConfirmeBanner'
-import { formatCotisation, applyCielMarkup, canAccessCatalog, getMemberStatusDisplay } from '@/lib/members/profile'
+import MemberStatusGuide from '@/components/MemberStatusGuide'
+import { formatCotisation, applyCielMarkup, canAccessCatalog, getMemberStatusDisplay, hasTerrePricing } from '@/lib/members/profile'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ export default async function MonComptePage({
   const memberStatus = getMemberStatusDisplay(profile?.status)
   const hasCatalogAccess = profile ? canAccessCatalog(profile) : false
   const showCielMarkup = profile ? applyCielMarkup(profile) : false
+  const showTerrePricing = profile ? hasTerrePricing(profile) : false
   const showCotisation =
     profile?.status === 'ciel' ||
     profile?.status === 'terre' ||
@@ -71,19 +73,22 @@ export default async function MonComptePage({
         </Suspense>
 
         {!hasCatalogAccess && (
-          <div style={{
-            background: '#f0f7ff',
-            border: '1px solid #bfdbfe',
-            borderRadius: 12,
-            padding: '1rem 1.15rem',
-            fontSize: '0.92rem',
-            lineHeight: 1.6,
-            color: '#1e3a5f',
-          }}>
-            <strong>Adhésion en attente.</strong> Joel validera votre statut membre
-            (Ciel ou Terre) avant l&apos;accès au catalogue. Il peut vous contacter via
-            le téléphone ou l&apos;e-mail indiqués à l&apos;inscription si besoin.
-          </div>
+          <>
+            <div style={{
+              background: '#f0f7ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: 12,
+              padding: '1rem 1.15rem',
+              fontSize: '0.92rem',
+              lineHeight: 1.6,
+              color: '#1e3a5f',
+            }}>
+              <strong>Adhésion en attente.</strong> Joel validera votre statut membre
+              avant l&apos;accès au catalogue. Il peut vous contacter via le téléphone
+              ou l&apos;e-mail indiqués à l&apos;inscription si besoin.
+            </div>
+            <MemberStatusGuide locale={locale} linkToMembership />
+          </>
         )}
 
         {/* ── Profil ── */}
@@ -125,6 +130,20 @@ export default async function MonComptePage({
               whiteSpace: 'nowrap',
             }}>
               +20&nbsp;% sur le catalogue
+            </span>
+          )}
+
+          {showTerrePricing && hasCatalogAccess && !showCielMarkup && (
+            <span style={{
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: '#2e7d32',
+              background: '#e8f5e9',
+              borderRadius: 999,
+              padding: '0.2rem 0.75rem',
+              whiteSpace: 'nowrap',
+            }}>
+              Prix juste — sans marge
             </span>
           )}
 
