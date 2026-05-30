@@ -39,7 +39,7 @@ const FR: StatusGuideLocale = {
       name: 'Membre Ciel',
       tagline: '+20 % sur le catalogue',
       body: 'Accès au catalogue avec une majoration de 20 % sur les produits. Statut pour une cotisation annuelle plus souple (montant fixé par Joel).',
-      cotisationHint: 'Cotisation annuelle. Peut être 0 CHF pour les tests.',
+      cotisationHint: 'Cotisation annuelle — Joel fixe le montant.',
     },
   },
 }
@@ -67,7 +67,7 @@ const EN: StatusGuideLocale = {
       name: 'Sky member',
       tagline: '+20% on the catalogue',
       body: 'Catalogue access with a 20% markup on products. For members with a more flexible annual contribution (amount set by Joel).',
-      cotisationHint: 'Annual contribution. Can be CHF 0 for testing.',
+      cotisationHint: 'Annual contribution — Joel sets the amount.',
     },
   },
 }
