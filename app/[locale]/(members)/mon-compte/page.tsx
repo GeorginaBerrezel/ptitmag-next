@@ -124,21 +124,7 @@ export default async function MonComptePage({
               padding: '0.2rem 0.75rem',
               whiteSpace: 'nowrap',
             }}>
-              +20&nbsp;% (membre Ciel)
-            </span>
-          )}
-
-          {hasCatalogAccess && profile?.status === 'terre' && (
-            <span style={{
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#2e7d32',
-              background: '#e8f5e9',
-              borderRadius: 999,
-              padding: '0.2rem 0.75rem',
-              whiteSpace: 'nowrap',
-            }}>
-              Prix juste (membre Terre)
+              +20&nbsp;% sur le catalogue
             </span>
           )}
 

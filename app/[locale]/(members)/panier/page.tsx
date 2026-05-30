@@ -34,6 +34,9 @@ export default function PanierPage({
   const [catalogAccess, setCatalogAccess] = useState<'loading' | 'allowed' | 'denied'>('loading')
   const [profileEmail, setProfileEmail] = useState<string | null>(null)
   const [profilePhone, setProfilePhone] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [confirmed, setConfirmed] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -69,9 +72,6 @@ export default function PanierPage({
       />
     )
   }
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [confirmed, setConfirmed] = useState(false)
 
   // Grouper par fournisseur
   const bySupplier = items.reduce<Record<string, typeof items>>((acc, item) => {
