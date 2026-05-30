@@ -84,6 +84,7 @@ export const ADMIN_MEMBER_STATUS_REMINDER = [
   'Non membre → pas d\'accès catalogue (nouvelle inscription).',
   'Terre → prix juste (sans marge) · cotisation mensuelle.',
   'Ciel → +20 % sur le catalogue · cotisation annuelle.',
+  'Un e-mail est envoyé automatiquement à l\'adhérent·e quand vous activez ou modifiez un statut Ciel/Terre.',
 ] as const
 
 export function getCotisationHint(status: string, locale = 'fr'): string {

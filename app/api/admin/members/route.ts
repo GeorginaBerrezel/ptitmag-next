@@ -1,6 +1,10 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
+import {
+  sendMemberStatusNotification,
+  shouldSendMemberStatusEmail,
+} from '@/lib/email/sendMemberStatusNotification'
 import { ADMIN_MEMBER_STATUSES, normalizeMemberStatus } from '@/lib/members/profile'
 
 type ProfileRow = {
@@ -169,11 +173,60 @@ export async function PATCH(request: NextRequest) {
   }
 
   const admin = createAdminClient()
+
+  const { data: existing, error: fetchError } = await admin
+    .from('profiles')
+    .select('email, first_name, last_name, full_name, status, cotisation_amount, cotisation_active')
+    .eq('id', memberId)
+    .single()
+
+  if (fetchError || !existing) {
+    console.error('[admin/members PATCH] profile fetch error:', fetchError)
+    return NextResponse.json({ error: 'Membre introuvable.' }, { status: 404 })
+  }
+
+  const oldStatus = normalizeMemberStatus(existing.status as string)
+
   const { error } = await admin.from('profiles').update(updates).eq('id', memberId)
 
   if (error) {
     console.error('[admin/members PATCH] Supabase error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  const newStatus = status !== undefined
+    ? normalizeMemberStatus(status)
+    : oldStatus
+
+  const memberName = [existing.first_name, existing.last_name].filter(Boolean).join(' ').trim()
+    || (existing.full_name as string | null)
+    || null
+
+  const cotisationAmount = cotisation_amount !== undefined
+    ? cotisation_amount
+    : existing.cotisation_amount != null ? Number(existing.cotisation_amount) : null
+
+  const cotisationActive = cotisation_active !== undefined
+    ? Boolean(cotisation_active)
+    : Boolean(existing.cotisation_active)
+
+  if (
+    status !== undefined &&
+    existing.email &&
+    shouldSendMemberStatusEmail(oldStatus, newStatus)
+  ) {
+    try {
+      await sendMemberStatusNotification({
+        memberEmail: existing.email as string,
+        memberName,
+        oldStatus,
+        newStatus,
+        cotisationAmount,
+        cotisationActive,
+      })
+    } catch (err) {
+      console.error('[email] Échec notification statut membre :', err)
+    }
   }
 
   return NextResponse.json({ success: true })

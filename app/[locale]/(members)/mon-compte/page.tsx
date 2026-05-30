@@ -84,7 +84,8 @@ export default async function MonComptePage({
               color: '#1e3a5f',
             }}>
               <strong>Adhésion en attente.</strong> Joel validera votre statut membre
-              avant l&apos;accès au catalogue. Il peut vous contacter via le téléphone
+              avant l&apos;accès au catalogue. Vous recevrez un <strong>e-mail</strong> dès que
+              votre adhésion sera activée. Il peut aussi vous contacter via le téléphone
               ou l&apos;e-mail indiqués à l&apos;inscription si besoin.
             </div>
             <MemberStatusGuide locale={locale} linkToMembership />

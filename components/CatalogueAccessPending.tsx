@@ -27,7 +27,8 @@ export default function CatalogueAccessPending({ locale = 'fr', profile }: Props
         </h1>
         <p style={{ margin: '0 0 1rem', lineHeight: 1.65, opacity: 0.8 }}>
           Votre compte est créé. Joel validera votre adhésion et vous attribuera
-          l&apos;un des deux statuts membres ci-dessous avant l&apos;accès au catalogue.
+          l&apos;un des deux statuts membres ci-dessous. Vous recevrez un <strong>e-mail</strong> dès
+          que votre accès au catalogue sera activé.
         </p>
 
         <div style={{ marginBottom: '1.25rem' }}>

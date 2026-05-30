@@ -74,7 +74,8 @@ export default function InscriptionPage({
           color: '#1e3a5f',
         }}>
           <strong>Prochaine étape :</strong> votre compte sera en statut «&nbsp;Non membre&nbsp;» jusqu&apos;à
-          validation par Joel. Il pourra vous contacter via le téléphone ou l&apos;e-mail indiqués
+          validation par Joel. Vous recevrez un <strong>e-mail</strong> dès que votre adhésion sera validée
+          (statut Ciel ou Terre). Il pourra aussi vous contacter via le téléphone ou l&apos;e-mail indiqués
           si besoin — vous pouvez aussi le joindre depuis la page Contact.
         </div>
         <p style={{ opacity: 0.7, marginTop: '1rem', fontSize: '0.9rem' }}>

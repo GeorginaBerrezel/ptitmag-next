@@ -1,5 +1,6 @@
 import { createTransporter, isSmtpConfigured } from './mailer'
 import { site } from '@/lib/site'
+import { formatOpeningHoursHtml } from '@/lib/site/opening-hours'
 
 export type DeliveryItem = {
   productName: string
@@ -83,9 +84,7 @@ export async function sendDeliveryNotification({
               <div style="background:#e8f5e9;border-left:4px solid #2e7d32;border-radius:0 8px 8px 0;padding:12px 16px;">
                 <p style="margin:0 0 4px;font-weight:700;font-size:13px;color:#1b5e20;">Horaires d'ouverture du magasin</p>
                 <p style="margin:0;font-size:13px;color:#2e7d32;line-height:1.7;">
-                  Mercredi : 09h00 – 12h00<br/>
-                  Vendredi : 09h00 – 12h00 &amp; 16h30 – 18h30<br/>
-                  Samedi : 09h00 – 12h00
+                  ${formatOpeningHoursHtml('fr')}
                 </p>
               </div>
             </td>
