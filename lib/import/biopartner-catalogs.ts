@@ -58,6 +58,11 @@ export function findBiopartnerCatalogByKey(key: BiopartnerCatalogKey): Biopartne
   return catalog
 }
 
+/** Ancien fournisseur monolithique — conservé en base pour l'historique, masqué de l'admin. */
+export function isLegacyBiopartnerSupplier(name: string): boolean {
+  return name === LEGACY_BIOPARTNER_NAME
+}
+
 export function isBiopartnerSupplierName(name: string): boolean {
-  return name === LEGACY_BIOPARTNER_NAME || name.startsWith('Biopartner –')
+  return isLegacyBiopartnerSupplier(name) || name.startsWith('Biopartner –')
 }

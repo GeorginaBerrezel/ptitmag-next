@@ -9,10 +9,12 @@ export function normalizeSearch(text: string): string {
     .trim()
 }
 
+/** Chaque mot (séparé par un espace) doit apparaître dans le texte, ordre libre. */
 export function matchesSearch(haystack: string, query: string): boolean {
-  const q = normalizeSearch(query)
-  if (!q) return true
-  return normalizeSearch(haystack).includes(q)
+  const terms = normalizeSearch(query).split(/\s+/).filter(Boolean)
+  if (terms.length === 0) return true
+  const normalizedHaystack = normalizeSearch(haystack)
+  return terms.every(term => normalizedHaystack.includes(term))
 }
 
 export function productSearchText(product: Product): string {

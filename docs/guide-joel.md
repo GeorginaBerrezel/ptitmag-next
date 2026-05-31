@@ -99,7 +99,7 @@ Chacun a son import et son ouverture/fermeture de commandes **indépendants** da
 
 **Admin → Import → Biopartner — 4 catalogues** pour importer un CSV.
 
-Si tu n'as qu'un gros fichier : **Admin → Import → Découper en 4 CSV** (outil automatique — à relire avant d'importer).
+À l'export (LibreOffice / Excel) : encodage **UTF-8**, séparateur **point-virgule (;)** — pas la virgule.
 
 ---
 
