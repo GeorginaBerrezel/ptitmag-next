@@ -139,30 +139,12 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
           <a href="https://shop.biopartner.ch" target="_blank" rel="noreferrer"
             style={{ color: '#1e5c35', fontWeight: 600 }}>shop.biopartner.ch</a>
           {' '}(liste de commandes personnelle filtrée par Joel).<br />
-          <strong>2.</strong> Importer ici — seuls les produits de <em>ce</em> catalogue sont mis à jour.
+          <strong>2.</strong> À l&apos;export (LibreOffice / Excel) : encodage{' '}
+          <strong>UTF-8</strong>, séparateur <strong>point-virgule (;)</strong> — pas la virgule.<br />
+          <strong>3.</strong> Importer ici — seuls les produits de <em>ce</em> catalogue sont mis à jour.
         </>
       ),
     })),
-  },
-  {
-    label: 'Outil Biopartner (fichier unique)',
-    suppliers: [
-      {
-        key: 'biopartner_split',
-        label: 'Découper en 4 CSV',
-        type: 'grossiste_bio' as const,
-        endpoint: '/api/admin/split-biopartner',
-        fileHint: 'Gros CSV Biopartner (.csv)',
-        fileInstructions: (
-          <>
-            <strong>Pas encore les 4 fichiers de Joel ?</strong> Uploadez le gros CSV : le site le
-            répartit automatiquement en 4 fichiers à télécharger, puis importez chaque fichier dans
-            le catalogue correspondant ci-dessus. Les règles de répartition sont approximatives —
-            Joel pourra affiner ensuite.
-          </>
-        ),
-      },
-    ],
   },
   {
     label: 'Grossistes bio (autres)',
@@ -272,24 +254,15 @@ export default function ImportPage({
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [splitResult, setSplitResult] = useState<{
-    totalRows: number
-    counts: Record<string, number>
-    labels: Record<string, string>
-    files: Record<string, string>
-    message: string
-  } | null>(null)
 
   const supplier = SUPPLIERS.find(s => s.key === selectedKey)!
   const isHebdo = selectedKey === 'feuille_hebdo'
-  const isBiopartnerSplit = selectedKey === 'biopartner_split'
   const isBiopartnerImport = supplier?.endpoint === '/api/admin/import-biopartner'
 
   function handleSupplierChange(key: string) {
     setSelectedKey(key)
     setFile(null)
     setResult(null)
-    setSplitResult(null)
     setError(null)
     const d = deadlineDefaultsForSelection(key)
     setDateLimite(d.dateLimite)
@@ -310,24 +283,9 @@ export default function ImportPage({
     setLoading(true)
     setError(null)
     setResult(null)
-    setSplitResult(null)
 
     const formData = new FormData()
     formData.append('file', file)
-
-    if (isBiopartnerSplit) {
-      const res = await fetch(supplier.endpoint, { method: 'POST', body: formData })
-      const data = await res.json()
-      setLoading(false)
-      if (!res.ok) {
-        setError(data.error ?? 'Une erreur est survenue.')
-        return
-      }
-      setSplitResult(data)
-      setFile(null)
-      if (fileRef.current) fileRef.current.value = ''
-      return
-    }
 
     if (isHebdo) {
       // Feuille hebdo : deux délais distincts selon le fournisseur
@@ -457,7 +415,7 @@ export default function ImportPage({
       </div>
 
       {/* Dates limites — pas pour Biopartner (délai géré dans Fournisseurs, Phase 2) */}
-      {!isBiopartnerImport && !isBiopartnerSplit && (
+      {!isBiopartnerImport && (
       <div style={{ marginBottom: '1.25rem' }}>
         {(isHebdo || supplier.deadlineGroup) && (
           <p style={{ margin: '0 0 0.65rem', fontSize: '0.78rem', opacity: 0.62, lineHeight: 1.5 }}>
@@ -599,7 +557,6 @@ export default function ImportPage({
           onChange={e => {
             setFile(e.target.files?.[0] ?? null)
             setResult(null)
-            setSplitResult(null)
             setError(null)
           }}
         />
@@ -623,67 +580,8 @@ export default function ImportPage({
           letterSpacing: '0.01em',
         }}
       >
-        {loading
-          ? (isBiopartnerSplit ? 'Découpage en cours…' : 'Import en cours…')
-          : isBiopartnerSplit
-            ? 'Découper en 4 fichiers CSV'
-            : `Importer ${supplier.label}`}
+        {loading ? 'Import en cours…' : `Importer ${supplier.label}`}
       </button>
-
-      {/* Résultat découpage Biopartner */}
-      {splitResult && (
-        <div style={{
-          background: '#f1f8f1',
-          border: '1px solid #a5d6a7',
-          borderRadius: 12,
-          padding: '1.25rem 1.5rem',
-          marginBottom: '1.5rem',
-        }}>
-          <p style={{ margin: '0 0 0.75rem', fontWeight: 700, fontSize: '0.95rem' }}>
-            ✓ {splitResult.message}
-          </p>
-          <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', opacity: 0.7 }}>
-            {splitResult.totalRows} lignes au total — téléchargez chaque fichier puis importez-le dans le catalogue correspondant.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {Object.entries(splitResult.files).map(([importKey, content]) => {
-              const count = splitResult.counts[importKey] ?? 0
-              const label = splitResult.labels[importKey] ?? importKey
-              return (
-                <button
-                  key={importKey}
-                  type="button"
-                  onClick={() => {
-                    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = `${importKey}.csv`
-                    a.click()
-                    URL.revokeObjectURL(url)
-                  }}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.65rem 1rem',
-                    background: '#fff',
-                    border: '1px solid rgba(16,24,40,0.12)',
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    fontSize: '0.88rem',
-                    fontWeight: 600,
-                    textAlign: 'left',
-                  }}
-                >
-                  <span>{label}</span>
-                  <span style={{ opacity: 0.55, fontWeight: 500 }}>{count} produits · Télécharger ↓</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Erreur */}
       {error && (

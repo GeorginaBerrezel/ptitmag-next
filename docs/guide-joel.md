@@ -46,11 +46,13 @@ Le site est **livré et en ligne** sur le domaine de l'association. Tu peux te c
 | Étape | Où | Quoi faire |
 |-------|-----|------------|
 | 1 | Ta boîte mail | Tu reçois une copie à chaque commande adhérent |
-| 2 | Admin → **Commandes** | Export CSV, préparation des commandes groupées |
+| 2 | Admin → **Commandes** | Choisir un **fournisseur** dans le menu → **récap vert** à l'écran + **Exporter Excel** |
 | 3 | Admin → **Commandes** | Marquer **Livrée** ou **Annulée** — l'adhérent le voit dans Mon compte |
-| 4 | Admin → **Membres** | Passer un adhérent en **Cotisé** et saisir le montant si besoin |
-| 5 | Admin → **Fournisseurs** | **Ouvrir les commandes** avec une date limite quand c'est le moment |
-| 6 | Admin → **Import** | Mettre à jour les catalogues (fichiers préparés par Georgina) |
+| 4 | Admin → **Commandes** → Historique | **Exporter Excel** puis **Archiver** les vieilles commandes livrées (6 mois+) |
+| 5 | Admin → **Commandes** → Historique | **Bilan annuel Excel** en fin d'année (stats asso) |
+| 6 | Admin → **Membres** | Passer un adhérent en **Cotisé** et saisir le montant si besoin |
+| 7 | Admin → **Fournisseurs** | **Ouvrir les commandes** avec une date limite quand c'est le moment |
+| 8 | Admin → **Import** | Mettre à jour les catalogues (fichiers préparés par Georgina) |
 
 ---
 
@@ -84,6 +86,22 @@ Utile quand un légume manque **sans refaire un import**.
 - Statut **Non cotisé** → l'adhérent paie **+20 %** sur les prix
 - Statut **Cotisé** + montant → prix catalogue normal
 
+### 4. Archiver les anciennes commandes
+
+**Admin → Commandes → Historique**
+
+- Les commandes **livrées de plus de 6 mois** peuvent être **archivées** (bouton groupé ou une par une)
+- Elles disparaissent de la liste par défaut — **rien n'est supprimé** en base
+- Coche **Afficher les archives** pour les retrouver ou les restaurer
+- Les adhérents gardent leur historique dans Mon compte (+ export CSV perso)
+
+### 5. Bilan annuel pour l'association
+
+**Admin → Commandes → Historique → Bilan Excel**
+
+- Choisir l'année → télécharger le fichier (CA, fournisseurs, mois, top produits)
+- À faire en fin d'année ou au début de l'année suivante — garde une trace même après archivage
+
 ---
 
 ## Biopartner — 4 catalogues
@@ -99,7 +117,7 @@ Chacun a son import et son ouverture/fermeture de commandes **indépendants** da
 
 **Admin → Import → Biopartner — 4 catalogues** pour importer un CSV.
 
-Si tu n'as qu'un gros fichier : **Admin → Import → Découper en 4 CSV** (outil automatique — à relire avant d'importer).
+À l'export (LibreOffice / Excel) : encodage **UTF-8**, séparateur **point-virgule (;)** — pas la virgule.
 
 ---
 

@@ -428,7 +428,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                   ? 'Choisissez une catégorie ou recherchez un produit — pas de liste complète.'
                   : 'Choisissez une catégorie pour afficher les produits.'
               )}
-              {view === 'products' && activeProducts && (
+              {view === 'products' && activeProducts && !isSearching && (
                 `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeSummary?.supplier.name}`
               )}
             </p>
@@ -441,13 +441,14 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
             fontSize: '1rem', opacity: 0.4, pointerEvents: 'none',
           }}>🔍</span>
           <input
-            type="search"
+            type="text"
             placeholder={searchPlaceholder}
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{
               width: '100%',
               padding: '0.65rem 1rem 0.65rem 2.5rem',
+              paddingRight: search ? '2.5rem' : '1rem',
               border: '1.5px solid rgba(16,24,40,0.15)',
               borderRadius: 10,
               fontSize: '0.95rem',
@@ -658,6 +659,11 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
               <EmptyState message="Aucune catégorie ni produit ne correspond à votre recherche." />
             ) : filteredCategories.length > 0 ? (
               <>
+                {inlineSupplierResults.length === 0 && (
+                  <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', opacity: 0.6 }}>
+                    Produits trouvés (0)
+                  </p>
+                )}
                 {inlineSupplierResults.length > 0 && (
                   <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
                     Catégories
@@ -689,7 +695,21 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           displayedProducts.length === 0 && isLargeCatalog && !categoryProducts ? (
             <LoadingState label="Chargement de la catégorie…" />
           ) : displayedProducts.length === 0 ? (
-            <EmptyState message="Aucun produit ne correspond à votre recherche." />
+            <>
+              {isSearching && (
+                <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', opacity: 0.6 }}>
+                  Produits trouvés (0)
+                </p>
+              )}
+              <EmptyState message="Aucun produit ne correspond à votre recherche." />
+            </>
+          ) : isSearching ? (
+            <SearchResultsSection
+              title={`Produits trouvés (${displayedProducts.length})`}
+              subtitle={`Dans ${activeCategory} — ${activeSummary?.supplier.name ?? ''}`}
+            >
+              <ProductList products={displayedProducts} nowMs={catalogNow} />
+            </SearchResultsSection>
           ) : (
             <ProductList products={displayedProducts} nowMs={catalogNow} />
           )

@@ -1,6 +1,15 @@
 'use client'
 
-import { use, useCallback, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  collectExportRows,
+  computeAggregatedSummary,
+  type AggregatedExportLine,
+  type OrderExportInput,
+} from '@/lib/admin/order-export'
+import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
+import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
+import lineStyles from './commandes.module.css'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,7 +17,7 @@ type OrderItem = {
   id: string
   quantity: number
   unit_price: number
-  product: { name: string; unit: string } | null
+  product: { name: string; unit: string; supplier_ref: string | null } | null
 }
 
 type AdminOrder = {
@@ -16,6 +25,7 @@ type AdminOrder = {
   status: string
   total: number
   created_at: string
+  archived_at?: string | null
   member: { full_name: string | null; email: string | null; username: string | null } | null
   supplier: { name: string; type: string } | null
   order_items: OrderItem[]
@@ -37,7 +47,7 @@ const SUPPLIER_TYPE_LABELS: Record<string, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getMemberName(order: AdminOrder) {
+function getMemberName(order: Pick<AdminOrder, 'member'>) {
   return (
     order.member?.full_name ||
     order.member?.username ||
@@ -78,13 +88,22 @@ export default function AdminCommandesPage({
   const [filterSupplier, setFilterSupplier] = useState('')
   const [filterDate, setFilterDate]         = useState('')
   const [updating, setUpdating]       = useState<string | null>(null)
+  const [exporting, setExporting]     = useState(false)
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
+  const [archivableCount, setArchivableCount] = useState(0)
+  const [archiving, setArchiving] = useState(false)
+  const [reportYears, setReportYears] = useState<number[]>([])
+  const [reportYear, setReportYear] = useState<number>(new Date().getFullYear())
+  const [downloadingReport, setDownloadingReport] = useState(false)
 
   // ── Chargement des commandes ─────────────────────────────────────────────
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (includeArchived = showArchived) => {
     setLoading(true)
     setError(null)
-    const res = await fetch('/api/admin/orders')
+    const qs = includeArchived ? '?includeArchived=1' : ''
+    const res = await fetch(`/api/admin/orders${qs}`)
     if (!res.ok) {
       setError('Impossible de charger les commandes. Vérifie ta connexion.')
       setLoading(false)
@@ -92,10 +111,22 @@ export default function AdminCommandesPage({
     }
     const data = await res.json()
     setOrders(data.orders ?? [])
+    setArchivableCount(data.archivableCount ?? 0)
     setLoading(false)
-  }, [])
+  }, [showArchived])
 
-  useEffect(() => { fetchOrders() }, [fetchOrders])
+  useEffect(() => { fetchOrders(showArchived) }, [fetchOrders, showArchived])
+
+  useEffect(() => {
+    fetch('/api/admin/orders/annual-report')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const years = (data?.years as number[] | undefined) ?? []
+        setReportYears(years)
+        if (years.length > 0) setReportYear(years[0])
+      })
+      .catch(() => {})
+  }, [])
 
   // ── Filtres ───────────────────────────────────────────────────────────────
 
@@ -120,6 +151,16 @@ export default function AdminCommandesPage({
 
   const hasFilters = filterStatus || filterSupplier || filterDate
 
+  const aggregatedSummary = useMemo(() => {
+    if (!filterSupplier || filtered.length === 0) return null
+    return computeAggregatedSummary(filtered as OrderExportInput[], getMemberName, formatDate)
+  }, [filterSupplier, filtered])
+
+  const aggregatedTotal = useMemo(
+    () => aggregatedSummary?.reduce((s, l) => s + l.totalAmount, 0) ?? 0,
+    [aggregatedSummary],
+  )
+
   function switchToHistory() {
     setMode('history')
     setFilterStatus('')
@@ -137,12 +178,13 @@ export default function AdminCommandesPage({
   // ── Statistiques ─────────────────────────────────────────────────────────
 
   const stats = {
-    total:       orders.length,
-    confirmed:   orders.filter(o => o.status === 'confirmed').length,
-    delivered:   orders.filter(o => o.status === 'delivered').length,
-    cancelled:   orders.filter(o => o.status === 'cancelled').length,
+    total:       orders.filter(o => !o.archived_at).length,
+    archived:    orders.filter(o => o.archived_at).length,
+    confirmed:   orders.filter(o => o.status === 'confirmed' && !o.archived_at).length,
+    delivered:   orders.filter(o => o.status === 'delivered' && !o.archived_at).length,
+    cancelled:   orders.filter(o => o.status === 'cancelled' && !o.archived_at).length,
     totalAmount: orders
-      .filter(o => o.status !== 'cancelled')
+      .filter(o => o.status !== 'cancelled' && !o.archived_at)
       .reduce((s, o) => s + o.total, 0),
   }
 
@@ -174,74 +216,134 @@ export default function AdminCommandesPage({
     setUpdating(null)
   }
 
-  // ── Export CSV ────────────────────────────────────────────────────────────
-  // Le fichier est trié par fournisseur pour faciliter la préparation des commandes groupées.
+  async function cancelOrderItem(orderId: string, item: OrderItem) {
+    const productName = item.product?.name ?? 'ce produit'
+    const lineTotal = (item.quantity * item.unit_price).toFixed(2)
+    const ok = window.confirm(
+      `Retirer « ${productName} » (CHF ${lineTotal}) de cette commande ?\n\nLe membre recevra un email avec le nouveau total.`,
+    )
+    if (!ok) return
 
-  function exportCSV() {
-    const bySupplier: Record<string, {
-      supplierType: string
-      rows: {
-        member: string; email: string
-        product: string; qty: number; unit: string
-        unitPrice: number; lineTotal: number
-        date: string
-      }[]
-    }> = {}
+    setRemovingItemId(item.id)
+    try {
+      const res = await fetch('/api/admin/orders/cancel-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderItemId: item.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors du retrait.')
 
-    for (const order of filtered) {
-      if (order.status === 'cancelled') continue
+      setOrders(prev => prev.flatMap(o => {
+        if (o.id !== orderId) return [o]
+        if (data.orderStatus === 'cancelled') return []
+        return [{
+          ...o,
+          total: data.newTotal as number,
+          status: data.orderStatus as string,
+          order_items: o.order_items.filter(i => i.id !== item.id),
+        }]
+      }))
 
-      const sName = order.supplier?.name ?? 'Inconnu'
-      const sType = SUPPLIER_TYPE_LABELS[order.supplier?.type ?? ''] ?? ''
-      if (!bySupplier[sName]) bySupplier[sName] = { supplierType: sType, rows: [] }
-
-      for (const item of order.order_items) {
-        bySupplier[sName].rows.push({
-          member:    getMemberName(order),
-          email:     order.member?.email ?? '',
-          product:   item.product?.name ?? '—',
-          qty:       item.quantity,
-          unit:      item.product?.unit ?? '',
-          unitPrice: item.unit_price,
-          lineTotal: item.quantity * item.unit_price,
-          date:      formatDate(order.created_at),
-        })
+      if (data.emailSent === false) {
+        alert('Produit retiré, mais aucun email n\'a pu être envoyé au membre (adresse introuvable).')
       }
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setRemovingItemId(null)
     }
+  }
 
-    const lines: string[] = [
-      'Fournisseur,Type,Membre,Email,Date commande,Produit,Quantité,Unité,Prix unitaire (CHF),Total ligne (CHF)',
-    ]
+  async function exportExcel() {
+    const rows = collectExportRows(filtered as OrderExportInput[], getMemberName, formatDate)
+    if (rows.length === 0) return
 
-    for (const [supplier, data] of Object.entries(bySupplier)) {
-      for (const row of data.rows) {
-        lines.push([
-          `"${supplier}"`,
-          `"${data.supplierType}"`,
-          `"${row.member}"`,
-          `"${row.email}"`,
-          `"${row.date}"`,
-          `"${row.product}"`,
-          row.qty,
-          `"${row.unit}"`,
-          row.unitPrice.toFixed(2),
-          row.lineTotal.toFixed(2),
-        ].join(','))
+    setExporting(true)
+    try {
+      const buffer = await buildOrdersExcelBuffer({
+        rows,
+        supplierTypeLabels: SUPPLIER_TYPE_LABELS,
+        singleSupplier: filterSupplier || undefined,
+      })
+
+      const slug = filterSupplier
+        ? filterSupplier.replace(/[^\w\s-àâäéèêëïîôùûüç]/gi, '').replace(/\s+/g, '-').slice(0, 40)
+        : 'tous'
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `commandes-${slug}-${new Date().toISOString().slice(0, 10)}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  async function archiveEligibleOrders() {
+    const ok = window.confirm(
+      `Archiver ${archivableCount} commande(s) livrée(s) de plus de ${ARCHIVE_AFTER_MONTHS} mois ?\n\nElles disparaîtront de l'historique actif mais restent en base (bilan annuel, export adhérent).`,
+    )
+    if (!ok) return
+
+    setArchiving(true)
+    try {
+      const res = await fetch('/api/admin/orders/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bulk: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de l\'archivage.')
+      await fetchOrders(showArchived)
+      alert(data.message ?? 'Archivage terminé.')
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  async function toggleOrderArchive(order: AdminOrder, unarchive: boolean) {
+    setArchiving(true)
+    try {
+      const res = await fetch('/api/admin/orders/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, unarchive }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur.')
+      await fetchOrders(showArchived)
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  async function downloadAnnualReport() {
+    setDownloadingReport(true)
+    try {
+      const res = await fetch(`/api/admin/orders/annual-report?year=${reportYear}`)
+      if (!res.ok) {
+        alert('Impossible de générer le bilan annuel.')
+        return
       }
-      // Ligne de total par fournisseur
-      const supplierTotal = data.rows.reduce((s, r) => s + r.lineTotal, 0)
-      lines.push(`"TOTAL ${supplier}",,,,,,,,,"${supplierTotal.toFixed(2)}"`)
-      lines.push('') // ligne vide entre chaque fournisseur
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `bilan-annuel-${reportYear}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setDownloadingReport(false)
     }
-
-    // BOM (\uFEFF) pour que Excel ouvre l'accent correctement
-    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `commandes-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
   }
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
@@ -277,19 +379,19 @@ export default function AdminCommandesPage({
           </p>
         </div>
         <button
-          onClick={exportCSV}
-          disabled={filtered.length === 0 || loading}
+          onClick={exportExcel}
+          disabled={filtered.length === 0 || loading || exporting}
           style={{
             padding: '0.6rem 1.25rem',
-            background: filtered.length === 0 || loading ? '#e0e0e0' : '#1a1a2e',
-            color: filtered.length === 0 || loading ? '#999' : '#fff',
+            background: filtered.length === 0 || loading || exporting ? '#e0e0e0' : '#1a1a2e',
+            color: filtered.length === 0 || loading || exporting ? '#999' : '#fff',
             border: 'none', borderRadius: 8,
             fontWeight: 600, fontSize: '0.88rem',
-            cursor: filtered.length === 0 || loading ? 'not-allowed' : 'pointer',
+            cursor: filtered.length === 0 || loading || exporting ? 'not-allowed' : 'pointer',
             whiteSpace: 'nowrap', transition: 'background 0.2s',
           }}
         >
-          ↓ Exporter CSV{filtered.length > 0 ? ` (${filtered.length})` : ''}
+          {exporting ? 'Export…' : `↓ Exporter Excel${filtered.length > 0 ? ` (${filtered.length})` : ''}`}
         </button>
       </div>
 
@@ -307,6 +409,7 @@ export default function AdminCommandesPage({
           { label: 'Confirmées',  value: stats.confirmed,   color: '#DC7F00' },
           { label: 'Livrées',     value: stats.delivered,   color: '#1565c0' },
           { label: 'Annulées',    value: stats.cancelled,   color: '#c0392b' },
+          { label: 'Archivées',   value: showArchived ? stats.archived : '—', color: '#6b7280' },
           { label: 'CA total',    value: `CHF ${stats.totalAmount.toFixed(2)}`, color: '#2e7d32' },
         ]).map(s => (
           <div key={s.label} style={{
@@ -326,6 +429,106 @@ export default function AdminCommandesPage({
       </div>
 
       {/* Bascule de mode + filtres */}
+      {!filterSupplier && !loading && filtered.length > 0 && (
+        <div style={{
+          background: '#fff8ed',
+          border: '1px solid #ffe082',
+          borderRadius: 10,
+          padding: '0.75rem 1rem',
+          marginBottom: '0.75rem',
+          fontSize: '0.85rem',
+          color: '#92400e',
+          lineHeight: 1.5,
+        }}>
+          <strong>Récap groupé :</strong> choisissez un fournisseur dans le menu ci-dessous pour afficher
+          le tableau vert (quantités additionnées) et préparer la commande fournisseur.
+        </div>
+      )}
+
+      {mode === 'history' && archivableCount > 0 && (
+        <div style={{
+          background: '#f0f4ff',
+          border: '1px solid #c7d2fe',
+          borderRadius: 10,
+          padding: '0.85rem 1rem',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#3730a3', lineHeight: 1.5 }}>
+            <strong>{archivableCount} commande{archivableCount > 1 ? 's' : ''} livrée{archivableCount > 1 ? 's' : ''}</strong>
+            {' '}de plus de {ARCHIVE_AFTER_MONTHS} mois peuvent être archivées — elles sortent de cette liste
+            mais restent comptabilisées dans le bilan annuel.
+          </p>
+          <button
+            type="button"
+            onClick={() => void archiveEligibleOrders()}
+            disabled={archiving || loading}
+            style={{
+              ...selectStyle,
+              cursor: archiving || loading ? 'not-allowed' : 'pointer',
+              background: '#4338ca',
+              color: '#fff',
+              borderColor: '#4338ca',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {archiving ? 'Archivage…' : `Archiver (${archivableCount})`}
+          </button>
+        </div>
+      )}
+
+      {mode === 'history' && reportYears.length > 0 && (
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(16,24,40,0.08)',
+          borderRadius: 10,
+          padding: '0.85rem 1rem',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          alignItems: 'center',
+        }}>
+          <div>
+            <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#2e7d32' }}>
+              Bilan annuel
+            </p>
+            <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', opacity: 0.65 }}>
+              Synthèse par fournisseur, mois et top produits — pour l&apos;association.
+            </p>
+          </div>
+          <select
+            value={reportYear}
+            onChange={e => setReportYear(Number(e.target.value))}
+            style={{ ...selectStyle, minWidth: '7rem' }}
+          >
+            {reportYears.map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => void downloadAnnualReport()}
+            disabled={downloadingReport}
+            style={{
+              ...selectStyle,
+              cursor: downloadingReport ? 'not-allowed' : 'pointer',
+              background: '#1a1a2e',
+              color: '#fff',
+              borderColor: '#1a1a2e',
+              fontWeight: 700,
+            }}
+          >
+            {downloadingReport ? 'Génération…' : '↓ Bilan Excel'}
+          </button>
+        </div>
+      )}
+
       <div style={{
         display: 'flex', gap: '0.6rem', flexWrap: 'wrap',
         background: '#f8f9fa', borderRadius: 10,
@@ -377,6 +580,22 @@ export default function AdminCommandesPage({
               onChange={e => setFilterDate(e.target.value)}
               style={{ ...selectStyle, fontFamily: 'inherit' }}
             />
+
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}>
+              <input
+                type="checkbox"
+                checked={showArchived}
+                onChange={e => setShowArchived(e.target.checked)}
+              />
+              Afficher les archives
+            </label>
           </>
         )}
 
@@ -384,7 +603,13 @@ export default function AdminCommandesPage({
         <select
           value={filterSupplier}
           onChange={e => setFilterSupplier(e.target.value)}
-          style={selectStyle}
+          style={{
+            ...selectStyle,
+            fontWeight: filterSupplier ? 700 : 400,
+            borderColor: filterSupplier ? '#2e7d32' : '#ddd',
+            background: filterSupplier ? '#f0f9f4' : '#fff',
+            minWidth: '12rem',
+          }}
         >
           <option value="">Tous les fournisseurs</option>
           {suppliers.map(s => <option key={s} value={s}>{s}</option>)}
@@ -419,7 +644,7 @@ export default function AdminCommandesPage({
         }}>
           {error}
           <button
-            onClick={fetchOrders}
+            onClick={() => void fetchOrders()}
             style={{ marginLeft: '1rem', textDecoration: 'underline', background: 'none', border: 'none', color: '#c0392b', cursor: 'pointer' }}
           >
             Réessayer
@@ -450,6 +675,15 @@ export default function AdminCommandesPage({
         </div>
       )}
 
+      {!loading && !error && filterSupplier && filtered.length > 0 && aggregatedSummary && (
+        <AggregatedSummaryPanel
+          supplierName={filterSupplier}
+          lines={aggregatedSummary}
+          orderCount={filtered.length}
+          totalAmount={aggregatedTotal}
+        />
+      )}
+
       {/* Liste des commandes */}
       {!loading && !error && filtered.length > 0 && (
         <div style={{ display: 'grid', gap: '0.6rem' }}>
@@ -466,7 +700,7 @@ export default function AdminCommandesPage({
                   borderRadius: 12, overflow: 'hidden',
                   opacity: isUpdating ? 0.65 : 1,
                   transition: 'opacity 0.2s',
-                  background: '#fff',
+                  background: order.archived_at ? '#f9fafb' : '#fff',
                 }}
               >
                 {/* ── En-tête cliquable (résumé) ── */}
@@ -500,6 +734,17 @@ export default function AdminCommandesPage({
 
                   {/* Colonne droite : badge statut + montant */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
+                    {order.archived_at && (
+                      <span style={{
+                        background: '#f3f4f6',
+                        color: '#6b7280',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 999, padding: '0.18rem 0.65rem',
+                        fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+                      }}>
+                        Archivée
+                      </span>
+                    )}
                     <span style={{
                       background: st.bg, color: st.color,
                       border: `1px solid ${st.border}22`,
@@ -526,47 +771,84 @@ export default function AdminCommandesPage({
                     </p>
                   )}
 
-                  {/* Tableau des produits */}
-                  <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
-                    <table style={{
-                      width: '100%', borderCollapse: 'collapse',
-                      fontSize: '0.875rem', minWidth: 320,
+                  {order.status === 'confirmed' && order.order_items.length > 0 && (
+                    <p style={{
+                      margin: '0 0 0.85rem',
+                      padding: '0.55rem 0.75rem',
+                      background: '#fff8ed',
+                      border: '1px solid #ffe082',
+                      borderRadius: 8,
+                      fontSize: '0.8rem',
+                      color: '#92400e',
+                      lineHeight: 1.45,
                     }}>
-                      <thead>
-                        <tr style={{ opacity: 0.5 }}>
-                          <th style={thStyle}>Produit</th>
-                          <th style={{ ...thStyle, textAlign: 'right' }}>Qté</th>
-                          <th style={{ ...thStyle, textAlign: 'right' }}>P.U.</th>
-                          <th style={{ ...thStyle, textAlign: 'right' }}>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {order.order_items.map(item => (
-                          <tr key={item.id} style={{ borderTop: '1px solid rgba(16,24,40,0.05)' }}>
-                            <td style={tdStyle}>{item.product?.name ?? '—'}</td>
-                            <td style={{ ...tdStyle, textAlign: 'right' }}>
+                      Produit indisponible ? Cliquez <strong>Retirer</strong> — le total est recalculé et le membre est prévenu par email.
+                    </p>
+                  )}
+
+                  {/* Lignes produits — style panier */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    {order.order_items.map(item => {
+                      const lineTotal = item.quantity * item.unit_price
+                      const isRemoving = removingItemId === item.id
+                      const canRemove = order.status === 'confirmed'
+
+                      return (
+                        <div key={item.id} className={lineStyles.orderLine}>
+                          <div className={lineStyles.lineInfo}>
+                            <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.product?.name ?? '—'}</span>
+                            {item.product?.supplier_ref && (
+                              <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
+                                Réf. {item.product.supplier_ref}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className={lineStyles.lineMeta}>
+                            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
                               {item.quantity} {item.product?.unit}
-                            </td>
-                            <td style={{ ...tdStyle, textAlign: 'right', opacity: 0.6 }}>
-                              CHF {item.unit_price.toFixed(2)}
-                            </td>
-                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>
-                              CHF {(item.quantity * item.unit_price).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr style={{ borderTop: '2px solid rgba(16,24,40,0.1)' }}>
-                          <td colSpan={3} style={{ paddingTop: '0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
-                            Total commande
-                          </td>
-                          <td style={{ textAlign: 'right', paddingTop: '0.5rem', fontWeight: 700 }}>
-                            CHF {order.total.toFixed(2)}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
+                            </span>
+                            <span style={{ display: 'block', fontSize: '0.78rem', opacity: 0.55 }}>
+                              CHF {item.unit_price.toFixed(2)} / unité
+                            </span>
+                            <span style={{ display: 'block', fontWeight: 700, marginTop: '0.15rem' }}>
+                              CHF {lineTotal.toFixed(2)}
+                            </span>
+                          </div>
+
+                          {canRemove ? (
+                            <button
+                              type="button"
+                              className={lineStyles.removeBtn}
+                              disabled={isRemoving || isUpdating}
+                              onClick={e => {
+                                e.preventDefault()
+                                void cancelOrderItem(order.id, item)
+                              }}
+                              aria-label={`Retirer ${item.product?.name ?? 'produit'}`}
+                            >
+                              {isRemoving ? '…' : '✕ Retirer'}
+                            </button>
+                          ) : (
+                            <span style={{ width: 72 }} aria-hidden />
+                          )}
+                        </div>
+                      )
+                    })}
+
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingTop: '0.75rem',
+                      marginTop: '0.25rem',
+                      borderTop: '2px solid rgba(16,24,40,0.1)',
+                      gap: '0.75rem',
+                      flexWrap: 'wrap',
+                    }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Total commande</span>
+                      <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>CHF {order.total.toFixed(2)}</span>
+                    </div>
                   </div>
 
                   {/* Boutons de changement de statut */}
@@ -605,6 +887,51 @@ export default function AdminCommandesPage({
                     {isUpdating && (
                       <span style={{ fontSize: '0.78rem', opacity: 0.45 }}>Mise à jour…</span>
                     )}
+
+                    {mode === 'history' && order.archived_at && (
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault()
+                          void toggleOrderArchive(order, true)
+                        }}
+                        disabled={archiving}
+                        style={{
+                          marginLeft: 'auto',
+                          padding: '0.28rem 0.85rem',
+                          borderRadius: 8,
+                          border: '1px solid #ddd',
+                          background: '#fff',
+                          fontSize: '0.78rem',
+                          cursor: archiving ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        Restaurer
+                      </button>
+                    )}
+
+                    {mode === 'history' && !order.archived_at && order.status === 'delivered' && (
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault()
+                          void toggleOrderArchive(order, false)
+                        }}
+                        disabled={archiving}
+                        style={{
+                          marginLeft: 'auto',
+                          padding: '0.28rem 0.85rem',
+                          borderRadius: 8,
+                          border: '1px solid #c7d2fe',
+                          background: '#eef2ff',
+                          color: '#4338ca',
+                          fontSize: '0.78rem',
+                          cursor: archiving ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        Archiver
+                      </button>
+                    )}
                   </div>
                 </div>
               </details>
@@ -635,4 +962,101 @@ const thStyle: React.CSSProperties = {
 
 const tdStyle: React.CSSProperties = {
   padding: '0.35rem 0',
+}
+
+function AggregatedSummaryPanel({
+  supplierName,
+  lines,
+  orderCount,
+  totalAmount,
+}: {
+  supplierName: string
+  lines: AggregatedExportLine[]
+  orderCount: number
+  totalAmount: number
+}) {
+  return (
+    <section style={{
+      marginBottom: '1.5rem',
+      background: '#f0f9f4',
+      border: '1.5px solid #a5d6a7',
+      borderRadius: 14,
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '1rem 1.25rem',
+        background: '#e8f5e9',
+        borderBottom: '1px solid #c3e6cb',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <div>
+          <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#2e7d32' }}>
+            Récapitulatif groupé
+          </p>
+          <h2 style={{ margin: '0.2rem 0 0', fontSize: '1.05rem', fontWeight: 700 }}>
+            {supplierName}
+          </h2>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.82rem', opacity: 0.65 }}>
+            {orderCount} commande{orderCount > 1 ? 's' : ''} · {lines.length} produit{lines.length > 1 ? 's' : ''} — quantités additionnées
+          </p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Total à commander
+          </p>
+          <p style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700, color: '#1a1a2e' }}>
+            CHF {totalAmount.toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      <div style={{ padding: '0.75rem 1.25rem 1rem', overflowX: 'auto', background: '#fff' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', minWidth: 480 }}>
+          <thead>
+            <tr style={{ opacity: 0.55, fontSize: '0.78rem' }}>
+              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>N° article</th>
+              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>Désignation</th>
+              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Qté totale</th>
+              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>P.U.</th>
+              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map(line => (
+              <tr key={`${line.articleRef}-${line.product}-${line.unitPrice}`} style={{ borderTop: '1px solid rgba(16,24,40,0.06)' }}>
+                <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.82rem', opacity: line.articleRef ? 1 : 0.35 }}>
+                  {line.articleRef || '—'}
+                </td>
+                <td style={tdStyle}>{line.product}</td>
+                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>
+                  {line.totalQty} {line.unit}
+                </td>
+                <td style={{ ...tdStyle, textAlign: 'right', opacity: 0.65 }}>
+                  CHF {line.unitPrice.toFixed(2)}
+                </td>
+                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>
+                  CHF {line.totalAmount.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr style={{ borderTop: '2px solid rgba(16,24,40,0.12)' }}>
+              <td colSpan={4} style={{ paddingTop: '0.6rem', fontWeight: 700 }}>Total fournisseur</td>
+              <td style={{ textAlign: 'right', paddingTop: '0.6rem', fontWeight: 700, fontSize: '1rem' }}>
+                CHF {totalAmount.toFixed(2)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        <p style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.5 }}>
+          Même liste dans l&apos;export Excel (feuille « Commandes », bloc récap en tête). Le détail par membre reste en dessous sur cette page.
+        </p>
+      </div>
+    </section>
+  )
 }

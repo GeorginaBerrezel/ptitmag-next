@@ -1,0 +1,38 @@
+import styles from './PageHeroWithImage.module.css'
+
+type Props = {
+  imageSrc: string
+  imagePosition?: string
+  kicker: string
+  title: string
+  intro?: string
+  className?: string
+  marginBottom?: string
+}
+
+export default function PageHeroWithImage({
+  imageSrc,
+  imagePosition = 'center',
+  kicker,
+  title,
+  intro,
+  className,
+  marginBottom = '2rem',
+}: Props) {
+  return (
+    <div
+      className={`page-hero ${styles.hero}${className ? ` ${className}` : ''}`}
+      style={{
+        backgroundImage: `url(${imageSrc})`,
+        backgroundPosition: imagePosition,
+        marginBottom,
+      }}
+    >
+      <div className={styles.content}>
+        <p className={`page-hero-kicker ${styles.kicker}`}>{kicker}</p>
+        <h1 className={styles.title}>{title}</h1>
+        {intro && <p className={styles.intro}>{intro}</p>}
+      </div>
+    </div>
+  )
+}

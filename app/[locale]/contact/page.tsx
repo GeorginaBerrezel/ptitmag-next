@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server'
 import { site } from '@/lib/site'
 import ContactForm from '@/components/ContactForm'
+import PageHeroWithImage from '@/components/PageHeroWithImage'
+import { SHOP_IMAGES } from '@/lib/site-images'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,30 +48,13 @@ export default async function ContactPage({
   return (
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
-      {/* ── Bloc intro ── */}
-      <div className="page-hero" style={{
-        background: 'linear-gradient(135deg, #0E1726 0%, #1a2e3a 100%)',
-        borderRadius: 20,
-        padding: 'clamp(1.75rem, 5vw, 2.75rem)',
-        color: '#fff',
-        marginBottom: '2rem',
-      }}>
-        <p className="page-hero-kicker" style={{
-          margin: '0 0 0.5rem',
-          fontSize: '0.78rem',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-        }}>
-          Le p&apos;tit mag · St-Romain (Ayent)
-        </p>
-        <h1 style={{ margin: '0 0 0.75rem', fontSize: 'clamp(1.5rem, 4vw, 2.1rem)', fontWeight: 800 }}>
-          {t('title')}
-        </h1>
-        <p style={{ margin: 0, opacity: 0.82, lineHeight: 1.65 }}>
-          {t('intro')}
-        </p>
-      </div>
+      <PageHeroWithImage
+        imageSrc={SHOP_IMAGES.counter}
+        imagePosition="center 35%"
+        kicker="Le p'tit mag · St-Romain (Ayent)"
+        title={t('title')}
+        intro={t('intro')}
+      />
 
       {/* ── Grille principale ── */}
       <div style={{

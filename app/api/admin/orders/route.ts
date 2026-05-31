@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { sendDeliveryNotification } from '@/lib/email/sendDeliveryNotification'
 import { requireAdminUser } from '@/lib/admin/auth'
+import { countEligibleForArchive } from '@/lib/admin/order-archive'
 
 const VALID_STATUSES = ['confirmed', 'delivered', 'cancelled']
 
@@ -13,33 +14,40 @@ const VALID_STATUSES = ['confirmed', 'delivered', 'cancelled']
  * pas vers public.profiles. PostgREST ne peut donc pas faire le join automatique
  * entre orders et profiles. On récupère les profils dans une deuxième requête.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const user = await requireAdminUser()
   if (!user) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
   }
 
+  const includeArchived = request.nextUrl.searchParams.get('includeArchived') === '1'
   const admin = createAdminClient()
 
   // ── Étape 1 : toutes les commandes (pagination : PostgREST limite à 1000 lignes par défaut)
   const PAGE = 1000
   const selectPayload = `
-      id, status, total, created_at, member_id,
+      id, status, total, created_at, archived_at, member_id,
       supplier:suppliers(name, type),
       order_items(
-        id, quantity, unit_price,
-        product:products(name, unit)
+        id, quantity, unit_price, cancelled_at,
+        product:products(name, unit, supplier_ref)
       )
     `
 
   const orders: Record<string, unknown>[] = []
   let from = 0
   for (;;) {
-    const { data: batch, error: ordersError } = await admin
+    let query = admin
       .from('orders')
       .select(selectPayload)
       .order('created_at', { ascending: false })
       .range(from, from + PAGE - 1)
+
+    if (!includeArchived) {
+      query = query.is('archived_at', null)
+    }
+
+    const { data: batch, error: ordersError } = await query
 
     if (ordersError) {
       console.error('[admin/orders GET] Supabase error:', ordersError)
@@ -79,17 +87,31 @@ export async function GET() {
   }
 
   // ── Étape 3 : assembler et renvoyer ──────────────────────────────────────
-  const result = orders.map((order: Record<string, unknown>) => ({
-    id:          order.id,
-    status:      order.status,
-    total:       order.total,
-    created_at:  order.created_at,
-    supplier:    order.supplier,
-    order_items: order.order_items,
-    member:      profilesMap[order.member_id as string] ?? null,
-  }))
+  const result = orders.map((order: Record<string, unknown>) => {
+    const rawItems = (order.order_items as Array<{ cancelled_at?: string | null }> | null) ?? []
+    const activeItems = rawItems.filter(i => !i.cancelled_at)
 
-  return NextResponse.json({ orders: result })
+    return {
+      id: order.id,
+      status: order.status,
+      total: order.total,
+      created_at: order.created_at,
+      archived_at: order.archived_at ?? null,
+      supplier: order.supplier,
+      order_items: activeItems,
+      member: profilesMap[order.member_id as string] ?? null,
+    }
+  })
+
+  const archivableCount = countEligibleForArchive(
+    result.map(o => ({
+      status: o.status as string,
+      created_at: o.created_at as string,
+      archived_at: o.archived_at as string | null,
+    })),
+  )
+
+  return NextResponse.json({ orders: result, archivableCount })
 }
 
 /**

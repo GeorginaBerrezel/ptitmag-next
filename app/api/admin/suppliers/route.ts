@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isLegacyBiopartnerSupplier } from '@/lib/import/biopartner-catalogs'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
 
@@ -36,7 +37,9 @@ export async function GET() {
     countMap[p.supplier_id] = (countMap[p.supplier_id] ?? 0) + 1
   }
 
-  const result = (suppliers ?? []).map(s => ({
+  const result = (suppliers ?? [])
+    .filter(s => !isLegacyBiopartnerSupplier(s.name))
+    .map(s => ({
     id: s.id,
     name: s.name,
     type: s.type,

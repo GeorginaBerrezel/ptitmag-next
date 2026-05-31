@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
+import PageHeroWithImage from '@/components/PageHeroWithImage'
+import { SHOP_IMAGES } from '@/lib/site-images'
 
 // ─── Données statiques ────────────────────────────────────────────────────────
 // Les clés "why" dans l'ordre de la traduction, avec un emoji représentatif
@@ -42,30 +44,14 @@ export default async function MembershipPage({
   return (
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
-      {/* ── Bloc intro ── */}
-      <div className="page-hero" style={{
-        background: 'linear-gradient(135deg, #0E1726 0%, #1a3020 100%)',
-        borderRadius: 20,
-        padding: 'clamp(1.75rem, 5vw, 2.75rem)',
-        color: '#fff',
-        marginBottom: '2.5rem',
-      }}>
-        <p className="page-hero-kicker" style={{
-          margin: '0 0 0.5rem',
-          fontSize: '0.78rem',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-        }}>
-          Le p&apos;tit mag · St-Romain (Ayent)
-        </p>
-        <h1 style={{ margin: '0 0 1rem', fontSize: 'clamp(1.5rem, 4vw, 2.1rem)', fontWeight: 800 }}>
-          {t('title')}
-        </h1>
-        <p style={{ margin: 0, opacity: 0.82, maxWidth: 580, lineHeight: 1.7, fontSize: '1rem' }}>
-          {t('intro')}
-        </p>
-      </div>
+      <PageHeroWithImage
+        imageSrc={SHOP_IMAGES.interior}
+        imagePosition="center 40%"
+        kicker="Le p'tit mag · St-Romain (Ayent)"
+        title={t('title')}
+        intro={t('intro')}
+        marginBottom="2.5rem"
+      />
 
       {/* ── Statuts membres (Ciel / Terre) ── */}
       <section style={{ marginBottom: '3rem' }}>
