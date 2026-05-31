@@ -27,7 +27,7 @@ export async function GET() {
       id, status, total, created_at, member_id,
       supplier:suppliers(name, type),
       order_items(
-        id, quantity, unit_price,
+        id, quantity, unit_price, cancelled_at,
         product:products(name, unit, supplier_ref)
       )
     `
@@ -79,15 +79,20 @@ export async function GET() {
   }
 
   // ── Étape 3 : assembler et renvoyer ──────────────────────────────────────
-  const result = orders.map((order: Record<string, unknown>) => ({
-    id:          order.id,
-    status:      order.status,
-    total:       order.total,
-    created_at:  order.created_at,
-    supplier:    order.supplier,
-    order_items: order.order_items,
-    member:      profilesMap[order.member_id as string] ?? null,
-  }))
+  const result = orders.map((order: Record<string, unknown>) => {
+    const rawItems = (order.order_items as Array<{ cancelled_at?: string | null }> | null) ?? []
+    const activeItems = rawItems.filter(i => !i.cancelled_at)
+
+    return {
+      id: order.id,
+      status: order.status,
+      total: order.total,
+      created_at: order.created_at,
+      supplier: order.supplier,
+      order_items: activeItems,
+      member: profilesMap[order.member_id as string] ?? null,
+    }
+  })
 
   return NextResponse.json({ orders: result })
 }

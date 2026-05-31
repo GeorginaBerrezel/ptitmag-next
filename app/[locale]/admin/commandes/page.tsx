@@ -8,6 +8,7 @@ import {
   type OrderExportInput,
 } from '@/lib/admin/order-export'
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
+import lineStyles from './commandes.module.css'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ export default function AdminCommandesPage({
   const [filterDate, setFilterDate]         = useState('')
   const [updating, setUpdating]       = useState<string | null>(null)
   const [exporting, setExporting]     = useState(false)
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null)
 
   // ── Chargement des commandes ─────────────────────────────────────────────
 
@@ -192,9 +194,42 @@ export default function AdminCommandesPage({
     setUpdating(null)
   }
 
-  // ── Export CSV ────────────────────────────────────────────────────────────
-  // Colonnes Biopartner en tête (N° article → total), infos admin après.
-  // Séparateur ; pour Excel suisse. Groupé par fournisseur.
+  async function cancelOrderItem(orderId: string, item: OrderItem) {
+    const productName = item.product?.name ?? 'ce produit'
+    const lineTotal = (item.quantity * item.unit_price).toFixed(2)
+    const ok = window.confirm(
+      `Retirer « ${productName} » (CHF ${lineTotal}) de cette commande ?\n\nLe membre recevra un email avec le nouveau total.`,
+    )
+    if (!ok) return
+
+    setRemovingItemId(item.id)
+    try {
+      const res = await fetch('/api/admin/orders/cancel-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderItemId: item.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors du retrait.')
+
+      setOrders(prev => prev.flatMap(o => {
+        if (o.id !== orderId) return [o]
+        if (data.orderStatus === 'cancelled') return []
+        return [{
+          ...o,
+          total: data.newTotal as number,
+          status: data.orderStatus as string,
+          order_items: o.order_items.filter(i => i.id !== item.id),
+        }]
+      }))
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setRemovingItemId(null)
+    }
+  }
+
+  // ── Export Excel ──────────────────────────────────────────────────────────
 
   async function exportExcel() {
     const rows = collectExportRows(filtered as OrderExportInput[], getMemberName, formatDate)
@@ -538,47 +573,84 @@ export default function AdminCommandesPage({
                     </p>
                   )}
 
-                  {/* Tableau des produits */}
-                  <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
-                    <table style={{
-                      width: '100%', borderCollapse: 'collapse',
-                      fontSize: '0.875rem', minWidth: 320,
+                  {order.status === 'confirmed' && order.order_items.length > 0 && (
+                    <p style={{
+                      margin: '0 0 0.85rem',
+                      padding: '0.55rem 0.75rem',
+                      background: '#fff8ed',
+                      border: '1px solid #ffe082',
+                      borderRadius: 8,
+                      fontSize: '0.8rem',
+                      color: '#92400e',
+                      lineHeight: 1.45,
                     }}>
-                      <thead>
-                        <tr style={{ opacity: 0.5 }}>
-                          <th style={thStyle}>Produit</th>
-                          <th style={{ ...thStyle, textAlign: 'right' }}>Qté</th>
-                          <th style={{ ...thStyle, textAlign: 'right' }}>P.U.</th>
-                          <th style={{ ...thStyle, textAlign: 'right' }}>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {order.order_items.map(item => (
-                          <tr key={item.id} style={{ borderTop: '1px solid rgba(16,24,40,0.05)' }}>
-                            <td style={tdStyle}>{item.product?.name ?? '—'}</td>
-                            <td style={{ ...tdStyle, textAlign: 'right' }}>
+                      Produit indisponible ? Cliquez <strong>Retirer</strong> — le total est recalculé et le membre est prévenu par email.
+                    </p>
+                  )}
+
+                  {/* Lignes produits — style panier */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    {order.order_items.map(item => {
+                      const lineTotal = item.quantity * item.unit_price
+                      const isRemoving = removingItemId === item.id
+                      const canRemove = order.status === 'confirmed'
+
+                      return (
+                        <div key={item.id} className={lineStyles.orderLine}>
+                          <div className={lineStyles.lineInfo}>
+                            <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.product?.name ?? '—'}</span>
+                            {item.product?.supplier_ref && (
+                              <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
+                                Réf. {item.product.supplier_ref}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className={lineStyles.lineMeta}>
+                            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
                               {item.quantity} {item.product?.unit}
-                            </td>
-                            <td style={{ ...tdStyle, textAlign: 'right', opacity: 0.6 }}>
-                              CHF {item.unit_price.toFixed(2)}
-                            </td>
-                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>
-                              CHF {(item.quantity * item.unit_price).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr style={{ borderTop: '2px solid rgba(16,24,40,0.1)' }}>
-                          <td colSpan={3} style={{ paddingTop: '0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
-                            Total commande
-                          </td>
-                          <td style={{ textAlign: 'right', paddingTop: '0.5rem', fontWeight: 700 }}>
-                            CHF {order.total.toFixed(2)}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
+                            </span>
+                            <span style={{ display: 'block', fontSize: '0.78rem', opacity: 0.55 }}>
+                              CHF {item.unit_price.toFixed(2)} / unité
+                            </span>
+                            <span style={{ display: 'block', fontWeight: 700, marginTop: '0.15rem' }}>
+                              CHF {lineTotal.toFixed(2)}
+                            </span>
+                          </div>
+
+                          {canRemove ? (
+                            <button
+                              type="button"
+                              className={lineStyles.removeBtn}
+                              disabled={isRemoving || isUpdating}
+                              onClick={e => {
+                                e.preventDefault()
+                                void cancelOrderItem(order.id, item)
+                              }}
+                              aria-label={`Retirer ${item.product?.name ?? 'produit'}`}
+                            >
+                              {isRemoving ? '…' : '✕ Retirer'}
+                            </button>
+                          ) : (
+                            <span style={{ width: 72 }} aria-hidden />
+                          )}
+                        </div>
+                      )
+                    })}
+
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingTop: '0.75rem',
+                      marginTop: '0.25rem',
+                      borderTop: '2px solid rgba(16,24,40,0.1)',
+                      gap: '0.75rem',
+                      flexWrap: 'wrap',
+                    }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Total commande</span>
+                      <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>CHF {order.total.toFixed(2)}</span>
+                    </div>
                   </div>
 
                   {/* Boutons de changement de statut */}

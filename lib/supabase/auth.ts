@@ -53,6 +53,7 @@ export type OrderWithItems = {
     id: string
     quantity: number
     unit_price: number
+    cancelled_at?: string | null
     product: { name: string; unit: string } | null
   }[]
 }
@@ -72,7 +73,7 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
       id, status, total, created_at,
       supplier:suppliers(name, type),
       order_items(
-        id, quantity, unit_price,
+        id, quantity, unit_price, cancelled_at,
         product:products(name, unit)
       )
     `)
@@ -84,5 +85,11 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
     return []
   }
 
-  return (data ?? []) as unknown as OrderWithItems[]
+  return (data ?? []).map(order => {
+    const raw = order as unknown as OrderWithItems
+    return {
+      ...raw,
+      order_items: raw.order_items.filter(i => !i.cancelled_at),
+    }
+  })
 }
