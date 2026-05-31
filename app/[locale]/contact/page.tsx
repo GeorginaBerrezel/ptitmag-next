@@ -49,8 +49,8 @@ export default async function ContactPage({
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
       <PageHeroWithImage
-        imageSrc={SHOP_IMAGES.counter}
-        imagePosition="center 35%"
+        imageSrc={SHOP_IMAGES.contact}
+        imagePosition="center 40%"
         kicker="Le p'tit mag · St-Romain (Ayent)"
         title={t('title')}
         intro={t('intro')}

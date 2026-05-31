@@ -1,10 +1,10 @@
 /** Photos du magasin (public/images/shop). */
 
 export const SHOP_IMAGES = {
-  /** Accueil — vue d'ensemble du magasin */
-  products: '/images/shop/magasin-vue.jpg',
+  /** Accueil — comptoir / ambiance */
+  home: '/images/shop/magasin-comptoir.jpg',
   /** Adhésion — rayon produits bio */
-  interior: '/images/shop/magasin-produits.jpg',
-  /** Contact — comptoir et ambiance */
-  counter: '/images/shop/magasin-comptoir.jpg',
+  membership: '/images/shop/magasin-produits.jpg',
+  /** Contact — vue d'ensemble du magasin */
+  contact: '/images/shop/magasin-vue.jpg',
 } as const
