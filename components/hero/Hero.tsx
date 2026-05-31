@@ -44,7 +44,10 @@ export function Hero({ locale, t, stepsDetail, trialContent }: HeroProps) {
         <article className={`${styles.card} ${styles.cardImage}`}>
           <div
             className={styles.cardImageBg}
-            style={{ backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75)), url(${SHOP_IMAGES.home})` }}
+            style={{
+              backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75)), url(${SHOP_IMAGES.home})`,
+              backgroundPosition: 'center 45%',
+            }}
             aria-hidden="true"
           />
           <div className={styles.cardOverlay}>

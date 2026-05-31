@@ -3,6 +3,8 @@ import styles from './PageHeroWithImage.module.css'
 type Props = {
   imageSrc: string
   imagePosition?: string
+  /** 'cover' par défaut ; 'out' = cadrage plus large (moins zoomé) */
+  imageZoom?: 'cover' | 'out'
   kicker: string
   title: string
   intro?: string
@@ -13,6 +15,7 @@ type Props = {
 export default function PageHeroWithImage({
   imageSrc,
   imagePosition = 'center',
+  imageZoom = 'cover',
   kicker,
   title,
   intro,
@@ -21,7 +24,7 @@ export default function PageHeroWithImage({
 }: Props) {
   return (
     <div
-      className={`page-hero ${styles.hero}${className ? ` ${className}` : ''}`}
+      className={`page-hero ${styles.hero}${imageZoom === 'out' ? ` ${styles.heroWide}` : ''}${className ? ` ${className}` : ''}`}
       style={{
         backgroundImage: `url(${imageSrc})`,
         backgroundPosition: imagePosition,
