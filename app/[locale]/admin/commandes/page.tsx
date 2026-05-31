@@ -222,6 +222,10 @@ export default function AdminCommandesPage({
           order_items: o.order_items.filter(i => i.id !== item.id),
         }]
       }))
+
+      if (data.emailSent === false) {
+        alert('Produit retiré, mais aucun email n\'a pu être envoyé au membre (adresse introuvable).')
+      }
     } catch (e) {
       alert((e as Error).message)
     } finally {

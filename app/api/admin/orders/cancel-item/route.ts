@@ -115,15 +115,22 @@ export async function POST(request: NextRequest) {
     .eq('id', order.member_id)
     .single()
 
-  if (profile?.email) {
+  let memberEmail = (profile?.email as string | null)?.trim() || null
+  if (!memberEmail) {
+    const { data: authUser } = await admin.auth.admin.getUserById(order.member_id)
+    memberEmail = authUser?.user?.email?.trim() || null
+  }
+
+  let emailSent = false
+  if (memberEmail) {
     const memberName =
-      (profile.full_name as string | null) ||
-      (profile.username as string | null) ||
+      (profile?.full_name as string | null) ||
+      (profile?.username as string | null) ||
       null
 
     try {
       await sendOrderItemCancelled({
-        memberEmail: profile.email as string,
+        memberEmail,
         memberName,
         supplierName,
         removedProductName,
@@ -134,9 +141,12 @@ export async function POST(request: NextRequest) {
         newTotal,
         orderFullyCancelled,
       })
+      emailSent = true
     } catch (err) {
       console.error('[admin/cancel-item] Email failed:', err)
     }
+  } else {
+    console.warn('[admin/cancel-item] Aucun email membre trouvé pour', order.member_id)
   }
 
   return NextResponse.json({
@@ -145,6 +155,7 @@ export async function POST(request: NextRequest) {
     newTotal,
     orderStatus: newStatus,
     orderFullyCancelled,
+    emailSent,
     removedItem: {
       id: orderItemId,
       productName: removedProductName,
@@ -154,7 +165,11 @@ export async function POST(request: NextRequest) {
     },
     remainingItems: remaining,
     message: orderFullyCancelled
-      ? 'Dernier produit retiré — commande annulée. Email envoyé au membre.'
-      : 'Produit retiré — total recalculé. Email envoyé au membre.',
+      ? emailSent
+        ? 'Dernier produit retiré — commande annulée. Email envoyé au membre.'
+        : 'Dernier produit retiré — commande annulée. Email non envoyé (adresse introuvable).'
+      : emailSent
+        ? 'Produit retiré — total recalculé. Email envoyé au membre.'
+        : 'Produit retiré — total recalculé. Email non envoyé (adresse introuvable).',
   })
 }
