@@ -2,12 +2,12 @@
 
 import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  buildOrdersCsv,
   collectExportRows,
   computeAggregatedSummary,
   type AggregatedExportLine,
   type OrderExportInput,
 } from '@/lib/admin/order-export'
+import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,6 +85,7 @@ export default function AdminCommandesPage({
   const [filterSupplier, setFilterSupplier] = useState('')
   const [filterDate, setFilterDate]         = useState('')
   const [updating, setUpdating]       = useState<string | null>(null)
+  const [exporting, setExporting]     = useState(false)
 
   // ── Chargement des commandes ─────────────────────────────────────────────
 
@@ -195,26 +196,33 @@ export default function AdminCommandesPage({
   // Colonnes Biopartner en tête (N° article → total), infos admin après.
   // Séparateur ; pour Excel suisse. Groupé par fournisseur.
 
-  function exportCSV() {
+  async function exportExcel() {
     const rows = collectExportRows(filtered as OrderExportInput[], getMemberName, formatDate)
     if (rows.length === 0) return
 
-    const csv = buildOrdersCsv({
-      rows,
-      supplierTypeLabels: SUPPLIER_TYPE_LABELS,
-      singleSupplier: filterSupplier || undefined,
-    })
+    setExporting(true)
+    try {
+      const buffer = await buildOrdersExcelBuffer({
+        rows,
+        supplierTypeLabels: SUPPLIER_TYPE_LABELS,
+        singleSupplier: filterSupplier || undefined,
+      })
 
-    const slug = filterSupplier
-      ? filterSupplier.replace(/[^\w\s-àâäéèêëïîôùûüç]/gi, '').replace(/\s+/g, '-').slice(0, 40)
-      : 'tous'
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `commandes-${slug}-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+      const slug = filterSupplier
+        ? filterSupplier.replace(/[^\w\s-àâäéèêëïîôùûüç]/gi, '').replace(/\s+/g, '-').slice(0, 40)
+        : 'tous'
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `commandes-${slug}-${new Date().toISOString().slice(0, 10)}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
   }
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
@@ -250,19 +258,19 @@ export default function AdminCommandesPage({
           </p>
         </div>
         <button
-          onClick={exportCSV}
-          disabled={filtered.length === 0 || loading}
+          onClick={exportExcel}
+          disabled={filtered.length === 0 || loading || exporting}
           style={{
             padding: '0.6rem 1.25rem',
-            background: filtered.length === 0 || loading ? '#e0e0e0' : '#1a1a2e',
-            color: filtered.length === 0 || loading ? '#999' : '#fff',
+            background: filtered.length === 0 || loading || exporting ? '#e0e0e0' : '#1a1a2e',
+            color: filtered.length === 0 || loading || exporting ? '#999' : '#fff',
             border: 'none', borderRadius: 8,
             fontWeight: 600, fontSize: '0.88rem',
-            cursor: filtered.length === 0 || loading ? 'not-allowed' : 'pointer',
+            cursor: filtered.length === 0 || loading || exporting ? 'not-allowed' : 'pointer',
             whiteSpace: 'nowrap', transition: 'background 0.2s',
           }}
         >
-          ↓ Exporter CSV{filtered.length > 0 ? ` (${filtered.length})` : ''}
+          {exporting ? 'Export…' : `↓ Exporter Excel${filtered.length > 0 ? ` (${filtered.length})` : ''}`}
         </button>
       </div>
 
@@ -299,6 +307,22 @@ export default function AdminCommandesPage({
       </div>
 
       {/* Bascule de mode + filtres */}
+      {!filterSupplier && !loading && filtered.length > 0 && (
+        <div style={{
+          background: '#fff8ed',
+          border: '1px solid #ffe082',
+          borderRadius: 10,
+          padding: '0.75rem 1rem',
+          marginBottom: '0.75rem',
+          fontSize: '0.85rem',
+          color: '#92400e',
+          lineHeight: 1.5,
+        }}>
+          <strong>Récap groupé :</strong> choisissez un fournisseur dans le menu ci-dessous pour afficher
+          le tableau vert (quantités additionnées) et préparer la commande fournisseur.
+        </div>
+      )}
+
       <div style={{
         display: 'flex', gap: '0.6rem', flexWrap: 'wrap',
         background: '#f8f9fa', borderRadius: 10,
@@ -357,7 +381,13 @@ export default function AdminCommandesPage({
         <select
           value={filterSupplier}
           onChange={e => setFilterSupplier(e.target.value)}
-          style={selectStyle}
+          style={{
+            ...selectStyle,
+            fontWeight: filterSupplier ? 700 : 400,
+            borderColor: filterSupplier ? '#2e7d32' : '#ddd',
+            background: filterSupplier ? '#f0f9f4' : '#fff',
+            minWidth: '12rem',
+          }}
         >
           <option value="">Tous les fournisseurs</option>
           {suppliers.map(s => <option key={s} value={s}>{s}</option>)}
@@ -423,7 +453,7 @@ export default function AdminCommandesPage({
         </div>
       )}
 
-      {!loading && !error && filtered.length > 0 && aggregatedSummary && filterSupplier && (
+      {!loading && !error && filterSupplier && filtered.length > 0 && aggregatedSummary && (
         <AggregatedSummaryPanel
           supplierName={filterSupplier}
           lines={aggregatedSummary}
@@ -709,7 +739,7 @@ function AggregatedSummaryPanel({
           </tfoot>
         </table>
         <p style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.5 }}>
-          Même liste dans l&apos;export CSV (bloc « Récapitulatif groupé » en tête). Le détail par membre reste en dessous sur cette page.
+          Même liste dans l&apos;export Excel (feuille « Commandes », bloc récap en tête). Le détail par membre reste en dessous sur cette page.
         </p>
       </div>
     </section>

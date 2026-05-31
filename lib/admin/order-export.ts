@@ -57,7 +57,7 @@ export const EXPORT_HEADERS = [
   'Unité',
 ] as const
 
-const AGGREGATE_HEADERS = [
+export const AGGREGATE_HEADERS = [
   'N° article',
   'Désignation',
   'Quantité totale',
@@ -211,7 +211,7 @@ function detailRowToCsv(row: OrderExportRow, supplierTypeLabel: string): string 
   ].join(';')
 }
 
-function supplierTypeLabel(type: string, labels: Record<string, string>): string {
+export function supplierTypeLabel(type: string, labels: Record<string, string>): string {
   return labels[type] ?? type
 }
 
