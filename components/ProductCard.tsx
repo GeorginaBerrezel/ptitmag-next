@@ -124,8 +124,8 @@ function ProductCardInner({ product, nowMs }: Props) {
             src={imageUrl}
             alt=""
             fill
-            sizes="(max-width: 560px) 64px, 72px"
-            style={{ objectFit: 'cover' }}
+            sizes="(max-width: 560px) 88px, 104px"
+            style={{ objectFit: 'contain', objectPosition: 'center' }}
             onError={() => {
               if (imageUrl !== PRODUCT_IMAGE_PLACEHOLDER) {
                 setImageSrc(PRODUCT_IMAGE_PLACEHOLDER)
