@@ -28,6 +28,7 @@ export async function GET() {
     admin
       .from('orders')
       .select('id, member_id, status, total, created_at, supplier:suppliers(name)')
+      .is('archived_at', null)
       .order('created_at', { ascending: false }),
   ])
 
