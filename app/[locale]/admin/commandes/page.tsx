@@ -1,6 +1,13 @@
 'use client'
 
-import { use, useCallback, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  buildOrdersCsv,
+  collectExportRows,
+  computeAggregatedSummary,
+  type AggregatedExportLine,
+  type OrderExportInput,
+} from '@/lib/admin/order-export'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,7 +44,7 @@ const SUPPLIER_TYPE_LABELS: Record<string, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getMemberName(order: AdminOrder) {
+function getMemberName(order: Pick<AdminOrder, 'member'>) {
   return (
     order.member?.full_name ||
     order.member?.username ||
@@ -51,27 +58,6 @@ function formatDate(iso: string) {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 }
-
-/** Échappe une cellule CSV (séparateur point-virgule — Excel CH). */
-function csvCell(value: string | number): string {
-  const s = String(value)
-  if (/[;"\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`
-  return s
-}
-
-const EXPORT_HEADERS = [
-  'N° article',
-  'Désignation',
-  'Quantité commandée',
-  'Prix à la pièce (CHF)',
-  'Total (CHF)',
-  'Fournisseur',
-  'Type',
-  'Membre',
-  'Email',
-  'Date commande',
-  'Unité',
-] as const
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
@@ -141,6 +127,16 @@ export default function AdminCommandesPage({
 
   const hasFilters = filterStatus || filterSupplier || filterDate
 
+  const aggregatedSummary = useMemo(() => {
+    if (!filterSupplier || filtered.length === 0) return null
+    return computeAggregatedSummary(filtered as OrderExportInput[], getMemberName, formatDate)
+  }, [filterSupplier, filtered])
+
+  const aggregatedTotal = useMemo(
+    () => aggregatedSummary?.reduce((s, l) => s + l.totalAmount, 0) ?? 0,
+    [aggregatedSummary],
+  )
+
   function switchToHistory() {
     setMode('history')
     setFilterStatus('')
@@ -200,75 +196,19 @@ export default function AdminCommandesPage({
   // Séparateur ; pour Excel suisse. Groupé par fournisseur.
 
   function exportCSV() {
-    const bySupplier: Record<string, {
-      supplierType: string
-      rows: {
-        articleRef: string
-        member: string
-        email: string
-        product: string
-        qty: number
-        unit: string
-        unitPrice: number
-        lineTotal: number
-        date: string
-      }[]
-    }> = {}
+    const rows = collectExportRows(filtered as OrderExportInput[], getMemberName, formatDate)
+    if (rows.length === 0) return
 
-    for (const order of filtered) {
-      if (order.status === 'cancelled') continue
-
-      const sName = order.supplier?.name ?? 'Inconnu'
-      const sType = SUPPLIER_TYPE_LABELS[order.supplier?.type ?? ''] ?? ''
-      if (!bySupplier[sName]) bySupplier[sName] = { supplierType: sType, rows: [] }
-
-      for (const item of order.order_items) {
-        bySupplier[sName].rows.push({
-          articleRef: item.product?.supplier_ref?.trim() ?? '',
-          member: getMemberName(order),
-          email: order.member?.email ?? '',
-          product: item.product?.name ?? '—',
-          qty: item.quantity,
-          unit: item.product?.unit ?? '',
-          unitPrice: item.unit_price,
-          lineTotal: item.quantity * item.unit_price,
-          date: formatDate(order.created_at),
-        })
-      }
-    }
-
-    const lines: string[] = [EXPORT_HEADERS.join(';')]
-
-    for (const [supplier, data] of Object.entries(bySupplier)) {
-      for (const row of data.rows) {
-        lines.push([
-          csvCell(row.articleRef),
-          csvCell(row.product),
-          row.qty,
-          row.unitPrice.toFixed(2),
-          row.lineTotal.toFixed(2),
-          csvCell(supplier),
-          csvCell(data.supplierType),
-          csvCell(row.member),
-          csvCell(row.email),
-          csvCell(row.date),
-          csvCell(row.unit),
-        ].join(';'))
-      }
-      const supplierTotal = data.rows.reduce((s, r) => s + r.lineTotal, 0)
-      lines.push([
-        '', '', '', '',
-        supplierTotal.toFixed(2),
-        csvCell(`TOTAL ${supplier}`),
-        '', '', '', '', '',
-      ].join(';'))
-      lines.push('')
-    }
+    const csv = buildOrdersCsv({
+      rows,
+      supplierTypeLabels: SUPPLIER_TYPE_LABELS,
+      singleSupplier: filterSupplier || undefined,
+    })
 
     const slug = filterSupplier
       ? filterSupplier.replace(/[^\w\s-àâäéèêëïîôùûüç]/gi, '').replace(/\s+/g, '-').slice(0, 40)
       : 'tous'
-    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -483,6 +423,15 @@ export default function AdminCommandesPage({
         </div>
       )}
 
+      {!loading && !error && filtered.length > 0 && aggregatedSummary && filterSupplier && (
+        <AggregatedSummaryPanel
+          supplierName={filterSupplier}
+          lines={aggregatedSummary}
+          orderCount={filtered.length}
+          totalAmount={aggregatedTotal}
+        />
+      )}
+
       {/* Liste des commandes */}
       {!loading && !error && filtered.length > 0 && (
         <div style={{ display: 'grid', gap: '0.6rem' }}>
@@ -668,4 +617,101 @@ const thStyle: React.CSSProperties = {
 
 const tdStyle: React.CSSProperties = {
   padding: '0.35rem 0',
+}
+
+function AggregatedSummaryPanel({
+  supplierName,
+  lines,
+  orderCount,
+  totalAmount,
+}: {
+  supplierName: string
+  lines: AggregatedExportLine[]
+  orderCount: number
+  totalAmount: number
+}) {
+  return (
+    <section style={{
+      marginBottom: '1.5rem',
+      background: '#f0f9f4',
+      border: '1.5px solid #a5d6a7',
+      borderRadius: 14,
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '1rem 1.25rem',
+        background: '#e8f5e9',
+        borderBottom: '1px solid #c3e6cb',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <div>
+          <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#2e7d32' }}>
+            Récapitulatif groupé
+          </p>
+          <h2 style={{ margin: '0.2rem 0 0', fontSize: '1.05rem', fontWeight: 700 }}>
+            {supplierName}
+          </h2>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.82rem', opacity: 0.65 }}>
+            {orderCount} commande{orderCount > 1 ? 's' : ''} · {lines.length} produit{lines.length > 1 ? 's' : ''} — quantités additionnées
+          </p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Total à commander
+          </p>
+          <p style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700, color: '#1a1a2e' }}>
+            CHF {totalAmount.toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      <div style={{ padding: '0.75rem 1.25rem 1rem', overflowX: 'auto', background: '#fff' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', minWidth: 480 }}>
+          <thead>
+            <tr style={{ opacity: 0.55, fontSize: '0.78rem' }}>
+              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>N° article</th>
+              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>Désignation</th>
+              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Qté totale</th>
+              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>P.U.</th>
+              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map(line => (
+              <tr key={`${line.articleRef}-${line.product}-${line.unitPrice}`} style={{ borderTop: '1px solid rgba(16,24,40,0.06)' }}>
+                <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.82rem', opacity: line.articleRef ? 1 : 0.35 }}>
+                  {line.articleRef || '—'}
+                </td>
+                <td style={tdStyle}>{line.product}</td>
+                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>
+                  {line.totalQty} {line.unit}
+                </td>
+                <td style={{ ...tdStyle, textAlign: 'right', opacity: 0.65 }}>
+                  CHF {line.unitPrice.toFixed(2)}
+                </td>
+                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>
+                  CHF {line.totalAmount.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr style={{ borderTop: '2px solid rgba(16,24,40,0.12)' }}>
+              <td colSpan={4} style={{ paddingTop: '0.6rem', fontWeight: 700 }}>Total fournisseur</td>
+              <td style={{ textAlign: 'right', paddingTop: '0.6rem', fontWeight: 700, fontSize: '1rem' }}>
+                CHF {totalAmount.toFixed(2)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        <p style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.5 }}>
+          Même liste dans l&apos;export CSV (bloc « Récapitulatif groupé » en tête). Le détail par membre reste en dessous sur cette page.
+        </p>
+      </div>
+    </section>
+  )
 }
