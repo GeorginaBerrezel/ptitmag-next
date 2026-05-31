@@ -48,28 +48,40 @@ export async function sendOrderConfirmation({
     year: 'numeric',
   })
 
-  const html = buildHtml({ displayName, orders, globalTotal, date: now })
-
   const transporter = createTransporter()
-  const subject = `Confirmation de commande — ${site.name} (${now})`
+  const memberSubject = `Confirmation de commande — ${site.name} (${now})`
+  const adminSubject = `Nouvelle commande — ${displayName} — ${site.name} — (${now})`
 
   await transporter.sendMail({
     from: `"${site.name}" <${process.env.SMTP_USER}>`,
     to: memberEmail,
-    subject,
-    html,
+    subject: memberSubject,
+    html: buildHtml({
+      displayName,
+      orders,
+      globalTotal,
+      date: now,
+      audience: 'member',
+    }),
   })
 
-  // Copie admin séparée : le BCC vers la même adresse que SMTP_USER (info@…) n'est
-  // souvent pas délivré par Infomaniak / les serveurs mail.
+  // Notification Joel : mail séparé (le BCC vers la même adresse que SMTP_USER n'est
+  // souvent pas délivré par Infomaniak).
   const adminCopyTo = adminEmail.trim().toLowerCase()
   const memberCopyTo = memberEmail.trim().toLowerCase()
   if (adminCopyTo && adminCopyTo !== memberCopyTo) {
     await transporter.sendMail({
       from: `"${site.name}" <${process.env.SMTP_USER}>`,
       to: adminEmail,
-      subject: `[Copie admin] ${subject}`,
-      html,
+      subject: adminSubject,
+      html: buildHtml({
+        displayName,
+        memberEmail,
+        orders,
+        globalTotal,
+        date: now,
+        audience: 'admin',
+      }),
     })
   }
 }
@@ -80,15 +92,29 @@ export async function sendOrderConfirmation({
 
 function buildHtml({
   displayName,
+  memberEmail,
   orders,
   globalTotal,
   date,
+  audience,
 }: {
   displayName: string
+  memberEmail?: string
   orders: OrderEmailGroup[]
   globalTotal: number
   date: string
+  audience: 'member' | 'admin'
 }): string {
+  const isAdmin = audience === 'admin'
+  const badge = isAdmin ? 'Nouvelle commande' : 'Confirmation de commande'
+  const title = isAdmin ? displayName : `Merci, ${displayName} !`
+  const intro = isAdmin
+    ? `Commande reçue le <strong>${date}</strong>${memberEmail ? ` — <a href="mailto:${memberEmail}" style="color:#DC7F00;text-decoration:none;">${memberEmail}</a>` : ''}.`
+    : `Votre commande du <strong>${date}</strong> a bien été enregistrée.`
+  const outro = isAdmin
+    ? `Retrouvez et traitez cette commande dans <strong>Admin → Commandes</strong> sur le site.`
+    : `L'équipe du p'tit mag vous contactera pour confirmer les détails et organiser la récupération de votre commande.`
+  const pageTitle = isAdmin ? 'Nouvelle commande' : 'Confirmation de commande'
   const orderRows = orders
     .map((group) => {
       const itemRows = group.items
@@ -137,7 +163,7 @@ function buildHtml({
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Confirmation de commande</title>
+  <title>${pageTitle}</title>
 </head>
 <body style="margin:0;padding:0;background:#f9f9f9;font-family:'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9f9f9;">
@@ -156,9 +182,9 @@ function buildHtml({
           <!-- Title -->
           <tr>
             <td style="padding:28px 32px 8px;">
-              <p style="margin:0 0 6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#DC7F00;">Confirmation de commande</p>
-              <h1 style="margin:0 0 4px;font-size:24px;font-weight:700;">Merci, ${displayName} !</h1>
-              <p style="margin:0;font-size:14px;color:#666;">Votre commande du <strong>${date}</strong> a bien été enregistrée.</p>
+              <p style="margin:0 0 6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#DC7F00;">${badge}</p>
+              <h1 style="margin:0 0 4px;font-size:24px;font-weight:700;">${title}</h1>
+              <p style="margin:0;font-size:14px;color:#666;">${intro}</p>
             </td>
           </tr>
 
@@ -174,7 +200,7 @@ function buildHtml({
               </div>
 
               <p style="margin:24px 0 0;font-size:14px;color:#555;line-height:1.6;">
-                L'équipe du p'tit mag vous contactera pour confirmer les détails et organiser la récupération de votre commande.
+                ${outro}
               </p>
             </td>
           </tr>
