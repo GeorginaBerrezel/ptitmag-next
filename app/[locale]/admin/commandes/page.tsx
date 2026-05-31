@@ -8,6 +8,7 @@ import {
   type OrderExportInput,
 } from '@/lib/admin/order-export'
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
+import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import lineStyles from './commandes.module.css'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ type AdminOrder = {
   status: string
   total: number
   created_at: string
+  archived_at?: string | null
   member: { full_name: string | null; email: string | null; username: string | null } | null
   supplier: { name: string; type: string } | null
   order_items: OrderItem[]
@@ -88,13 +90,20 @@ export default function AdminCommandesPage({
   const [updating, setUpdating]       = useState<string | null>(null)
   const [exporting, setExporting]     = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
+  const [archivableCount, setArchivableCount] = useState(0)
+  const [archiving, setArchiving] = useState(false)
+  const [reportYears, setReportYears] = useState<number[]>([])
+  const [reportYear, setReportYear] = useState<number>(new Date().getFullYear())
+  const [downloadingReport, setDownloadingReport] = useState(false)
 
   // ── Chargement des commandes ─────────────────────────────────────────────
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (includeArchived = showArchived) => {
     setLoading(true)
     setError(null)
-    const res = await fetch('/api/admin/orders')
+    const qs = includeArchived ? '?includeArchived=1' : ''
+    const res = await fetch(`/api/admin/orders${qs}`)
     if (!res.ok) {
       setError('Impossible de charger les commandes. Vérifie ta connexion.')
       setLoading(false)
@@ -102,10 +111,22 @@ export default function AdminCommandesPage({
     }
     const data = await res.json()
     setOrders(data.orders ?? [])
+    setArchivableCount(data.archivableCount ?? 0)
     setLoading(false)
-  }, [])
+  }, [showArchived])
 
-  useEffect(() => { fetchOrders() }, [fetchOrders])
+  useEffect(() => { fetchOrders(showArchived) }, [fetchOrders, showArchived])
+
+  useEffect(() => {
+    fetch('/api/admin/orders/annual-report')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const years = (data?.years as number[] | undefined) ?? []
+        setReportYears(years)
+        if (years.length > 0) setReportYear(years[0])
+      })
+      .catch(() => {})
+  }, [])
 
   // ── Filtres ───────────────────────────────────────────────────────────────
 
@@ -157,12 +178,13 @@ export default function AdminCommandesPage({
   // ── Statistiques ─────────────────────────────────────────────────────────
 
   const stats = {
-    total:       orders.length,
-    confirmed:   orders.filter(o => o.status === 'confirmed').length,
-    delivered:   orders.filter(o => o.status === 'delivered').length,
-    cancelled:   orders.filter(o => o.status === 'cancelled').length,
+    total:       orders.filter(o => !o.archived_at).length,
+    archived:    orders.filter(o => o.archived_at).length,
+    confirmed:   orders.filter(o => o.status === 'confirmed' && !o.archived_at).length,
+    delivered:   orders.filter(o => o.status === 'delivered' && !o.archived_at).length,
+    cancelled:   orders.filter(o => o.status === 'cancelled' && !o.archived_at).length,
     totalAmount: orders
-      .filter(o => o.status !== 'cancelled')
+      .filter(o => o.status !== 'cancelled' && !o.archived_at)
       .reduce((s, o) => s + o.total, 0),
   }
 
@@ -233,8 +255,6 @@ export default function AdminCommandesPage({
     }
   }
 
-  // ── Export Excel ──────────────────────────────────────────────────────────
-
   async function exportExcel() {
     const rows = collectExportRows(filtered as OrderExportInput[], getMemberName, formatDate)
     if (rows.length === 0) return
@@ -261,6 +281,68 @@ export default function AdminCommandesPage({
       URL.revokeObjectURL(url)
     } finally {
       setExporting(false)
+    }
+  }
+
+  async function archiveEligibleOrders() {
+    const ok = window.confirm(
+      `Archiver ${archivableCount} commande(s) livrée(s) de plus de ${ARCHIVE_AFTER_MONTHS} mois ?\n\nElles disparaîtront de l'historique actif mais restent en base (bilan annuel, export adhérent).`,
+    )
+    if (!ok) return
+
+    setArchiving(true)
+    try {
+      const res = await fetch('/api/admin/orders/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bulk: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de l\'archivage.')
+      await fetchOrders(showArchived)
+      alert(data.message ?? 'Archivage terminé.')
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  async function toggleOrderArchive(order: AdminOrder, unarchive: boolean) {
+    setArchiving(true)
+    try {
+      const res = await fetch('/api/admin/orders/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, unarchive }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur.')
+      await fetchOrders(showArchived)
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  async function downloadAnnualReport() {
+    setDownloadingReport(true)
+    try {
+      const res = await fetch(`/api/admin/orders/annual-report?year=${reportYear}`)
+      if (!res.ok) {
+        alert('Impossible de générer le bilan annuel.')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `bilan-annuel-${reportYear}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setDownloadingReport(false)
     }
   }
 
@@ -327,6 +409,7 @@ export default function AdminCommandesPage({
           { label: 'Confirmées',  value: stats.confirmed,   color: '#DC7F00' },
           { label: 'Livrées',     value: stats.delivered,   color: '#1565c0' },
           { label: 'Annulées',    value: stats.cancelled,   color: '#c0392b' },
+          { label: 'Archivées',   value: showArchived ? stats.archived : '—', color: '#6b7280' },
           { label: 'CA total',    value: `CHF ${stats.totalAmount.toFixed(2)}`, color: '#2e7d32' },
         ]).map(s => (
           <div key={s.label} style={{
@@ -359,6 +442,90 @@ export default function AdminCommandesPage({
         }}>
           <strong>Récap groupé :</strong> choisissez un fournisseur dans le menu ci-dessous pour afficher
           le tableau vert (quantités additionnées) et préparer la commande fournisseur.
+        </div>
+      )}
+
+      {mode === 'history' && archivableCount > 0 && (
+        <div style={{
+          background: '#f0f4ff',
+          border: '1px solid #c7d2fe',
+          borderRadius: 10,
+          padding: '0.85rem 1rem',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#3730a3', lineHeight: 1.5 }}>
+            <strong>{archivableCount} commande{archivableCount > 1 ? 's' : ''} livrée{archivableCount > 1 ? 's' : ''}</strong>
+            {' '}de plus de {ARCHIVE_AFTER_MONTHS} mois peuvent être archivées — elles sortent de cette liste
+            mais restent comptabilisées dans le bilan annuel.
+          </p>
+          <button
+            type="button"
+            onClick={() => void archiveEligibleOrders()}
+            disabled={archiving || loading}
+            style={{
+              ...selectStyle,
+              cursor: archiving || loading ? 'not-allowed' : 'pointer',
+              background: '#4338ca',
+              color: '#fff',
+              borderColor: '#4338ca',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {archiving ? 'Archivage…' : `Archiver (${archivableCount})`}
+          </button>
+        </div>
+      )}
+
+      {mode === 'history' && reportYears.length > 0 && (
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(16,24,40,0.08)',
+          borderRadius: 10,
+          padding: '0.85rem 1rem',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          alignItems: 'center',
+        }}>
+          <div>
+            <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#2e7d32' }}>
+              Bilan annuel
+            </p>
+            <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', opacity: 0.65 }}>
+              Synthèse par fournisseur, mois et top produits — pour l&apos;association.
+            </p>
+          </div>
+          <select
+            value={reportYear}
+            onChange={e => setReportYear(Number(e.target.value))}
+            style={{ ...selectStyle, minWidth: '7rem' }}
+          >
+            {reportYears.map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => void downloadAnnualReport()}
+            disabled={downloadingReport}
+            style={{
+              ...selectStyle,
+              cursor: downloadingReport ? 'not-allowed' : 'pointer',
+              background: '#1a1a2e',
+              color: '#fff',
+              borderColor: '#1a1a2e',
+              fontWeight: 700,
+            }}
+          >
+            {downloadingReport ? 'Génération…' : '↓ Bilan Excel'}
+          </button>
         </div>
       )}
 
@@ -413,6 +580,22 @@ export default function AdminCommandesPage({
               onChange={e => setFilterDate(e.target.value)}
               style={{ ...selectStyle, fontFamily: 'inherit' }}
             />
+
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}>
+              <input
+                type="checkbox"
+                checked={showArchived}
+                onChange={e => setShowArchived(e.target.checked)}
+              />
+              Afficher les archives
+            </label>
           </>
         )}
 
@@ -461,7 +644,7 @@ export default function AdminCommandesPage({
         }}>
           {error}
           <button
-            onClick={fetchOrders}
+            onClick={() => void fetchOrders()}
             style={{ marginLeft: '1rem', textDecoration: 'underline', background: 'none', border: 'none', color: '#c0392b', cursor: 'pointer' }}
           >
             Réessayer
@@ -517,7 +700,7 @@ export default function AdminCommandesPage({
                   borderRadius: 12, overflow: 'hidden',
                   opacity: isUpdating ? 0.65 : 1,
                   transition: 'opacity 0.2s',
-                  background: '#fff',
+                  background: order.archived_at ? '#f9fafb' : '#fff',
                 }}
               >
                 {/* ── En-tête cliquable (résumé) ── */}
@@ -551,6 +734,17 @@ export default function AdminCommandesPage({
 
                   {/* Colonne droite : badge statut + montant */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
+                    {order.archived_at && (
+                      <span style={{
+                        background: '#f3f4f6',
+                        color: '#6b7280',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 999, padding: '0.18rem 0.65rem',
+                        fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+                      }}>
+                        Archivée
+                      </span>
+                    )}
                     <span style={{
                       background: st.bg, color: st.color,
                       border: `1px solid ${st.border}22`,
@@ -692,6 +886,51 @@ export default function AdminCommandesPage({
                     })}
                     {isUpdating && (
                       <span style={{ fontSize: '0.78rem', opacity: 0.45 }}>Mise à jour…</span>
+                    )}
+
+                    {mode === 'history' && order.archived_at && (
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault()
+                          void toggleOrderArchive(order, true)
+                        }}
+                        disabled={archiving}
+                        style={{
+                          marginLeft: 'auto',
+                          padding: '0.28rem 0.85rem',
+                          borderRadius: 8,
+                          border: '1px solid #ddd',
+                          background: '#fff',
+                          fontSize: '0.78rem',
+                          cursor: archiving ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        Restaurer
+                      </button>
+                    )}
+
+                    {mode === 'history' && !order.archived_at && order.status === 'delivered' && (
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault()
+                          void toggleOrderArchive(order, false)
+                        }}
+                        disabled={archiving}
+                        style={{
+                          marginLeft: 'auto',
+                          padding: '0.28rem 0.85rem',
+                          borderRadius: 8,
+                          border: '1px solid #c7d2fe',
+                          background: '#eef2ff',
+                          color: '#4338ca',
+                          fontSize: '0.78rem',
+                          cursor: archiving ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        Archiver
+                      </button>
                     )}
                   </div>
                 </div>
