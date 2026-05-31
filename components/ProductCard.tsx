@@ -7,7 +7,7 @@ import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
-import { getProductImageUrl, showProductImage } from '@/lib/catalog/product-image'
+import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER, showProductImage } from '@/lib/catalog/product-image'
 import {
   decrementQuantity,
   getMinAllowedQuantity,
@@ -39,6 +39,7 @@ function ProductCardInner({ product, nowMs }: Props) {
 
   const [qty, setQty] = useState(product.min_quantity)
   const [added, setAdded] = useState(false)
+  const [imageSrc, setImageSrc] = useState<string | null>(() => getProductImageUrl(product))
 
   const orderable = productOrderableAt(product, now)
   const supplierStatus = product.supplier
@@ -46,7 +47,7 @@ function ProductCardInner({ product, nowMs }: Props) {
     : { isOpen: false, label: 'Commandes fermées' }
   const days = supplierDeadlineDaysLeft(product.supplier, now)
   const inCart = items.some(i => i.productId === product.id)
-  const imageUrl = getProductImageUrl(product)
+  const imageUrl = imageSrc
   const hasImage = showProductImage(product) && imageUrl
 
   const qtyRules = {
@@ -125,6 +126,11 @@ function ProductCardInner({ product, nowMs }: Props) {
             fill
             sizes="(max-width: 560px) 64px, 72px"
             style={{ objectFit: 'cover' }}
+            onError={() => {
+              if (imageUrl !== PRODUCT_IMAGE_PLACEHOLDER) {
+                setImageSrc(PRODUCT_IMAGE_PLACEHOLDER)
+              }
+            }}
           />
         </div>
       )}
