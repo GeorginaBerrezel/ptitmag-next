@@ -47,7 +47,7 @@ export default async function MembershipPage({
       <PageHeroWithImage
         imageSrc={SHOP_IMAGES.membership}
         imagePosition="center center"
-        imageZoom="out"
+        imageZoom="width"
         kicker="Le p'tit mag · St-Romain (Ayent)"
         title={t('title')}
         intro={t('intro')}
