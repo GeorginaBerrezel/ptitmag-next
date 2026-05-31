@@ -55,7 +55,7 @@
   max-width: 580px;
 }
 
-.heroWide {
-  background-size: 88%;
-  background-repeat: no-repeat;
+.heroFitWidth {
+  background-size: 100% auto;
+  background-position: center center;
 }
