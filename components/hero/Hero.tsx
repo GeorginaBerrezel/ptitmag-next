@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation';
+import { SHOP_IMAGES } from '@/lib/site-images';
 import styles from './Hero.module.css';
 import type { StepDetail, TrialContent } from '@/app/[locale]/page';
 
@@ -41,7 +42,11 @@ export function Hero({ locale, t, stepsDetail, trialContent }: HeroProps) {
       <div className={styles.grid}>
         {/* Carte image */}
         <article className={`${styles.card} ${styles.cardImage}`}>
-          <div className={styles.cardImageBg} aria-hidden="true" />
+          <div
+            className={styles.cardImageBg}
+            style={{ backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75)), url(${SHOP_IMAGES.home})` }}
+            aria-hidden="true"
+          />
           <div className={styles.cardOverlay}>
             <h2 className={styles.cardTitleOnImage}>{t('home.block1_title')}</h2>
             <p className={styles.cardTextOnImage}>{t('home.block1_text')}</p>

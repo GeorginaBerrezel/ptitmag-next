@@ -45,7 +45,7 @@ export default async function MembershipPage({
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
       <PageHeroWithImage
-        imageSrc={SHOP_IMAGES.interior}
+        imageSrc={SHOP_IMAGES.membership}
         imagePosition="center 40%"
         kicker="Le p'tit mag · St-Romain (Ayent)"
         title={t('title')}
