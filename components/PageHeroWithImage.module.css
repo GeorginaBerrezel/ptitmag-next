@@ -54,3 +54,8 @@
   line-height: 1.65;
   max-width: 580px;
 }
+
+.heroWide {
+  background-size: 88%;
+  background-repeat: no-repeat;
+}

@@ -50,7 +50,7 @@ export default async function ContactPage({
 
       <PageHeroWithImage
         imageSrc={SHOP_IMAGES.contact}
-        imagePosition="center 40%"
+        imagePosition="center 35%"
         kicker="Le p'tit mag · St-Romain (Ayent)"
         title={t('title')}
         intro={t('intro')}
