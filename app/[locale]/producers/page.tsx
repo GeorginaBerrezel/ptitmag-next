@@ -4,6 +4,7 @@ import ProducerCard from '@/components/ProducerCard'
 import WholesalerCard from '@/components/WholesalerCard'
 import { LOCAL_PRODUCERS } from '@/lib/catalog/local-producers'
 import { WHOLESALERS } from '@/lib/catalog/wholesalers'
+import { pageMetadata } from '@/lib/seo'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -14,10 +15,12 @@ export async function generateMetadata({
 }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'producers' })
-  return {
+  return pageMetadata({
+    locale,
     title: t('seoTitle'),
     description: t('seoDescription'),
-  }
+    path: 'producers',
+  })
 }
 
 export default async function ProducersPage({

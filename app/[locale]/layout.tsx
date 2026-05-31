@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 import {Suspense} from 'react';
 import {NextIntlClientProvider} from 'next-intl';
-import {getMessages, setRequestLocale} from 'next-intl/server';
+import {getMessages, getTranslations, setRequestLocale} from 'next-intl/server';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,26 +11,23 @@ import { CartProvider } from '@/lib/cart/CartContext';
 import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
 import { getProfile } from '@/lib/supabase/auth';
 import { applyCielMarkup } from '@/lib/members/profile';
+import { rootLayoutMetadata } from '@/lib/seo';
 
 const LOCALES = ['fr', 'en'] as const;
 type Locale = (typeof LOCALES)[number];
 
 export const dynamic = 'force-dynamic';
 
-function getSiteUrl(): string {
-  let raw = process.env.NEXT_PUBLIC_SITE_URL ?? '';
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'seo' });
 
-  if (!raw) {
-    const vercel = process.env.VERCEL_URL ?? '';
-    raw = vercel ? 'https://' + vercel : 'http://localhost:3000';
-  }
-
-  return raw.replace(/\/+$/, '');
+  return rootLayoutMetadata(locale, t('title'), t('description'));
 }
-
-export const metadata: Metadata = {
-  metadataBase: new URL(getSiteUrl()),
-};
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({locale}));

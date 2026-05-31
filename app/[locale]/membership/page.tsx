@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
 import PageHeroWithImage from '@/components/PageHeroWithImage'
 import { SHOP_IMAGES } from '@/lib/site-images'
+import { pageMetadata } from '@/lib/seo'
 
 // ─── Données statiques ────────────────────────────────────────────────────────
 // Les clés "why" dans l'ordre de la traduction, avec un emoji représentatif
@@ -23,7 +24,12 @@ const WHY_ITEMS = [
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'membership' })
-  return { title: t('seoTitle'), description: t('seoDescription') }
+  return pageMetadata({
+    locale,
+    title: t('seoTitle'),
+    description: t('seoDescription'),
+    path: 'membership',
+  })
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

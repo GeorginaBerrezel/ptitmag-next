@@ -2,7 +2,9 @@ import { getTranslations } from 'next-intl/server'
 import { site } from '@/lib/site'
 import ContactForm from '@/components/ContactForm'
 import PageHeroWithImage from '@/components/PageHeroWithImage'
+import JsonLdScript from '@/components/seo/JsonLdScript'
 import { SHOP_IMAGES } from '@/lib/site-images'
+import { buildHomeJsonLd, pageMetadata } from '@/lib/seo'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -30,7 +32,12 @@ function formatPhone(e164: string) {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'contact' })
-  return { title: t('seoTitle'), description: t('seoDescription') }
+  return pageMetadata({
+    locale,
+    title: t('seoTitle'),
+    description: t('seoDescription'),
+    path: 'contact',
+  })
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -42,10 +49,13 @@ export default async function ContactPage({
 }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'contact' })
+  const tSeo = await getTranslations({ locale, namespace: 'seo' })
 
   const displayPhone = formatPhone(site.telephone)
 
   return (
+    <>
+      <JsonLdScript data={buildHomeJsonLd(locale, tSeo('description'))} />
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
 
       <PageHeroWithImage
@@ -282,5 +292,6 @@ export default async function ContactPage({
       </div>
 
     </div>
+    </>
   )
 }
