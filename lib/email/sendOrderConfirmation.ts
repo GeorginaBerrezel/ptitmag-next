@@ -51,14 +51,27 @@ export async function sendOrderConfirmation({
   const html = buildHtml({ displayName, orders, globalTotal, date: now })
 
   const transporter = createTransporter()
+  const subject = `Confirmation de commande — ${site.name} (${now})`
 
   await transporter.sendMail({
     from: `"${site.name}" <${process.env.SMTP_USER}>`,
     to: memberEmail,
-    bcc: adminEmail,
-    subject: `Confirmation de commande — ${site.name} (${now})`,
+    subject,
     html,
   })
+
+  // Copie admin séparée : le BCC vers la même adresse que SMTP_USER (info@…) n'est
+  // souvent pas délivré par Infomaniak / les serveurs mail.
+  const adminCopyTo = adminEmail.trim().toLowerCase()
+  const memberCopyTo = memberEmail.trim().toLowerCase()
+  if (adminCopyTo && adminCopyTo !== memberCopyTo) {
+    await transporter.sendMail({
+      from: `"${site.name}" <${process.env.SMTP_USER}>`,
+      to: adminEmail,
+      subject: `[Copie admin] ${subject}`,
+      html,
+    })
+  }
 }
 
 // ---------------------------------------------------------------------------
