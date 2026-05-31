@@ -46,7 +46,7 @@ Le site est **livré et en ligne** sur le domaine de l'association. Tu peux te c
 | Étape | Où | Quoi faire |
 |-------|-----|------------|
 | 1 | Ta boîte mail | Tu reçois une copie à chaque commande adhérent |
-| 2 | Admin → **Commandes** | Export CSV, préparation des commandes groupées |
+| 2 | Admin → **Commandes** | Filtrer un fournisseur → **Exporter CSV** (N° article, désignation, qté, prix, total — puis membre, email…) |
 | 3 | Admin → **Commandes** | Marquer **Livrée** ou **Annulée** — l'adhérent le voit dans Mon compte |
 | 4 | Admin → **Membres** | Passer un adhérent en **Cotisé** et saisir le montant si besoin |
 | 5 | Admin → **Fournisseurs** | **Ouvrir les commandes** avec une date limite quand c'est le moment |

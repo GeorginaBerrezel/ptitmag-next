@@ -28,7 +28,7 @@ export async function GET() {
       supplier:suppliers(name, type),
       order_items(
         id, quantity, unit_price,
-        product:products(name, unit)
+        product:products(name, unit, supplier_ref)
       )
     `
 

@@ -8,7 +8,7 @@ type OrderItem = {
   id: string
   quantity: number
   unit_price: number
-  product: { name: string; unit: string } | null
+  product: { name: string; unit: string; supplier_ref: string | null } | null
 }
 
 type AdminOrder = {
@@ -51,6 +51,27 @@ function formatDate(iso: string) {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 }
+
+/** Échappe une cellule CSV (séparateur point-virgule — Excel CH). */
+function csvCell(value: string | number): string {
+  const s = String(value)
+  if (/[;"\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`
+  return s
+}
+
+const EXPORT_HEADERS = [
+  'N° article',
+  'Désignation',
+  'Quantité commandée',
+  'Prix à la pièce (CHF)',
+  'Total (CHF)',
+  'Fournisseur',
+  'Type',
+  'Membre',
+  'Email',
+  'Date commande',
+  'Unité',
+] as const
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
@@ -175,15 +196,21 @@ export default function AdminCommandesPage({
   }
 
   // ── Export CSV ────────────────────────────────────────────────────────────
-  // Le fichier est trié par fournisseur pour faciliter la préparation des commandes groupées.
+  // Colonnes Biopartner en tête (N° article → total), infos admin après.
+  // Séparateur ; pour Excel suisse. Groupé par fournisseur.
 
   function exportCSV() {
     const bySupplier: Record<string, {
       supplierType: string
       rows: {
-        member: string; email: string
-        product: string; qty: number; unit: string
-        unitPrice: number; lineTotal: number
+        articleRef: string
+        member: string
+        email: string
+        product: string
+        qty: number
+        unit: string
+        unitPrice: number
+        lineTotal: number
         date: string
       }[]
     }> = {}
@@ -197,49 +224,55 @@ export default function AdminCommandesPage({
 
       for (const item of order.order_items) {
         bySupplier[sName].rows.push({
-          member:    getMemberName(order),
-          email:     order.member?.email ?? '',
-          product:   item.product?.name ?? '—',
-          qty:       item.quantity,
-          unit:      item.product?.unit ?? '',
+          articleRef: item.product?.supplier_ref?.trim() ?? '',
+          member: getMemberName(order),
+          email: order.member?.email ?? '',
+          product: item.product?.name ?? '—',
+          qty: item.quantity,
+          unit: item.product?.unit ?? '',
           unitPrice: item.unit_price,
           lineTotal: item.quantity * item.unit_price,
-          date:      formatDate(order.created_at),
+          date: formatDate(order.created_at),
         })
       }
     }
 
-    const lines: string[] = [
-      'Fournisseur,Type,Membre,Email,Date commande,Produit,Quantité,Unité,Prix unitaire (CHF),Total ligne (CHF)',
-    ]
+    const lines: string[] = [EXPORT_HEADERS.join(';')]
 
     for (const [supplier, data] of Object.entries(bySupplier)) {
       for (const row of data.rows) {
         lines.push([
-          `"${supplier}"`,
-          `"${data.supplierType}"`,
-          `"${row.member}"`,
-          `"${row.email}"`,
-          `"${row.date}"`,
-          `"${row.product}"`,
+          csvCell(row.articleRef),
+          csvCell(row.product),
           row.qty,
-          `"${row.unit}"`,
           row.unitPrice.toFixed(2),
           row.lineTotal.toFixed(2),
-        ].join(','))
+          csvCell(supplier),
+          csvCell(data.supplierType),
+          csvCell(row.member),
+          csvCell(row.email),
+          csvCell(row.date),
+          csvCell(row.unit),
+        ].join(';'))
       }
-      // Ligne de total par fournisseur
       const supplierTotal = data.rows.reduce((s, r) => s + r.lineTotal, 0)
-      lines.push(`"TOTAL ${supplier}",,,,,,,,,"${supplierTotal.toFixed(2)}"`)
-      lines.push('') // ligne vide entre chaque fournisseur
+      lines.push([
+        '', '', '', '',
+        supplierTotal.toFixed(2),
+        csvCell(`TOTAL ${supplier}`),
+        '', '', '', '', '',
+      ].join(';'))
+      lines.push('')
     }
 
-    // BOM (\uFEFF) pour que Excel ouvre l'accent correctement
+    const slug = filterSupplier
+      ? filterSupplier.replace(/[^\w\s-àâäéèêëïîôùûüç]/gi, '').replace(/\s+/g, '-').slice(0, 40)
+      : 'tous'
     const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `commandes-${new Date().toISOString().slice(0, 10)}.csv`
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `commandes-${slug}-${new Date().toISOString().slice(0, 10)}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
