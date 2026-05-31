@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "biopartner:compress": "node scripts/biopartner-images-compress.mjs",
+    "biopartner:import": "node scripts/biopartner-images-import.mjs",
     "biopartner:upload": "node --env-file=.env.local scripts/biopartner-images-upload.mjs"
   },
   "dependencies": {

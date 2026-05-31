@@ -33,3 +33,7 @@ node_modules/
 .env.local
 .vercel
 .env*.local
+
+# Biopartner import local (WebP générés)
+biopartner-webp/
+biopartner-webp-test/
