@@ -205,6 +205,60 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
       },
     ],
   },
+  {
+    label: 'Nouveaux grossistes (CSV générique — point-virgule)',
+    suppliers: [
+      {
+        key: 'saldac',
+        label: 'Saldac',
+        type: 'grossiste_bio',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'Catalogue Saldac.csv',
+        fileInstructions: (
+          <>
+            Export CSV <strong>UTF-8</strong>, séparateur <strong>;</strong>. Colonnes minimales :{' '}
+            <strong>nom</strong>, <strong>prix</strong> (optionnel : ref, categorie, unite). Puis activer dans Fournisseurs.
+          </>
+        ),
+      },
+      {
+        key: 'gebana',
+        label: 'Gebana',
+        type: 'grossiste_bio',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'Catalogue Gebana.csv',
+        fileInstructions: (
+          <>
+            Même format CSV (;) que Saldac. Vérifier les en-têtes (nom, prix, categorie…).
+          </>
+        ),
+      },
+      {
+        key: 'dr_jacobs',
+        label: "Dr Jacob's",
+        type: 'grossiste_bio',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'Catalogue Dr Jacob ou Naturam.csv',
+        fileInstructions: (
+          <>
+            Compléments alimentaires — CSV (;) avec colonnes nom + prix au minimum.
+          </>
+        ),
+      },
+      {
+        key: 'kumbha',
+        label: 'Kumbha Sàrl',
+        type: 'grossiste_bio',
+        endpoint: '/api/admin/import-supplier',
+        fileHint: 'Catalogue Kumbha.csv',
+        fileInstructions: (
+          <>
+            Grossiste Bio-Vitality — CSV (;) avec colonnes nom + prix au minimum.
+          </>
+        ),
+      },
+    ],
+  },
 ]
 
 // Liste plate pour la recherche par clé
