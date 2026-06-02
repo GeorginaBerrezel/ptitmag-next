@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 type CompteConfirmeBannerProps = {
   /** Connexion : après le lien e-mail. Mon compte : déjà connecté. */
@@ -10,18 +10,16 @@ type CompteConfirmeBannerProps = {
 
 export default function CompteConfirmeBanner({ variant = 'mon-compte' }: CompteConfirmeBannerProps) {
   const searchParams = useSearchParams()
-  const [visible, setVisible] = useState(false)
+  const confirmed = searchParams.get('compte_confirme') === '1'
 
   useEffect(() => {
-    if (searchParams.get('compte_confirme') === '1') {
-      setVisible(true)
-      const url = new URL(window.location.href)
-      url.searchParams.delete('compte_confirme')
-      window.history.replaceState(null, '', url.pathname + url.search)
-    }
-  }, [searchParams])
+    if (!confirmed) return
+    const url = new URL(window.location.href)
+    url.searchParams.delete('compte_confirme')
+    window.history.replaceState(null, '', url.pathname + url.search)
+  }, [confirmed])
 
-  if (!visible) return null
+  if (!confirmed) return null
 
   return (
     <div
