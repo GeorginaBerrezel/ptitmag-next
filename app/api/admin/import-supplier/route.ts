@@ -100,7 +100,7 @@ function parseBioterroir(rows: string[][]): ParsedProduct[] {
       category: 'Légumes & fruits',
       unit: normalizeUnit(r[3]?.trim() || 'kg'),
       unitPrice: parsePrice(r[4]),
-      minQuantity: 1,
+      minQuantity: 0.25,
       allowsPartialOrder: false,
     }))
 }

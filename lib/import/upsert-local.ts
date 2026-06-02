@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { localImportMinQuantity } from '@/lib/catalog/bioterroir-quantity'
 import type { LocalSupplierConfig, ParsedProduct } from './local-suppliers'
 import { normalizeSearch } from '@/lib/catalog/search'
 
@@ -89,7 +90,7 @@ export async function upsertLocalSupplier(
       category: p.category,
       unit: p.unit,
       unit_price: p.unitPrice,
-      min_quantity: 1,
+      min_quantity: localImportMinQuantity(config.supplierName, p.unit),
       allows_partial_order: false,
       order_deadline: null,
       supplier_id: supplierId,

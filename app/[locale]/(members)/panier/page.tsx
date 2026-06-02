@@ -11,6 +11,7 @@ import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import {
   decrementQuantity,
   getMinAllowedQuantity,
+  formatQuantityDisplay,
   incrementQuantity,
 } from '@/lib/catalog/quantity-rules'
 import { Link } from '@/i18n/navigation'
@@ -331,7 +332,7 @@ export default function PanierPage({
                           }}
                         >−</button>
                         <span style={{ minWidth: 32, textAlign: 'center', fontWeight: 700, fontSize: '0.9rem' }}>
-                          {item.quantity}
+                          {formatQuantityDisplay(item.quantity, qtyRules)}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.productId, incrementQuantity(item.quantity, qtyRules))}
