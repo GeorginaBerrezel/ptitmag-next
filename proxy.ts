@@ -22,6 +22,7 @@ export async function proxy(request: NextRequest) {
   // 2. Transmet le pathname aux Server Components via un header de requête
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-pathname', pathname)
+  requestHeaders.set('x-search', request.nextUrl.search)
 
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 
@@ -58,11 +59,15 @@ export async function proxy(request: NextRequest) {
 
   if (isProtected && !user) {
     const locale = pathname.split('/')[1] ?? 'fr'
+    const confirmQ = request.nextUrl.searchParams.get('compte_confirme') === '1'
+      ? 'compte_confirme=1&'
+      : ''
+    const returnTo = pathname + request.nextUrl.search
     return NextResponse.redirect(
       new URL(
-        `/${locale}/connexion?next=${encodeURIComponent(pathname)}`,
-        request.url
-      )
+        `/${locale}/connexion?${confirmQ}next=${encodeURIComponent(returnTo)}`,
+        request.url,
+      ),
     )
   }
 

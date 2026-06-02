@@ -3,6 +3,7 @@
 import { use, useState } from 'react'
 import PasswordInput from '@/components/PasswordInput'
 import { Link } from '@/i18n/navigation'
+import { emailConfirmationSiteHint } from '@/lib/auth/confirmation-hint'
 
 const fieldStyle = { display: 'grid' as const, gap: '0.375rem' }
 
@@ -56,6 +57,11 @@ export default function InscriptionPage({
   }
 
   if (success) {
+    const siteHint =
+      typeof window !== 'undefined'
+        ? emailConfirmationSiteHint(window.location.hostname)
+        : 'sur le site où vous vous êtes inscrit·e.'
+
     return (
       <main className="container" style={{ maxWidth: 480, paddingTop: '3rem', paddingBottom: '3rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Vérifiez votre e-mail</h1>
@@ -80,8 +86,7 @@ export default function InscriptionPage({
         </div>
         <p style={{ opacity: 0.7, marginTop: '1rem', fontSize: '0.9rem' }}>
           Vous pouvez fermer cette page. Le lien est valable 24 heures.
-          Ouvrez le lien <strong>sur le même site</strong> où vous vous êtes inscrit·e
-          (preprod ou site officiel).
+          Ouvrez le lien <strong>{siteHint}</strong>
         </p>
       </main>
     )

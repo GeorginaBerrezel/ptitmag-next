@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/supabase/auth'
 
@@ -17,7 +18,9 @@ export default async function MembersLayout({
   const user = await getUser()
 
   if (!user) {
-    redirect(`/${locale}/connexion`)
+    const search = (await headers()).get('x-search') ?? ''
+    const confirmQ = search.includes('compte_confirme=1') ? '?compte_confirme=1' : ''
+    redirect(`/${locale}/connexion${confirmQ}`)
   }
 
   return <>{children}</>

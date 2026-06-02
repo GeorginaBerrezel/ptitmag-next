@@ -1,10 +1,11 @@
 'use client'
 
-import { use, useState } from 'react'
+import { Suspense, use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import PasswordInput from '@/components/PasswordInput'
 import { Link } from '@/i18n/navigation'
+import CompteConfirmeBanner from '@/components/CompteConfirmeBanner'
 
 export default function ConnexionPage({
   params,
@@ -21,7 +22,7 @@ export default function ConnexionPage({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(
     errorParam === 'lien_invalide'
-      ? 'Le lien de confirmation est invalide ou expiré.'
+      ? 'Ce lien a déjà été utilisé ou a expiré. Essayez de vous connecter avec votre e-mail et votre mot de passe : votre compte est peut-être déjà actif.'
       : null
   )
 
@@ -49,6 +50,10 @@ export default function ConnexionPage({
       <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
         Accédez à votre espace adhérent.
       </p>
+
+      <Suspense fallback={null}>
+        <CompteConfirmeBanner variant="connexion" />
+      </Suspense>
 
       <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
         {error && (

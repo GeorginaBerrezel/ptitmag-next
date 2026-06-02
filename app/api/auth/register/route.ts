@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { siteOriginFromRequest, authCallbackUrl } from '@/lib/auth/urls'
+import { signUpErrorMessage } from '@/lib/auth/signup-errors'
 import { normalizeRegistration, validateRegistration, type RegistrationInput } from '@/lib/members/registration'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -63,9 +64,9 @@ export async function POST(request: NextRequest) {
         { status: 409 },
       )
     }
-    console.error('[auth/register] signUp:', authError)
+    console.error('[auth/register] signUp:', authError.code, authError.message)
     return NextResponse.json(
-      { error: 'Impossible de créer le compte. Réessayez ou contactez Joel.' },
+      { error: signUpErrorMessage(authError) },
       { status: 500 },
     )
   }
