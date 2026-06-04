@@ -182,7 +182,7 @@
   opacity: 0.65;
 }
 
-/* Filtres catégories : reste en haut au scroll, fond assorti à la page (pas bloc blanc) */
+/* Filtres catégories : sticky, même gris opaque que la page (masque le scroll sans effet verre) */
 .catalogue-sticky-categories {
   display: flex;
   gap: 0.4rem;
@@ -190,30 +190,12 @@
   margin-bottom: 1rem;
   margin-left: -0.5rem;
   margin-right: -0.5rem;
-  padding: 0.5rem 0.5rem 1rem;
+  padding: 0.55rem 0.5rem 0.75rem;
   position: sticky;
   z-index: 10;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg, #f4f4f4) 94%, transparent) 0%,
-    color-mix(in srgb, var(--bg, #f4f4f4) 88%, transparent) 75%,
-    transparent 100%
-  );
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(16, 24, 40, 0.06);
-  box-shadow: 0 6px 20px -8px rgba(16, 24, 40, 0.12);
-}
-
-@supports not (background: color-mix(in srgb, white 50%, transparent)) {
-  .catalogue-sticky-categories {
-    background: linear-gradient(
-      180deg,
-      rgba(244, 244, 244, 0.96) 0%,
-      rgba(244, 244, 244, 0.9) 78%,
-      rgba(244, 244, 244, 0) 100%
-    );
-  }
+  background: var(--bg, #f4f4f4);
+  border-bottom: 1px solid rgba(16, 24, 40, 0.08);
+  box-shadow: 0 8px 12px -10px rgba(16, 24, 40, 0.15);
 }
 
 /* Catalogue mobile : filtres sur une ligne scrollable, en-tête compact */
