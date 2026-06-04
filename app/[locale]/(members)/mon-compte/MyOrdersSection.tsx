@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import type { OrderWithItems } from '@/lib/supabase/auth'
+import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
 import styles from './my-orders.module.css'
 
 const PAGE_SIZE = 15
@@ -21,7 +22,7 @@ const SUPPLIER_TYPE: Record<string, string> = {
   autre:         'Autre',
 }
 
-type TabId = 'active' | 'history'
+type TabId = 'confirmed' | 'delivered' | 'history'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
@@ -42,9 +43,6 @@ function monthLabel(key: string) {
   })
 }
 
-function isActiveOrder(status: string) {
-  return status === 'confirmed' || status === 'draft' || status === 'delivered'
-}
 
 function groupByMonth(orders: OrderWithItems[]) {
   const groups = new Map<string, OrderWithItems[]>()
@@ -64,26 +62,34 @@ export default function MyOrdersSection({
   orders: OrderWithItems[]
   hasCatalogAccess: boolean
 }) {
-  const [tab, setTab] = useState<TabId>('active')
+  const [tab, setTab] = useState<TabId>('confirmed')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [exporting, setExporting] = useState(false)
 
-  const activeOrders = useMemo(
-    () => orders.filter(o => isActiveOrder(o.status)),
+  const confirmedOrders = useMemo(
+    () => orders.filter(o => o.status === 'confirmed' || o.status === 'draft'),
+    [orders],
+  )
+  const deliveredOrders = useMemo(
+    () => orders.filter(o => o.status === 'delivered'),
     [orders],
   )
   const historyOrders = useMemo(
-    () => orders.filter(o => !isActiveOrder(o.status)),
+    () => orders.filter(o => o.status === 'closed' || o.status === 'cancelled'),
     [orders],
   )
 
-  const tabOrders = tab === 'active' ? activeOrders : historyOrders
+  const tabOrders =
+    tab === 'confirmed' ? confirmedOrders
+    : tab === 'delivered' ? deliveredOrders
+    : historyOrders
   const visibleOrders = tabOrders.slice(0, visibleCount)
   const monthGroups = useMemo(() => groupByMonth(visibleOrders), [visibleOrders])
 
   const currentMonthKey = monthKey(new Date().toISOString())
-  const confirmedCount = orders.filter(o => o.status === 'confirmed').length
-  const activeTotal = activeOrders.reduce((s, o) => s + o.total, 0)
+  const confirmedCount = confirmedOrders.length
+  const deliveredCount = deliveredOrders.length
+  const activeTotal = [...confirmedOrders, ...deliveredOrders].reduce((s, o) => s + o.total, 0)
 
   function switchTab(next: TabId) {
     setTab(next)
@@ -155,7 +161,7 @@ export default function MyOrdersSection({
             </span>
           )}
           <span className={styles.muted}>
-            {activeOrders.length} active{activeOrders.length !== 1 ? 's' : ''}
+            {confirmedCount + deliveredCount} en cours
             {' · '}CHF {activeTotal.toFixed(2)}
           </span>
           <button
@@ -173,12 +179,22 @@ export default function MyOrdersSection({
         <button
           type="button"
           role="tab"
-          aria-selected={tab === 'active'}
-          className={`${styles.tab} ${tab === 'active' ? styles.tabActive : ''}`}
-          onClick={() => switchTab('active')}
+          aria-selected={tab === 'confirmed'}
+          className={`${styles.tab} ${tab === 'confirmed' ? styles.tabActive : ''}`}
+          onClick={() => switchTab('confirmed')}
         >
-          En cours
-          <span className={styles.tabCount}>{activeOrders.length}</span>
+          Confirmées
+          <span className={styles.tabCount}>{confirmedCount}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'delivered'}
+          className={`${styles.tab} ${tab === 'delivered' ? styles.tabActive : ''}`}
+          onClick={() => switchTab('delivered')}
+        >
+          Livrées
+          <span className={styles.tabCount}>{deliveredCount}</span>
         </button>
         <button
           type="button"
@@ -187,16 +203,16 @@ export default function MyOrdersSection({
           className={`${styles.tab} ${tab === 'history' ? styles.tabActive : ''}`}
           onClick={() => switchTab('history')}
         >
-          Historique
+          Clôturées / annulées
           <span className={styles.tabCount}>{historyOrders.length}</span>
         </button>
       </div>
 
       {tabOrders.length === 0 ? (
         <div className={styles.empty}>
-          {tab === 'active'
-            ? 'Aucune commande en cours.'
-            : 'Aucune commande dans l\u2019historique pour le moment.'}
+          {tab === 'confirmed' && 'Aucune commande confirmée en attente.'}
+          {tab === 'delivered' && 'Aucune commande livrée à compléter pour le moment.'}
+          {tab === 'history' && 'Aucune commande clôturée ou annulée dans l\u2019historique.'}
         </div>
       ) : (
         <>
@@ -254,67 +270,10 @@ export default function MyOrdersSection({
                         </div>
                       </summary>
 
-                      <div className={styles.orderDetail}>
-                        <table className={styles.table}>
-                          <thead>
-                            <tr>
-                              <th>Produit</th>
-                              <th>Qté</th>
-                              <th>P.U.</th>
-                              <th>Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {order.order_items.map(item => (
-                              <tr key={item.id}>
-                                <td>{item.product?.name ?? '—'}</td>
-                                <td style={{ opacity: 0.7 }}>
-                                  {item.quantity} {item.product?.unit}
-                                </td>
-                                <td style={{ opacity: 0.55 }}>
-                                  CHF {item.unit_price.toFixed(2)}
-                                </td>
-                                <td style={{ fontWeight: 600 }}>
-                                  CHF {(item.quantity * item.unit_price).toFixed(2)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot>
-                            <tr>
-                              <td colSpan={3} style={{ paddingTop: '0.5rem', fontWeight: 600, opacity: 0.65 }}>
-                                {order.status === 'closed' ? 'Total final' : 'Total provisoire'}
-                              </td>
-                              <td style={{ paddingTop: '0.5rem', fontWeight: 800 }}>
-                                CHF {order.total.toFixed(2)}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                        {order.status === 'delivered' && hasCatalogAccess && order.supplier?.id && (
-                          <Link
-                            href={`/commandes?extendOrder=${order.id}&supplierId=${order.supplier.id}`}
-                            style={{
-                              display: 'inline-flex',
-                              marginTop: '0.85rem',
-                              padding: '0.45rem 0.9rem',
-                              borderRadius: 999,
-                              border: '1.5px solid #DC7F00',
-                              color: '#DC7F00',
-                              fontSize: '0.82rem',
-                              fontWeight: 600,
-                              textDecoration: 'none',
-                            }}
-                          >
-                            + Compléter cette commande
-                          </Link>
-                        )}
-                        {order.status === 'delivered' && (
-                          <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', opacity: 0.6, lineHeight: 1.45 }}>
-                            Commande modifiable jusqu&apos;à clôture par l&apos;équipe. Avoir appliqué à ce moment-là.
-                          </p>
-                        )}
-                      </div>
+                      <MemberOrderDetail
+                        order={order}
+                        hasCatalogAccess={hasCatalogAccess}
+                      />
                     </details>
                   )
                 })}

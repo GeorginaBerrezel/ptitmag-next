@@ -144,10 +144,10 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.85rem 1rem;
+  padding: 0.9rem 1.1rem;
   cursor: pointer;
   list-style: none;
-  background: #fafafa;
+  background: #fff;
   flex-wrap: wrap;
 }
 
@@ -192,36 +192,6 @@
   font-weight: 800;
   font-size: 0.93rem;
   white-space: nowrap;
-}
-
-.orderDetail {
-  padding: 0.85rem 1rem;
-  border-top: 1px solid rgba(16, 24, 40, 0.06);
-  overflow-x: auto;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-  min-width: 300px;
-}
-
-.table th {
-  text-align: left;
-  font-weight: 500;
-  padding-bottom: 0.4rem;
-  opacity: 0.45;
-}
-
-.table th:not(:first-child),
-.table td:not(:first-child) {
-  text-align: right;
-}
-
-.table td {
-  padding: 0.35rem 0;
-  border-top: 1px solid rgba(16, 24, 40, 0.05);
 }
 
 .loadMore {
