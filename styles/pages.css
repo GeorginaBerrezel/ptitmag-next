@@ -73,6 +73,33 @@
   min-width: 0;
 }
 
+/* Fond plat sur tout le catalogue (le body a un dégradé → sinon la barre sticky « change » au scroll) */
+.catalogue-page-root {
+  background-color: #f6f8fb;
+}
+
+/* Coquille sticky : fond opaque pleine largeur, même teinte que la page catalogue */
+.catalogue-sticky-categories-shell {
+  position: sticky;
+  z-index: 25;
+  margin: 0 -20px 0.75rem;
+  padding: 0.35rem 20px 0.55rem;
+  background-color: #f6f8fb;
+  isolation: isolate;
+}
+
+.catalogue-sticky-categories {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  position: static;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
 .catalogue-supplier-sidebar {
   background: #f8faf8;
   border: 1px solid rgba(46, 125, 50, 0.2);
@@ -182,20 +209,15 @@
   opacity: 0.65;
 }
 
-.catalogue-sticky-categories {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-  padding: 0.5rem 0;
-  position: sticky;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(6px);
-}
-
 /* Catalogue mobile : filtres sur une ligne scrollable, en-tête compact */
 @media (max-width: 640px) {
+  .catalogue-sticky-categories-shell {
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
   .catalogue-sticky-categories,
   .catalogue-type-filters {
     flex-wrap: nowrap;
@@ -206,7 +228,7 @@
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     margin-bottom: 0.75rem;
-    padding-bottom: 0.35rem;
+    padding-bottom: 0.75rem;
   }
 
   .catalogue-sticky-categories::-webkit-scrollbar,
