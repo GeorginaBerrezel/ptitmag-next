@@ -105,6 +105,13 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     return activeSummary.categories.map(c => ({ name: c.name, items: [] as Product[] }))
   }, [activeProducts, activeSummary, isLargeCatalog])
 
+  const openSuppliersCount = useMemo(
+    () => baseSummaries.filter(s => s.hasOpenOrders).length,
+    [baseSummaries],
+  )
+
+  const showSupplierSidebar = activeSupplierId != null && openSuppliersCount >= 2
+
   const view: 'suppliers' | 'categories' | 'products' =
     activeSummary && activeCategory ? 'products'
     : activeSummary ? 'categories'
@@ -362,8 +369,8 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
       )}
       <div className="container" style={{ paddingTop: '1.25rem', paddingBottom: '5rem' }}>
 
-        <div className={view !== 'suppliers' ? 'catalogue-layout catalogue-layout--with-sidebar' : 'catalogue-layout'}>
-        {view !== 'suppliers' && (
+        <div className={showSupplierSidebar ? 'catalogue-layout catalogue-layout--with-sidebar' : 'catalogue-layout'}>
+        {showSupplierSidebar && (
           <CatalogueSupplierSidebar
             summaries={baseSummaries}
             activeSupplierId={activeSupplierId}
