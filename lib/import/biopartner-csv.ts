@@ -114,6 +114,8 @@ export function buildDescription(row: BiopartnerRow): string | null {
 }
 
 export function buildCategory(row: BiopartnerRow): string | null {
+  const sub = row['Categorie produit']?.trim()
+  if (sub) return sub.replace(/^\d+\s*-\s*/, '').trim()
   const raw = row['Groupe produit principal']?.trim()
   if (!raw) return null
   return raw.replace(/^\d+\s*-\s*/, '').trim()

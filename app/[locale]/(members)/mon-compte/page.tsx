@@ -8,6 +8,7 @@ import CompteConfirmeBanner from '@/components/CompteConfirmeBanner'
 import MyOrdersSection from './MyOrdersSection'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
 import { formatCotisation, applyCielMarkup, canAccessCatalog, getMemberStatusDisplay, hasTerrePricing } from '@/lib/members/profile'
+import { formatCreditChf } from '@/lib/members/credit'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,8 @@ export default async function MonComptePage({
     profile?.status === 'terre' ||
     profile?.status === 'member' ||
     (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
+  const creditBalance = Number(profile?.credit_balance) || 0
+  const showCredit = creditBalance > 0
 
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 700 }}>
@@ -160,6 +163,23 @@ export default async function MonComptePage({
           </Link>
           )}
         </div>
+
+        {showCredit && (
+          <div style={{
+            background: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            borderRadius: 12,
+            padding: '1rem 1.15rem',
+            fontSize: '0.92rem',
+            lineHeight: 1.55,
+            color: '#065f46',
+          }}>
+            <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
+            <span style={{ display: 'block', marginTop: '0.35rem', opacity: 0.85, fontSize: '0.88rem' }}>
+              Ce montant sera déduit automatiquement sur votre prochaine commande.
+            </span>
+          </div>
+        )}
 
         {/* ── Mes commandes ── */}
         <MyOrdersSection orders={orders} hasCatalogAccess={hasCatalogAccess} />

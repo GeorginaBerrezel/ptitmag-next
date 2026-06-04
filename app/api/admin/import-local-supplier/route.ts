@@ -1,7 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import * as XLSX from 'xlsx'
-import { LOCAL_SUPPLIER_CONFIG, parseLocalSheet } from '@/lib/import/local-suppliers'
+import {
+  LOCAL_SUPPLIER_CONFIG,
+  parseBioterroirNumericRows,
+  parseLocalSheet,
+} from '@/lib/import/local-suppliers'
 import { upsertLocalSupplier } from '@/lib/import/upsert-local'
 import { requireAdminUser } from '@/lib/admin/auth'
 
@@ -45,7 +49,10 @@ export async function POST(request: NextRequest) {
   let parsed: ReturnType<typeof parseLocalSheet> = []
   for (const sheetName of workbook.SheetNames) {
     const rows = XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets[sheetName], { header: 1, defval: '' })
-    const result = parseLocalSheet(rows, config.category)
+    let result = parseLocalSheet(rows, config.category)
+    if (result.length === 0 && supplierKey === 'bioterroir') {
+      result = parseBioterroirNumericRows(rows, config.category)
+    }
     if (result.length > 0) { parsed = result; break }
   }
 
@@ -55,13 +62,18 @@ export async function POST(request: NextRequest) {
     }, { status: 400 })
   }
 
-  const { count, inserted, updated, error } = await upsertLocalSupplier(admin, config, parsed, dateLimite)
+  const { count, inserted, updated, duplicatesMerged, error } = await upsertLocalSupplier(admin, config, parsed, dateLimite)
 
   if (error) return NextResponse.json({ error }, { status: 500 })
 
+  const dupNote =
+    duplicatesMerged > 0
+      ? ` ${duplicatesMerged} ligne${duplicatesMerged > 1 ? 's' : ''} en double dans le fichier (même nom) — la dernière a été gardée.`
+      : ''
+
   return NextResponse.json({
     success: true,
-    message: `${config.supplierName} — ${count} produit${count > 1 ? 's' : ''} synchronisé${count > 1 ? 's' : ''} (${inserted} nouveau${inserted > 1 ? 'x' : ''}, ${updated} mis à jour). Les produits absents du fichier restent en base — masquez-les dans Fournisseurs si besoin.`,
+    message: `${config.supplierName} — ${count} produit${count > 1 ? 's' : ''} synchronisé${count > 1 ? 's' : ''} (${inserted} nouveau${inserted > 1 ? 'x' : ''}, ${updated} mis à jour).${dupNote} Les produits absents du fichier restent en base — masquez-les dans Fournisseurs si besoin.`,
     stats: {
       productsCreated: inserted,
       productsUpdated: updated,

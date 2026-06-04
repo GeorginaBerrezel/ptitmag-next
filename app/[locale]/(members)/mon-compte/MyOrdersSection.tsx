@@ -237,6 +237,16 @@ export default function MyOrdersSection({
                           </span>
                           <span className={styles.total}>
                             CHF {order.total.toFixed(2)}
+                            {(Number(order.credit_applied) || 0) > 0 && (
+                              <span style={{
+                                display: 'block',
+                                fontSize: '0.72rem',
+                                fontWeight: 600,
+                                color: '#2e7d32',
+                              }}>
+                                Avoir −{(Number(order.credit_applied)).toFixed(2)} CHF
+                              </span>
+                            )}
                           </span>
                         </div>
                       </summary>

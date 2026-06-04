@@ -6,6 +6,7 @@ import {
   shouldSendMemberStatusEmail,
 } from '@/lib/email/sendMemberStatusNotification'
 import { ADMIN_MEMBER_STATUSES, normalizeMemberStatus } from '@/lib/members/profile'
+import { parseCreditBalance } from '@/lib/members/credit'
 
 type ProfileRow = {
   id: string
@@ -22,10 +23,11 @@ type ProfileRow = {
   created_at: string | null
   cotisation_amount: number | null
   cotisation_active: boolean | null
+  credit_balance: number | null
 }
 
 const PROFILE_SELECT =
-  'id, email, full_name, first_name, last_name, phone, postal_code, commune, username, avatar_url, status, created_at, cotisation_amount, cotisation_active'
+  'id, email, full_name, first_name, last_name, phone, postal_code, commune, username, avatar_url, status, created_at, cotisation_amount, cotisation_active, credit_balance'
 
 export async function GET() {
   const user = await requireAdminUser()
@@ -105,6 +107,7 @@ export async function GET() {
       status,
       cotisation_amount: p.cotisation_amount != null ? Number(p.cotisation_amount) : null,
       cotisation_active: p.cotisation_active ?? false,
+      credit_balance: p.credit_balance != null ? Number(p.credit_balance) : 0,
       created_at: p.created_at,
       orderCount: ordersByMember[p.id]?.count ?? 0,
       orderTotal: ordersByMember[p.id]?.total ?? 0,
@@ -137,11 +140,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { memberId, status, cotisation_amount, cotisation_active } = body as {
+  const { memberId, status, cotisation_amount, cotisation_active, credit_balance } = body as {
     memberId?: string
     status?: string
     cotisation_amount?: number | null
     cotisation_active?: boolean
+    credit_balance?: number | null
   }
 
   if (!memberId) {
@@ -166,6 +170,14 @@ export async function PATCH(request: NextRequest) {
 
   if (cotisation_active !== undefined) {
     updates.cotisation_active = Boolean(cotisation_active)
+  }
+
+  if (credit_balance !== undefined) {
+    const parsed = credit_balance === null ? 0 : parseCreditBalance(credit_balance)
+    if (parsed === null) {
+      return NextResponse.json({ error: 'Avoir invalide (montant ≥ 0).' }, { status: 400 })
+    }
+    updates.credit_balance = parsed
   }
 
   if (Object.keys(updates).length === 0) {

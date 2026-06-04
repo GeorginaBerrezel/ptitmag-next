@@ -14,6 +14,8 @@ export type OrderEmailGroup = {
   supplierType: string
   items: OrderEmailItem[]
   total: number
+  grossTotal?: number
+  creditApplied?: number
 }
 
 type Params = {
@@ -21,6 +23,7 @@ type Params = {
   memberName?: string | null
   orders: OrderEmailGroup[]
   globalTotal: number
+  creditUsed?: number
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -34,6 +37,7 @@ export async function sendOrderConfirmation({
   memberName,
   orders,
   globalTotal,
+  creditUsed,
 }: Params): Promise<void> {
   if (!isSmtpConfigured()) {
     console.warn('[email] Variables SMTP absentes — email de confirmation non envoyé.')
@@ -60,6 +64,7 @@ export async function sendOrderConfirmation({
       displayName,
       orders,
       globalTotal,
+      creditUsed,
       date: now,
       audience: 'member',
     }),
@@ -79,6 +84,7 @@ export async function sendOrderConfirmation({
         memberEmail,
         orders,
         globalTotal,
+        creditUsed,
         date: now,
         audience: 'admin',
       }),
@@ -95,6 +101,7 @@ function buildHtml({
   memberEmail,
   orders,
   globalTotal,
+  creditUsed,
   date,
   audience,
 }: {
@@ -102,6 +109,7 @@ function buildHtml({
   memberEmail?: string
   orders: OrderEmailGroup[]
   globalTotal: number
+  creditUsed?: number
   date: string
   audience: 'member' | 'admin'
 }): string {
@@ -148,6 +156,18 @@ function buildHtml({
             </thead>
             <tbody>${itemRows}</tbody>
             <tfoot>
+              ${
+                group.creditApplied && group.creditApplied > 0 && group.grossTotal != null
+                  ? `<tr style="background:#fafafa;">
+                <td colspan="3" style="padding:6px 12px;text-align:right;color:#555;">Sous-total</td>
+                <td style="padding:6px 12px;text-align:right;color:#555;">CHF ${group.grossTotal.toFixed(2)}</td>
+              </tr>
+              <tr style="background:#fafafa;">
+                <td colspan="3" style="padding:6px 12px;text-align:right;color:#2e7d32;">Avoir appliqué</td>
+                <td style="padding:6px 12px;text-align:right;color:#2e7d32;">− CHF ${group.creditApplied.toFixed(2)}</td>
+              </tr>`
+                  : ''
+              }
               <tr style="background:#f5f5f5;">
                 <td colspan="3" style="padding:8px 12px;font-weight:700;text-align:right;">Total fournisseur</td>
                 <td style="padding:8px 12px;font-weight:700;text-align:right;color:#1a1a2e;">CHF ${group.total.toFixed(2)}</td>
@@ -193,9 +213,14 @@ function buildHtml({
             <td style="padding:20px 32px;">
               ${orderRows}
 
+              ${
+                creditUsed && creditUsed > 0
+                  ? `<p style="margin:0 0 8px;font-size:14px;color:#2e7d32;">Avoir déduit sur cette commande : <strong>CHF ${creditUsed.toFixed(2)}</strong></p>`
+                  : ''
+              }
               <!-- Global total -->
               <div style="background:#1a1a2e;border-radius:10px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-                <span style="color:#fff;font-size:15px;font-weight:600;">Total global</span>
+                <span style="color:#fff;font-size:15px;font-weight:600;">Total à payer</span>
                 <span style="color:#fff;font-size:20px;font-weight:700;">CHF ${globalTotal.toFixed(2)}</span>
               </div>
 

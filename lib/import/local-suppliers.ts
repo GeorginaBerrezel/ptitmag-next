@@ -6,6 +6,8 @@ export type ParsedProduct = {
   category: string
   unit: string
   unitPrice: number
+  /** Numéro article en colonne avant « Produit » (ex. Bioterroir), si présent. */
+  supplierRef?: string
 }
 
 export type LocalSupplierConfig = {
@@ -150,13 +152,42 @@ export function parseLocalSheet(rows: unknown[][], category: string): ParsedProd
     if (!got) continue
     if (isTotalRow(got.unit) || isTotalRow(name)) continue
 
+    let supplierRef: string | undefined
+    if (produitCol > 0) {
+      const maybeId = trimCell(row[produitCol - 1])
+      if (/^\d+$/.test(maybeId)) supplierRef = maybeId
+    }
+
     products.push({
       name,
       category,
       unit: got.unit || 'pièce',
       unitPrice: got.price,
+      supplierRef,
     })
   }
 
+  return products
+}
+
+/** Format Bioterroir sans ligne « Produit » : id en col. A, nom en B. */
+export function parseBioterroirNumericRows(rows: unknown[][], category: string): ParsedProduct[] {
+  const products: ParsedProduct[] = []
+  for (const row of rows) {
+    if (!Array.isArray(row)) continue
+    const id = trimCell(row[0])
+    const name = trimCell(row[1])
+    if (!/^\d+$/.test(id) || !name) continue
+    const unitStr = trimCell(row[3]) || 'kg'
+    const price = parsePriceLike(row[4])
+    if (price == null) continue
+    products.push({
+      name,
+      category,
+      unit: unitStr,
+      unitPrice: price,
+      supplierRef: id,
+    })
+  }
   return products
 }

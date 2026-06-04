@@ -28,6 +28,7 @@ type Member = {
   status: string
   cotisation_amount: number | null
   cotisation_active: boolean
+  credit_balance: number
   created_at: string | null
   orderCount: number
   orderTotal: number
@@ -111,6 +112,7 @@ export default function AdminMembresPage({
   const [filterCommune, setFilterCommune] = useState('')
   const [updating, setUpdating]       = useState<string | null>(null)
   const [cotisationDraft, setCotisationDraft] = useState<Record<string, { amount: string; active: boolean }>>({})
+  const [creditDraft, setCreditDraft] = useState<Record<string, string>>({})
 
   // ── Chargement ───────────────────────────────────────────────────────────
 
@@ -202,6 +204,44 @@ export default function AdminMembresPage({
       amount: member.cotisation_amount != null ? String(member.cotisation_amount) : '',
       active: member.cotisation_active,
     }
+  }
+
+  function getCreditDraft(member: Member) {
+    if (creditDraft[member.id] !== undefined) return creditDraft[member.id]
+    return member.credit_balance > 0 ? String(member.credit_balance) : ''
+  }
+
+  async function saveCredit(memberId: string) {
+    const member = members.find(m => m.id === memberId)
+    if (!member) return
+
+    const raw = getCreditDraft(member).trim()
+    const parsed = raw === '' ? 0 : parseFloat(raw.replace(',', '.'))
+    if (Number.isNaN(parsed) || parsed < 0) {
+      alert('Montant d\'avoir invalide.')
+      return
+    }
+
+    setUpdating(memberId)
+    const res = await fetch('/api/admin/members', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId, credit_balance: parsed }),
+    })
+
+    if (!res.ok) {
+      alert('Erreur lors de l\'enregistrement de l\'avoir.')
+    } else {
+      setMembers(prev => prev.map(m =>
+        m.id === memberId ? { ...m, credit_balance: parsed } : m,
+      ))
+      setCreditDraft(d => {
+        const next = { ...d }
+        delete next[memberId]
+        return next
+      })
+    }
+    setUpdating(null)
   }
 
   async function saveCotisation(memberId: string) {
@@ -534,6 +574,14 @@ export default function AdminMembresPage({
                         ? `${member.orderCount} cmd · CHF ${member.orderTotal.toFixed(2)}`
                         : 'Aucune commande'}
                     </span>
+                    {member.credit_balance > 0 && (
+                      <span style={{
+                        fontSize: '0.78rem', fontWeight: 600, color: '#2e7d32',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        Avoir CHF {member.credit_balance.toFixed(2)}
+                      </span>
+                    )}
                   </div>
                 </summary>
 
@@ -598,6 +646,47 @@ export default function AdminMembresPage({
                         }}
                       >
                         Enregistrer
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Avoir */}
+                  <div style={{
+                    display: 'grid',
+                    gap: '0.65rem',
+                    marginBottom: '1.25rem',
+                    paddingBottom: '1rem',
+                    borderBottom: '1px solid rgba(16,24,40,0.06)',
+                  }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Avoir (CHF)</span>
+                    <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.55, lineHeight: 1.4 }}>
+                      Montant déduit automatiquement à la prochaine commande de l&apos;adhérent.
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <label style={{ fontSize: '0.8rem', opacity: 0.6 }}>Solde</label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={getCreditDraft(member)}
+                        onChange={e => setCreditDraft(d => ({ ...d, [member.id]: e.target.value }))}
+                        style={{ ...controlStyle, width: 100 }}
+                        disabled={isUpdating}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => saveCredit(member.id)}
+                        disabled={isUpdating}
+                        style={{
+                          ...controlStyle,
+                          cursor: isUpdating ? 'default' : 'pointer',
+                          background: '#2e7d32',
+                          color: '#fff',
+                          border: 'none',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Enregistrer l&apos;avoir
                       </button>
                     </div>
                   </div>
