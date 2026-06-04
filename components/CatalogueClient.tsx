@@ -11,6 +11,7 @@ import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 import SupplierCard from './catalogue/SupplierCard'
+import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import CategoryCard from './catalogue/CategoryCard'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
@@ -103,6 +104,13 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     if (!activeSummary) return []
     return activeSummary.categories.map(c => ({ name: c.name, items: [] as Product[] }))
   }, [activeProducts, activeSummary, isLargeCatalog])
+
+  const openSuppliersCount = useMemo(
+    () => baseSummaries.filter(s => s.hasOpenOrders).length,
+    [baseSummaries],
+  )
+
+  const showSupplierSidebar = activeSupplierId != null && openSuppliersCount >= 2
 
   const view: 'suppliers' | 'categories' | 'products' =
     activeSummary && activeCategory ? 'products'
@@ -302,10 +310,16 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
   }
 
   function openSupplier(id: string) {
+    const summary = baseSummaries.find(s => s.supplier.id === id) ?? null
+    const large = summary ? isBiopartnerSupplierName(summary.supplier.name) : false
     setActiveSupplierId(id)
-    setActiveCategory(null)
     setSearch('')
     setLoadError(null)
+    if (summary && !large && summary.categories.length === 1) {
+      setActiveCategory(summary.categories[0].name)
+    } else {
+      setActiveCategory(null)
+    }
   }
 
   function openCategory(name: string) {
@@ -354,6 +368,18 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
         </div>
       )}
       <div className="container" style={{ paddingTop: '1.25rem', paddingBottom: '5rem' }}>
+
+        <div className={showSupplierSidebar ? 'catalogue-layout catalogue-layout--with-sidebar' : 'catalogue-layout'}>
+        {showSupplierSidebar && (
+          <CatalogueSupplierSidebar
+            summaries={baseSummaries}
+            activeSupplierId={activeSupplierId}
+            catalogNow={catalogNow}
+            onSelect={openSupplier}
+          />
+        )}
+
+        <div className="catalogue-layout__main">
 
         <nav
           aria-label="Fil d'ariane"
@@ -714,6 +740,9 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
             <ProductList products={displayedProducts} nowMs={catalogNow} />
           )
         )}
+
+        </div>
+        </div>
       </div>
     </div>
   )

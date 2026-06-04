@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { localImportMinQuantity } from '@/lib/catalog/bioterroir-quantity'
 import type { LocalSupplierConfig, ParsedProduct } from './local-suppliers'
 import { normalizeSearch } from '@/lib/catalog/search'
 
@@ -6,6 +7,8 @@ export type LocalUpsertResult = {
   count: number
   inserted: number
   updated: number
+  /** Lignes en double dans le fichier (même référence) — la dernière est gardée. */
+  duplicatesMerged: number
   error: string | null
 }
 
@@ -16,6 +19,50 @@ export function localProductRef(name: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 72)
   return base || 'produit'
+}
+
+function refFromArticleId(articleId: string): string {
+  return `id-${articleId}`
+}
+
+function resolveSupplierRef(
+  p: ParsedProduct,
+  byRef: Map<string, string>,
+  byName: Map<string, string>,
+): string {
+  const norm = normalizeSearch(p.name)
+  const existingId = byName.get(norm)
+  if (existingId) {
+    for (const [ref, id] of byRef) {
+      if (id === existingId) return ref
+    }
+  }
+  if (p.supplierRef) {
+    const idRef = refFromArticleId(p.supplierRef)
+    if (byRef.has(idRef)) return idRef
+    return idRef
+  }
+  const slug = localProductRef(p.name)
+  if (byRef.has(slug)) return slug
+  return slug
+}
+
+/** Fusionne les lignes au même nom dans le fichier (garde la dernière, ou celle avec n° article). */
+function dedupeParsed(parsed: ParsedProduct[]): { items: ParsedProduct[]; merged: number } {
+  const byName = new Map<string, ParsedProduct>()
+  let merged = 0
+  for (const p of parsed) {
+    const key = normalizeSearch(p.name)
+    if (byName.has(key)) {
+      merged++
+      const prev = byName.get(key)!
+      if (p.supplierRef && !prev.supplierRef) byName.set(key, p)
+      else byName.set(key, p)
+    } else {
+      byName.set(key, p)
+    }
+  }
+  return { items: [...byName.values()], merged }
 }
 
 /**
@@ -45,7 +92,7 @@ export async function upsertLocalSupplier(
       .select('id')
       .single()
     if (sErr || !created) {
-      return { count: 0, inserted: 0, updated: 0, error: `Impossible de créer le fournisseur : ${sErr?.message}` }
+      return { count: 0, inserted: 0, updated: 0, duplicatesMerged: 0, error: `Impossible de créer le fournisseur : ${sErr?.message}` }
     }
     supplierId = created.id
   }
@@ -56,7 +103,7 @@ export async function upsertLocalSupplier(
     .eq('supplier_id', supplierId)
 
   if (fetchErr) {
-    return { count: 0, inserted: 0, updated: 0, error: fetchErr.message }
+    return { count: 0, inserted: 0, updated: 0, duplicatesMerged: 0, error: fetchErr.message }
   }
 
   const byRef = new Map<string, string>()
@@ -81,15 +128,17 @@ export async function upsertLocalSupplier(
     }
   }
 
-  const toUpsert = parsed.map(p => {
-    const ref = localProductRef(p.name)
+  const { items: deduped, merged: duplicatesMerged } = dedupeParsed(parsed)
+
+  const toUpsert = deduped.map(p => {
+    const ref = resolveSupplierRef(p, byRef, byName)
     return {
       name: p.name,
       description: null,
       category: p.category,
       unit: p.unit,
       unit_price: p.unitPrice,
-      min_quantity: 1,
+      min_quantity: localImportMinQuantity(config.supplierName, p.unit),
       allows_partial_order: false,
       order_deadline: null,
       supplier_id: supplierId,
@@ -101,8 +150,8 @@ export async function upsertLocalSupplier(
 
   let inserted = 0
   let updated = 0
-  for (const p of parsed) {
-    const ref = localProductRef(p.name)
+  for (const p of deduped) {
+    const ref = resolveSupplierRef(p, byRef, byName)
     const norm = normalizeSearch(p.name)
     if (byRef.has(ref) || byName.has(norm)) updated++
     else inserted++
@@ -121,11 +170,12 @@ export async function upsertLocalSupplier(
         count: totalUpserted,
         inserted,
         updated,
+        duplicatesMerged,
         error: `Lot ${Math.floor(i / BATCH) + 1} : ${upsertErr.message}`,
       }
     }
     totalUpserted += batch.length
   }
 
-  return { count: totalUpserted, inserted, updated, error: null }
+  return { count: totalUpserted, inserted, updated, duplicatesMerged, error: null }
 }

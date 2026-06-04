@@ -8,9 +8,11 @@ import CatalogueAccessPending from '@/components/CatalogueAccessPending'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
+import { allocateCreditAcrossTotals, roundChf } from '@/lib/members/credit'
 import {
   decrementQuantity,
   getMinAllowedQuantity,
+  formatQuantityDisplay,
   incrementQuantity,
 } from '@/lib/catalog/quantity-rules'
 import { Link } from '@/i18n/navigation'
@@ -37,17 +39,19 @@ export default function PanierPage({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
+  const [creditBalance, setCreditBalance] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
     void (async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('status, email, phone')
+        .select('status, email, phone, credit_balance')
         .single()
 
       if (data && canAccessCatalog(data)) {
         setCatalogAccess('allowed')
+        setCreditBalance(roundChf(Number(data.credit_balance) || 0))
       } else {
         setProfileEmail(data?.email ?? null)
         setProfilePhone(data?.phone ?? null)
@@ -81,6 +85,19 @@ export default function PanierPage({
   }, {})
 
   const supplierCount = Object.keys(bySupplier).length
+
+  const supplierSubtotals = Object.values(bySupplier).map(supplierItems =>
+    roundChf(
+      supplierItems.reduce(
+        (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i, { applyCielMarkup }),
+        0,
+      ),
+    ),
+  )
+  const estimatedCredit = roundChf(
+    allocateCreditAcrossTotals(supplierSubtotals, creditBalance).reduce((s, c) => s + c, 0),
+  )
+  const payableTotal = roundChf(globalTotal - estimatedCredit)
 
   async function handleConfirm() {
     setLoading(true)
@@ -201,17 +218,42 @@ export default function PanierPage({
           >
             Vider le panier
           </button>
-          <p style={{
-            margin: 0,
-            fontSize: '1.3rem',
-            fontWeight: 700,
-            background: '#1a1a2e',
-            color: '#fff',
-            borderRadius: 10,
-            padding: '0.35rem 1rem',
-          }}>
-            Total global : CHF {globalTotal.toFixed(2)}
-          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
+            {estimatedCredit > 0 && (
+              <>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#2e7d32', fontWeight: 600 }}>
+                  Avoir appliqué : − CHF {estimatedCredit.toFixed(2)}
+                </p>
+                <p style={{
+                  margin: 0,
+                  fontSize: '1.3rem',
+                  fontWeight: 700,
+                  background: '#1a1a2e',
+                  color: '#fff',
+                  borderRadius: 10,
+                  padding: '0.35rem 1rem',
+                }}>
+                  Total à payer : CHF {payableTotal.toFixed(2)}
+                </p>
+              </>
+            )}
+            <p style={{
+              margin: 0,
+              fontSize: estimatedCredit > 0 ? '0.85rem' : '1.3rem',
+              fontWeight: estimatedCredit > 0 ? 500 : 700,
+              opacity: estimatedCredit > 0 ? 0.55 : 1,
+              ...(estimatedCredit > 0
+                ? {}
+                : {
+                    background: '#1a1a2e',
+                    color: '#fff',
+                    borderRadius: 10,
+                    padding: '0.35rem 1rem',
+                  }),
+            }}>
+              {estimatedCredit > 0 ? `Sous-total : CHF ${globalTotal.toFixed(2)}` : `Total global : CHF ${globalTotal.toFixed(2)}`}
+            </p>
+          </div>
         </div>
       </div>
       <p style={{ opacity: 0.6, marginBottom: applyCielMarkup ? '0.75rem' : '2rem' }}>
@@ -331,7 +373,7 @@ export default function PanierPage({
                           }}
                         >−</button>
                         <span style={{ minWidth: 32, textAlign: 'center', fontWeight: 700, fontSize: '0.9rem' }}>
-                          {item.quantity}
+                          {formatQuantityDisplay(item.quantity, qtyRules)}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.productId, incrementQuantity(item.quantity, qtyRules))}

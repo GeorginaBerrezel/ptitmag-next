@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { parseGenericCatalogCsv } from '@/lib/import/generic-catalog-csv'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
 
@@ -99,7 +100,7 @@ function parseBioterroir(rows: string[][]): ParsedProduct[] {
       category: 'Légumes & fruits',
       unit: normalizeUnit(r[3]?.trim() || 'kg'),
       unitPrice: parsePrice(r[4]),
-      minQuantity: 1,
+      minQuantity: 0.25,
       allowsPartialOrder: false,
     }))
 }
@@ -348,6 +349,26 @@ const SUPPLIER_CONFIGS: Record<string, SupplierConfig> = {
     name: "NaturMel",
     type: 'grossiste_bio',
     parse: (rows) => parseNaturMel(rows),
+  },
+  saldac: {
+    name: 'Saldac',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  gebana: {
+    name: 'Gebana',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  dr_jacobs: {
+    name: "Dr Jacob's",
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  kumbha: {
+    name: 'Kumbha Sàrl',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
   },
 }
 

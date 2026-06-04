@@ -1,16 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { CartItem } from '@/lib/cart/CartContext'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 import { applyCielMarkup, canAccessCatalog } from '@/lib/members/profile'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
+import { allocateCreditAcrossTotals, roundChf } from '@/lib/members/credit'
 import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
 import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
 
-  // Vérification de la session
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 })
@@ -23,10 +24,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Le panier est vide.' }, { status: 400 })
   }
 
-  // Récupérer le prénom/nom depuis le profil pour personnaliser l'email
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, first_name, last_name, status, cotisation_amount, cotisation_active')
+    .select('full_name, first_name, last_name, status, cotisation_amount, cotisation_active, credit_balance')
     .eq('id', user.id)
     .single()
 
@@ -38,13 +38,13 @@ export async function POST(request: NextRequest) {
   }
 
   const applyCielMarkupFlag = applyCielMarkup(profile)
+  const creditAvailable = roundChf(Number(profile.credit_balance) || 0)
 
   const memberName =
     profile?.full_name ||
     [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') ||
     null
 
-  // Grouper les articles par fournisseur
   const bySupplier = items.reduce<Record<string, CartItem[]>>((acc, item) => {
     if (!acc[item.supplierId]) acc[item.supplierId] = []
     acc[item.supplierId].push(item)
@@ -75,8 +75,14 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const createdOrders: string[] = []
-  const emailGroups: OrderEmailGroup[] = []
+  type PreparedSupplier = {
+    supplierId: string
+    supplierItems: CartItem[]
+    normalizedItems: Array<CartItem & { unitPrice: number }>
+    grossTotal: number
+  }
+
+  const prepared: PreparedSupplier[] = []
 
   for (const [supplierId, supplierItems] of Object.entries(bySupplier)) {
     const normalizedItems = supplierItems.map(item => {
@@ -88,74 +94,107 @@ export async function POST(request: NextRequest) {
       return { ...item, quantity, unitPrice }
     })
 
-    const total = normalizedItems.reduce(
-      (sum, i) => sum + i.quantity * i.unitPrice,
-      0,
+    const grossTotal = roundChf(
+      normalizedItems.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0),
     )
 
-    // Créer l'ordre pour ce fournisseur
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        member_id: user.id,
-        supplier_id: supplierId,
-        status: 'confirmed',
-        total: Math.round(total * 100) / 100,
-      })
-      .select('id')
-      .single()
-
-    if (orderError || !order) {
-      return NextResponse.json(
-        { error: `Erreur lors de la création de la commande : ${orderError?.message}` },
-        { status: 500 }
-      )
-    }
-
-    // Créer les lignes de commande
-    const orderItems = normalizedItems.map(item => ({
-      order_id: order.id,
-      product_id: item.productId,
-      quantity: item.quantity,
-      unit_price: item.unitPrice,
-    }))
-
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems)
-
-    if (itemsError) {
-      return NextResponse.json(
-        { error: `Erreur lors de l'enregistrement des produits : ${itemsError.message}` },
-        { status: 500 }
-      )
-    }
-
-    createdOrders.push(order.id)
-
-    // Préparer les données pour l'email
-    emailGroups.push({
-      orderId: order.id,
-      supplierName: supplierItems[0].supplierName,
-      supplierType: supplierItems[0].supplierType,
-      items: normalizedItems.map(item => ({
-        productName: item.productName,
-        quantity: item.quantity,
-        unit: item.unit,
-        unitPrice: item.unitPrice,
-      })),
-      total: Math.round(total * 100) / 100,
-    })
+    prepared.push({ supplierId, supplierItems, normalizedItems, grossTotal })
   }
 
-  // Envoyer l'email de confirmation (attendu avant la réponse pour Vercel serverless)
-  const globalTotal = emailGroups.reduce((sum, g) => sum + g.total, 0)
+  const creditAllocations = allocateCreditAcrossTotals(
+    prepared.map(p => p.grossTotal),
+    creditAvailable,
+  )
+  const totalCreditUsed = roundChf(creditAllocations.reduce((s, c) => s + c, 0))
+
+  const admin = createAdminClient()
+  const createdOrders: string[] = []
+  const emailGroups: OrderEmailGroup[] = []
+
+  try {
+    for (let i = 0; i < prepared.length; i++) {
+      const { supplierId, supplierItems, normalizedItems, grossTotal } = prepared[i]
+      const creditApplied = creditAllocations[i] ?? 0
+      const total = roundChf(grossTotal - creditApplied)
+
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          member_id: user.id,
+          supplier_id: supplierId,
+          status: 'confirmed',
+          total,
+          credit_applied: creditApplied,
+        })
+        .select('id')
+        .single()
+
+      if (orderError || !order) {
+        throw new Error(`Erreur lors de la création de la commande : ${orderError?.message}`)
+      }
+
+      const orderItems = normalizedItems.map(item => ({
+        order_id: order.id,
+        product_id: item.productId,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+      }))
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+
+      if (itemsError) {
+        throw new Error(`Erreur lors de l'enregistrement des produits : ${itemsError.message}`)
+      }
+
+      createdOrders.push(order.id)
+
+      emailGroups.push({
+        orderId: order.id,
+        supplierName: supplierItems[0].supplierName,
+        supplierType: supplierItems[0].supplierType,
+        items: normalizedItems.map(item => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          unit: item.unit,
+          unitPrice: item.unitPrice,
+        })),
+        total,
+        creditApplied: creditApplied > 0 ? creditApplied : undefined,
+        grossTotal: creditApplied > 0 ? grossTotal : undefined,
+      })
+    }
+
+    if (totalCreditUsed > 0) {
+      const newBalance = roundChf(creditAvailable - totalCreditUsed)
+      const { error: creditErr } = await admin
+        .from('profiles')
+        .update({ credit_balance: newBalance })
+        .eq('id', user.id)
+
+      if (creditErr) {
+        throw new Error(`Erreur lors de la mise à jour de l'avoir : ${creditErr.message}`)
+      }
+    }
+  } catch (err) {
+    if (createdOrders.length > 0) {
+      await admin.from('order_items').delete().in('order_id', createdOrders)
+      await admin.from('orders').delete().in('id', createdOrders)
+    }
+    const message = err instanceof Error ? err.message : 'Erreur inconnue.'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+
+  const globalTotal = roundChf(emailGroups.reduce((sum, g) => sum + g.total, 0))
+
   try {
     await sendOrderConfirmation({
       memberEmail: user.email!,
       memberName,
       orders: emailGroups,
-      globalTotal: Math.round(globalTotal * 100) / 100,
+      globalTotal,
+      creditUsed: totalCreditUsed > 0 ? totalCreditUsed : undefined,
     })
   } catch (err) {
     console.error('[email] Échec envoi confirmation commande :', err)
@@ -164,6 +203,9 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     orders: createdOrders,
-    message: `${createdOrders.length} commande${createdOrders.length > 1 ? 's' : ''} créée${createdOrders.length > 1 ? 's' : ''} avec succès.`,
+    creditUsed: totalCreditUsed,
+    message: `${createdOrders.length} commande${createdOrders.length > 1 ? 's' : ''} créée${createdOrders.length > 1 ? 's' : ''} avec succès.${
+      totalCreditUsed > 0 ? ` Avoir appliqué : CHF ${totalCreditUsed.toFixed(2)}.` : ''
+    }`,
   })
 }

@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { sendDeliveryNotification } from '@/lib/email/sendDeliveryNotification'
 import { requireAdminUser } from '@/lib/admin/auth'
 import { countEligibleForArchive } from '@/lib/admin/order-archive'
+import { roundChf } from '@/lib/members/credit'
 
 const VALID_STATUSES = ['confirmed', 'delivered', 'cancelled']
 
@@ -134,6 +135,19 @@ export async function PATCH(request: NextRequest) {
 
   const admin = createAdminClient()
 
+  const { data: existingOrder, error: fetchErr } = await admin
+    .from('orders')
+    .select('id, status, member_id, credit_applied')
+    .eq('id', orderId)
+    .single()
+
+  if (fetchErr || !existingOrder) {
+    return NextResponse.json({ error: 'Commande introuvable.' }, { status: 404 })
+  }
+
+  const previousStatus = existingOrder.status as string
+  const creditApplied = roundChf(Number(existingOrder.credit_applied) || 0)
+
   const { error } = await admin
     .from('orders')
     .update({ status })
@@ -142,6 +156,27 @@ export async function PATCH(request: NextRequest) {
   if (error) {
     console.error('[admin/orders PATCH] Supabase error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (
+    status === 'cancelled' &&
+    previousStatus !== 'cancelled' &&
+    creditApplied > 0 &&
+    existingOrder.member_id
+  ) {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('credit_balance')
+      .eq('id', existingOrder.member_id as string)
+      .single()
+
+    if (profile) {
+      const restored = roundChf((Number(profile.credit_balance) || 0) + creditApplied)
+      await admin
+        .from('profiles')
+        .update({ credit_balance: restored })
+        .eq('id', existingOrder.member_id as string)
+    }
   }
 
   // ── Email automatique quand l'admin marque une commande comme livrée ─────

@@ -133,6 +133,38 @@ export const WHOLESALERS: Wholesaler[] = [
     logo: 'algorigin.png',
     logoQuality: 'official',
   },
+  {
+    slug: 'saldac',
+    displayName: 'Saldac',
+    aliases: ['Saldac'],
+    description: 'Grossiste bio équitable — épicerie et produits secs.',
+    emoji: '🤝',
+    website: 'https://www.saldac.ch',
+  },
+  {
+    slug: 'gebana',
+    displayName: 'Gebana',
+    aliases: ['Gebana'],
+    description: 'Grossiste bio équitable — fruits, légumes et produits transformés.',
+    emoji: '🌍',
+    website: 'https://gebana.com/ch-fr',
+  },
+  {
+    slug: 'dr-jacobs',
+    displayName: "Dr Jacob's",
+    aliases: ["Dr Jacob's", 'Dr Jacobs', "Dr Jacob's — Naturam", 'Naturam'],
+    description: 'Compléments alimentaires et produits Naturam.',
+    emoji: '💊',
+    website: 'https://www.naturam.ch',
+  },
+  {
+    slug: 'kumbha',
+    displayName: 'Kumbha Sàrl',
+    aliases: ['Kumbha Sàrl', 'Kumbha Sarl', 'Kumbha'],
+    description: 'Grossiste bio — assortiment Bio-Vitality.',
+    emoji: '🌿',
+    website: 'https://www.bio-vitality.ch',
+  },
 ]
 
 function normalizeKey(name: string): string {

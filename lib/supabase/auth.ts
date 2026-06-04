@@ -23,6 +23,7 @@ export type Profile = {
   status?: string | null
   cotisation_amount?: number | null
   cotisation_active?: boolean | null
+  credit_balance?: number | null
 }
 
 /**
@@ -36,7 +37,7 @@ export async function getProfile(): Promise<Profile | null> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, email, full_name, first_name, last_name, phone, postal_code, commune, username, avatar_url, status, cotisation_amount, cotisation_active')
+    .select('id, email, full_name, first_name, last_name, phone, postal_code, commune, username, avatar_url, status, cotisation_amount, cotisation_active, credit_balance')
     .eq('id', user.id)
     .single()
 
@@ -47,6 +48,7 @@ export type OrderWithItems = {
   id: string
   status: string
   total: number
+  credit_applied?: number
   created_at: string
   supplier: { name: string; type: string } | null
   order_items: {
@@ -70,7 +72,7 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
   const { data, error } = await supabase
     .from('orders')
     .select(`
-      id, status, total, created_at,
+      id, status, total, credit_applied, created_at,
       supplier:suppliers(name, type),
       order_items(
         id, quantity, unit_price, cancelled_at,

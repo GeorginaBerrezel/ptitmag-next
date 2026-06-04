@@ -8,8 +8,10 @@ import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER, showProductImage } from '@/lib/catalog/product-image'
+import { resolveQuantityRules } from '@/lib/catalog/bioterroir-quantity'
 import {
   decrementQuantity,
+  formatQuantityDisplay,
   getMinAllowedQuantity,
   incrementQuantity,
   quantityHintText,
@@ -37,7 +39,8 @@ function ProductCardInner({ product, nowMs }: Props) {
   const applyCielMarkup = useApplyCielMarkup()
   const now = nowMs ?? Date.now()
 
-  const [qty, setQty] = useState(product.min_quantity)
+  const qtyRules = resolveQuantityRules(product)
+  const [qty, setQty] = useState(() => getMinAllowedQuantity(qtyRules))
   const [added, setAdded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(() => getProductImageUrl(product))
 
@@ -50,23 +53,19 @@ function ProductCardInner({ product, nowMs }: Props) {
   const imageUrl = imageSrc
   const hasImage = showProductImage(product) && imageUrl
 
-  const qtyRules = {
-    minQuantity: product.min_quantity,
-    allowsPartialOrder: product.allows_partial_order,
-  }
   const minAllowed = getMinAllowedQuantity(qtyRules)
 
   const hasSurcharge = hasUcSurcharge({
-    minQuantity: product.min_quantity,
-    allowsPartialOrder: product.allows_partial_order,
+    minQuantity: qtyRules.minQuantity,
+    allowsPartialOrder: qtyRules.allowsPartialOrder,
     quantity: qty,
   })
   const effectivePrice = product.unit_price != null
     ? getEffectiveUnitPrice(
         {
           unitPrice: product.unit_price,
-          minQuantity: product.min_quantity,
-          allowsPartialOrder: product.allows_partial_order,
+          minQuantity: qtyRules.minQuantity,
+          allowsPartialOrder: qtyRules.allowsPartialOrder,
           quantity: qty,
         },
         { applyCielMarkup },
@@ -101,8 +100,8 @@ function ProductCardInner({ product, nowMs }: Props) {
       quantity: qty,
       unitPrice: product.unit_price ?? 0,
       unit: product.unit,
-      minQuantity: product.min_quantity,
-      allowsPartialOrder: product.allows_partial_order,
+      minQuantity: qtyRules.minQuantity,
+      allowsPartialOrder: qtyRules.allowsPartialOrder,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
@@ -237,7 +236,7 @@ function ProductCardInner({ product, nowMs }: Props) {
                 −
               </button>
 
-              <span className={styles.qtyValue}>{qty}</span>
+              <span className={styles.qtyValue}>{formatQuantityDisplay(qty, qtyRules)}</span>
 
               <button
                 type="button"

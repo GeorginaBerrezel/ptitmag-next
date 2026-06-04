@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     const deadline = config.deadlineGroup === 'mercredi' ? dateLimiteMercredi : dateLimiteJeudi
-    const { count, inserted, updated, error } = await upsertLocalSupplier(admin, config, parsed, deadline)
+    const { count, inserted, updated, duplicatesMerged, error } = await upsertLocalSupplier(admin, config, parsed, deadline)
 
     if (error) { globalStats.errors.push(`${sheetName} : ${error}`); continue }
 
@@ -55,7 +55,11 @@ export async function POST(request: NextRequest) {
     globalStats.productsImported += count
     globalStats.productsInserted += inserted
     globalStats.productsUpdated += updated
-    sheetResults[sheetName] = { count, supplierName: config.supplierName }
+    sheetResults[sheetName] = {
+      count,
+      supplierName: config.supplierName,
+      ...(duplicatesMerged > 0 ? { duplicatesMerged } : {}),
+    }
   }
 
   const message = globalStats.sheetsProcessed === 0
