@@ -182,16 +182,38 @@
   opacity: 0.65;
 }
 
+/* Filtres catégories : reste en haut au scroll, fond assorti à la page (pas bloc blanc) */
 .catalogue-sticky-categories {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+  padding: 0.5rem 0.5rem 1rem;
   position: sticky;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(6px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg, #f4f4f4) 94%, transparent) 0%,
+    color-mix(in srgb, var(--bg, #f4f4f4) 88%, transparent) 75%,
+    transparent 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(16, 24, 40, 0.06);
+  box-shadow: 0 6px 20px -8px rgba(16, 24, 40, 0.12);
+}
+
+@supports not (background: color-mix(in srgb, white 50%, transparent)) {
+  .catalogue-sticky-categories {
+    background: linear-gradient(
+      180deg,
+      rgba(244, 244, 244, 0.96) 0%,
+      rgba(244, 244, 244, 0.9) 78%,
+      rgba(244, 244, 244, 0) 100%
+    );
+  }
 }
 
 /* Catalogue mobile : filtres sur une ligne scrollable, en-tête compact */
@@ -206,7 +228,14 @@
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     margin-bottom: 0.75rem;
-    padding-bottom: 0.35rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .catalogue-sticky-categories {
+    margin-left: -0.35rem;
+    margin-right: -0.35rem;
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
   }
 
   .catalogue-sticky-categories::-webkit-scrollbar,

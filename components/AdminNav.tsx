@@ -12,12 +12,27 @@ type NavLink = {
   exact: boolean
   badgeKey: 'confirmed' | 'pending' | null
   badgeColor: string
+  badgeTitle?: string
 }
 
 const NAV_LINKS: NavLink[] = [
   { href: '/admin',              label: 'Tableau de bord', exact: true,  badgeKey: null,        badgeColor: '' },
-  { href: '/admin/commandes',    label: 'Commandes',        exact: false, badgeKey: 'confirmed', badgeColor: '#DC7F00' },
-  { href: '/admin/membres',      label: 'Membres',          exact: false, badgeKey: 'pending',   badgeColor: '#5c6bc0' },
+  {
+    href: '/admin/commandes',
+    label: 'Commandes',
+    exact: false,
+    badgeKey: 'confirmed',
+    badgeColor: '#DC7F00',
+    badgeTitle: 'Commandes confirmées à traiter (livrer ou annuler)',
+  },
+  {
+    href: '/admin/membres',
+    label: 'Membres',
+    exact: false,
+    badgeKey: 'pending',
+    badgeColor: '#5c6bc0',
+    badgeTitle: 'Inscriptions en attente (statut Non membre)',
+  },
   { href: '/admin/fournisseurs', label: 'Fournisseurs',     exact: false, badgeKey: null,        badgeColor: '' },
   { href: '/admin/import',       label: 'Import produits',  exact: false, badgeKey: null,        badgeColor: '' },
 ]
@@ -84,6 +99,7 @@ export default function AdminNav({
             key={link.href}
             href={link.href}
             locale={locale}
+            title={hasBadge && link.badgeTitle ? link.badgeTitle : undefined}
             onMouseEnter={() => setHovered(link.href)}
             onMouseLeave={() => setHovered(null)}
             style={{
@@ -115,21 +131,24 @@ export default function AdminNav({
 
             {/* Badge numérique (commandes confirmées, membres non cotisés) */}
             {hasBadge && (
-              <span style={{
-                marginLeft: 6,
-                background: link.badgeColor,
-                color: '#fff',
-                borderRadius: 999,
-                padding: '0 5px',
-                minWidth: 18,
-                height: 18,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                lineHeight: 1,
-              }}>
+              <span
+                title={link.badgeTitle}
+                style={{
+                  marginLeft: 6,
+                  background: link.badgeColor,
+                  color: '#fff',
+                  borderRadius: 999,
+                  padding: '0 5px',
+                  minWidth: 18,
+                  height: 18,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  lineHeight: 1,
+                }}
+              >
                 {badgeCount > 99 ? '99+' : badgeCount}
               </span>
             )}
