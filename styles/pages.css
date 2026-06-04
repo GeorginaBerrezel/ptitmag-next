@@ -182,20 +182,18 @@
   opacity: 0.65;
 }
 
-/* Filtres catégories : sticky, même gris opaque que la page (masque le scroll sans effet verre) */
+/* Filtres catégories : sticky, fond = page, sans trait ni ombre (pas de « bande » visible) */
 .catalogue-sticky-categories {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
-  margin-left: -0.5rem;
-  margin-right: -0.5rem;
-  padding: 0.55rem 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0 0.5rem;
   position: sticky;
   z-index: 10;
   background: var(--bg, #f4f4f4);
-  border-bottom: 1px solid rgba(16, 24, 40, 0.08);
-  box-shadow: 0 8px 12px -10px rgba(16, 24, 40, 0.15);
+  border: none;
+  box-shadow: none;
 }
 
 /* Catalogue mobile : filtres sur une ligne scrollable, en-tête compact */
@@ -214,10 +212,7 @@
   }
 
   .catalogue-sticky-categories {
-    margin-left: -0.35rem;
-    margin-right: -0.35rem;
-    padding-left: 0.35rem;
-    padding-right: 0.35rem;
+    padding-bottom: 0.4rem;
   }
 
   .catalogue-sticky-categories::-webkit-scrollbar,
