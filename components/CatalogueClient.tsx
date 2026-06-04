@@ -352,7 +352,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
   }, [filteredSummaries])
 
   return (
-    <div style={{ marginTop: 'calc(-1 * 1rem)', maxWidth: '100%', overflowX: 'clip' }}>
+    <div className="catalogue-page-root" style={{ marginTop: 'calc(-1 * 1rem)', maxWidth: '100%', overflowX: 'clip' }}>
       <CartBar />
       {applyCielMarkup && (
         <div style={{
@@ -533,9 +533,10 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
 
         {view === 'products' && activeCategories.length > 0 && (
           <div
-            className="catalogue-sticky-categories"
+            className="catalogue-sticky-categories-shell"
             style={{ top: stickyTop }}
           >
+            <div className="catalogue-sticky-categories">
             {activeCategories.map(({ name, items }) => {
               const count = items.length || activeSummary?.categories.find(c => c.name === name)?.count || 0
               return (
@@ -550,6 +551,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                 </button>
               )
             })}
+            </div>
           </div>
         )}
 
