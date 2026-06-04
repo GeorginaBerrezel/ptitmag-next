@@ -13,6 +13,7 @@ import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import CategoryCard from './catalogue/CategoryCard'
+import HorizontalScrollStrip from './catalogue/HorizontalScrollStrip'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
 import { useCart } from '@/lib/cart/CartContext'
@@ -40,7 +41,6 @@ function cacheKey(supplierId: string, featuredOnly: boolean, category?: string |
 export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
   const { totalItems } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
-  const stickyTop = totalItems > 0 ? 'var(--cart-bar-height)' : '0'
 
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
@@ -497,62 +497,64 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
         </div>
 
         {view === 'suppliers' && (
-          <div className="catalogue-type-filters" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-            {hasFeatured && (
-              <button type="button" onClick={handleEphemereClick} style={{
-                padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
-                background: ephemereOnly ? '#DC7F00' : '#fff',
-                color: ephemereOnly ? '#fff' : '#1a1a2e',
-                fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-              }}>
-                ⏳ Éphémères
-              </button>
-            )}
-            {!ephemereOnly && TYPE_ORDER.map(type => {
-              const count = baseSummaries.filter(s => s.supplier.type === type).length
-              if (count === 0) return null
-              const active = selectedType === type
-              return (
-                <button key={type} type="button" onClick={() => handleTypeClick(type)} style={{
+          <HorizontalScrollStrip className="catalogue-type-filters-wrap" ariaLabel="Types de fournisseurs">
+            <div className="catalogue-type-filters">
+              {hasFeatured && (
+                <button type="button" onClick={handleEphemereClick} style={{
                   padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                  borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
-                  background: active ? '#1a1a2e' : '#fff',
-                  color: active ? '#fff' : '#1a1a2e',
+                  borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
+                  background: ephemereOnly ? '#DC7F00' : '#fff',
+                  color: ephemereOnly ? '#fff' : '#1a1a2e',
                   fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
                 }}>
-                  {TYPE_LABELS[type] ?? type}
-                  <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
-                    {count}
-                  </span>
+                  ⏳ Éphémères
                 </button>
-              )
-            })}
-          </div>
+              )}
+              {!ephemereOnly && TYPE_ORDER.map(type => {
+                const count = baseSummaries.filter(s => s.supplier.type === type).length
+                if (count === 0) return null
+                const active = selectedType === type
+                return (
+                  <button key={type} type="button" onClick={() => handleTypeClick(type)} style={{
+                    padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
+                    borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
+                    background: active ? '#1a1a2e' : '#fff',
+                    color: active ? '#fff' : '#1a1a2e',
+                    fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                  }}>
+                    {TYPE_LABELS[type] ?? type}
+                    <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </HorizontalScrollStrip>
         )}
 
-        {view === 'products' && activeCategories.length > 0 && (
-          <div
-            className="catalogue-sticky-categories-shell"
-            style={{ top: stickyTop }}
+        {view === 'categories' && isLargeCatalog && filteredCategories.length > 8 && (
+          <HorizontalScrollStrip
+            className="catalogue-sticky-categories-wrap"
+            ariaLabel="Catégories du catalogue"
           >
             <div className="catalogue-sticky-categories">
-            {activeCategories.map(({ name, items }) => {
-              const count = items.length || activeSummary?.categories.find(c => c.name === name)?.count || 0
-              return (
-                <button key={name} type="button" onClick={() => openCategory(name)} style={{
-                  padding: '0.35rem 0.85rem', borderRadius: 999, border: '1px solid',
-                  borderColor: activeCategory === name ? '#DC7F00' : 'rgba(16,24,40,0.12)',
-                  background: activeCategory === name ? '#DC7F00' : '#fff',
-                  color: activeCategory === name ? '#fff' : '#555',
-                  fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-                }}>
-                  {name} ({count})
-                </button>
-              )
-            })}
+              {filteredCategories.map(({ name }) => {
+                const count = activeSummary?.categories.find(c => c.name === name)?.count ?? 0
+                return (
+                  <button key={name} type="button" onClick={() => openCategory(name)} style={{
+                    padding: '0.35rem 0.85rem', borderRadius: 999, border: '1px solid',
+                    borderColor: 'rgba(16,24,40,0.12)',
+                    background: '#fff',
+                    color: '#555',
+                    fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}>
+                    {name} ({count})
+                  </button>
+                )
+              })}
             </div>
-          </div>
+          </HorizontalScrollStrip>
         )}
 
         {ephemereOnly && view === 'suppliers' && (
@@ -563,6 +565,29 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           }}>
             ⏳ Produits éphémères — choisissez un fournisseur pour voir les offres limitées.
           </div>
+        )}
+
+        {view === 'products' && isLargeCatalog && !isSearching && (
+          <button
+            type="button"
+            onClick={() => { setActiveCategory(null); setSearch('') }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              marginBottom: '1rem',
+              padding: '0.45rem 0.85rem',
+              borderRadius: 999,
+              border: '1.5px solid rgba(16,24,40,0.12)',
+              background: '#fff',
+              color: '#DC7F00',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            ← Changer de catégorie
+          </button>
         )}
 
         {loadError && (

@@ -1,5 +1,7 @@
 /** Parse et transformation CSV Biopartner (partagé import + découpage). */
 
+import { vatMultiplierFromLabel } from '@/lib/import/biopartner-vat'
+
 export type BiopartnerRow = {
   Article: string
   Désignation: string
@@ -16,6 +18,8 @@ export type BiopartnerRow = {
   'Groupe produit principal': string
   Marque: string
   'Categorie produit': string
+  /** Colonne Z — ex. « Taux TVA réduit 2.6% » ou « Taux TVA normal 8.1% » */
+  TVA?: string
 }
 
 export type ParsedBiopartnerCsv = {
@@ -135,9 +139,10 @@ export function parseMinQuantity(uc: string): number {
 export function buildUnitPrice(row: BiopartnerRow): number | null {
   const raw = parsePrice(row.Prix)
   if (raw == null) return null
-  const TVA_RATE = 1.026
-  const ttc = row.UM === '1' ? raw : raw * TVA_RATE
-  return Math.round(ttc * 100) / 100
+  // UM = 1 : prix déjà TTC chez Biopartner ; UM = 0 : HT → appliquer le taux colonne TVA
+  if (row.UM === '1') return Math.round(raw * 100) / 100
+  const mult = vatMultiplierFromLabel(row.TVA)
+  return Math.round(raw * mult * 100) / 100
 }
 
 export function rowToProduct(row: BiopartnerRow, supplierId: string) {

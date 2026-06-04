@@ -196,7 +196,7 @@ function ProductCardInner({ product, nowMs }: Props) {
               </p>
               {product.supplier?.type === 'grossiste_bio' && (
                 <p style={{ margin: '0.1rem 0 0', fontSize: '0.68rem', opacity: 0.5 }}>
-                  TVA 2.6% incluse
+                  Prix TTC
                 </p>
               )}
               {applyCielMarkup && (
