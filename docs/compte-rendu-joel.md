@@ -109,7 +109,7 @@ Navigation par **catégories** + **recherche** globale sur tout le catalogue.
 
 ### Site public (FR/EN)
 
-Accueil, Adhésion, Producteurs, Contact — responsive · bilingue · WhatsApp · Google Maps · horaires · produits éphémères (bandeau orange) · textes adhésion sans période d'essai.
+Accueil, Adhésion, Producteurs, Contact — responsive · bilingue · Signal · Google Maps · horaires · produits éphémères (bandeau orange) · textes adhésion sans période d'essai.
 
 ### Espace adhérents
 
