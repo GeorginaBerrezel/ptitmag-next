@@ -10,9 +10,11 @@ import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
+import { useCategoryGridBackNav, useCompactCategoryNav } from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import CategoryCard from './catalogue/CategoryCard'
+import HorizontalScrollStrip from './catalogue/HorizontalScrollStrip'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
 import { useCart } from '@/lib/cart/CartContext'
@@ -111,6 +113,10 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
   )
 
   const showSupplierSidebar = activeSupplierId != null && openSuppliersCount >= 2
+
+  const categoryCount = activeCategories.length
+  const compactCategoryNav = useCompactCategoryNav(categoryCount)
+  const categoryGridBackNav = useCategoryGridBackNav(categoryCount)
 
   const view: 'suppliers' | 'categories' | 'products' =
     activeSummary && activeCategory ? 'products'
@@ -450,8 +456,8 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
             <p className="catalogue-page-sub" style={{ margin: 0, opacity: 0.7 }}>
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
               {view === 'categories' && (
-                isLargeCatalog
-                  ? 'Choisissez une catégorie ou recherchez un produit — pas de liste complète.'
+                categoryGridBackNav
+                  ? 'Choisissez une catégorie ci-dessous ou utilisez la recherche.'
                   : 'Choisissez une catégorie pour afficher les produits.'
               )}
               {view === 'products' && activeProducts && !isSearching && (
@@ -497,62 +503,40 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
         </div>
 
         {view === 'suppliers' && (
-          <div className="catalogue-type-filters" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-            {hasFeatured && (
-              <button type="button" onClick={handleEphemereClick} style={{
-                padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
-                background: ephemereOnly ? '#DC7F00' : '#fff',
-                color: ephemereOnly ? '#fff' : '#1a1a2e',
-                fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-              }}>
-                ⏳ Éphémères
-              </button>
-            )}
-            {!ephemereOnly && TYPE_ORDER.map(type => {
-              const count = baseSummaries.filter(s => s.supplier.type === type).length
-              if (count === 0) return null
-              const active = selectedType === type
-              return (
-                <button key={type} type="button" onClick={() => handleTypeClick(type)} style={{
+          <HorizontalScrollStrip className="catalogue-type-filters-wrap" ariaLabel="Types de fournisseurs">
+            <div className="catalogue-type-filters">
+              {hasFeatured && (
+                <button type="button" onClick={handleEphemereClick} style={{
                   padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                  borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
-                  background: active ? '#1a1a2e' : '#fff',
-                  color: active ? '#fff' : '#1a1a2e',
+                  borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
+                  background: ephemereOnly ? '#DC7F00' : '#fff',
+                  color: ephemereOnly ? '#fff' : '#1a1a2e',
                   fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
                 }}>
-                  {TYPE_LABELS[type] ?? type}
-                  <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
-                    {count}
-                  </span>
+                  ⏳ Éphémères
                 </button>
-              )
-            })}
-          </div>
-        )}
-
-        {view === 'products' && activeCategories.length > 0 && (
-          <div
-            className="catalogue-sticky-categories-shell"
-            style={{ top: stickyTop }}
-          >
-            <div className="catalogue-sticky-categories">
-            {activeCategories.map(({ name, items }) => {
-              const count = items.length || activeSummary?.categories.find(c => c.name === name)?.count || 0
-              return (
-                <button key={name} type="button" onClick={() => openCategory(name)} style={{
-                  padding: '0.35rem 0.85rem', borderRadius: 999, border: '1px solid',
-                  borderColor: activeCategory === name ? '#DC7F00' : 'rgba(16,24,40,0.12)',
-                  background: activeCategory === name ? '#DC7F00' : '#fff',
-                  color: activeCategory === name ? '#fff' : '#555',
-                  fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-                }}>
-                  {name} ({count})
-                </button>
-              )
-            })}
+              )}
+              {!ephemereOnly && TYPE_ORDER.map(type => {
+                const count = baseSummaries.filter(s => s.supplier.type === type).length
+                if (count === 0) return null
+                const active = selectedType === type
+                return (
+                  <button key={type} type="button" onClick={() => handleTypeClick(type)} style={{
+                    padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
+                    borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
+                    background: active ? '#1a1a2e' : '#fff',
+                    color: active ? '#fff' : '#1a1a2e',
+                    fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                  }}>
+                    {TYPE_LABELS[type] ?? type}
+                    <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
-          </div>
+          </HorizontalScrollStrip>
         )}
 
         {ephemereOnly && view === 'suppliers' && (
@@ -563,6 +547,59 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           }}>
             ⏳ Produits éphémères — choisissez un fournisseur pour voir les offres limitées.
           </div>
+        )}
+
+        {view === 'products' && compactCategoryNav && (
+          <div
+            className="catalogue-sticky-categories-shell"
+            style={{ top: stickyTop }}
+          >
+            <HorizontalScrollStrip
+              className="catalogue-sticky-categories-wrap"
+              ariaLabel="Catégories du fournisseur"
+            >
+              <div className="catalogue-sticky-categories">
+                {activeCategories.map(({ name }) => {
+                  const count =
+                    activeSummary?.categories.find(c => c.name === name)?.count ?? 0
+                  const active = activeCategory === name
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => openCategory(name)}
+                      aria-current={active ? 'true' : undefined}
+                      style={{
+                        padding: '0.35rem 0.85rem',
+                        borderRadius: 999,
+                        border: '1px solid',
+                        borderColor: active ? '#DC7F00' : 'rgba(16,24,40,0.12)',
+                        background: active ? '#DC7F00' : '#fff',
+                        color: active ? '#fff' : '#555',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {name}
+                      {count > 0 ? ` (${count})` : ''}
+                    </button>
+                  )
+                })}
+              </div>
+            </HorizontalScrollStrip>
+          </div>
+        )}
+
+        {view === 'products' && categoryGridBackNav && !isSearching && (
+          <button
+            type="button"
+            onClick={() => { setActiveCategory(null); setSearch('') }}
+            className="catalogue-change-category-btn"
+          >
+            ← Changer de catégorie
+          </button>
         )}
 
         {loadError && (

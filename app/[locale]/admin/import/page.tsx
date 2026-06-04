@@ -139,9 +139,10 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
           <a href="https://shop.biopartner.ch" target="_blank" rel="noreferrer"
             style={{ color: '#1e5c35', fontWeight: 600 }}>shop.biopartner.ch</a>
           {' '}(liste de commandes personnelle filtrée par Joel).<br />
-          <strong>2.</strong> À l&apos;export (LibreOffice / Excel) : encodage{' '}
-          <strong>UTF-8</strong>, séparateur <strong>point-virgule (;)</strong> — pas la virgule.<br />
-          <strong>3.</strong> Importer ici — seuls les produits de <em>ce</em> catalogue sont mis à jour.
+          <strong>2.</strong> Fichier reçu en <strong>.xlsx</strong> ou <strong>.pdf</strong> ? Ouvrir dans Excel ou LibreOffice, puis{' '}
+          <strong>Enregistrer sous → CSV UTF-8</strong> (séparateur <strong>point-virgule ;</strong>). Le PDF seul ne peut pas être importé.<br />
+          <strong>3.</strong> La colonne <strong>TVA</strong> (col. Z) fixe le taux (2,6&nbsp;% ou 8,1&nbsp;%) — réimporter après une mise à jour des prix.<br />
+          <strong>4.</strong> Importer ici — seuls les produits de <em>ce</em> catalogue sont mis à jour.
         </>
       ),
     })),
