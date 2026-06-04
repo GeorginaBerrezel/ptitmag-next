@@ -1,6 +1,5 @@
 import { getTranslations } from 'next-intl/server'
 import { site } from '@/lib/site'
-import ContactForm from '@/components/ContactForm'
 import PageHeroWithImage from '@/components/PageHeroWithImage'
 import JsonLdScript from '@/components/seo/JsonLdScript'
 import { SHOP_IMAGES } from '@/lib/site-images'
@@ -108,7 +107,7 @@ export default async function ContactPage({
                 {displayPhone}
               </p>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', marginTop: '0.1rem' }}>
-                Joël — appeler ou SMS
+                Joël — appel, SMS ou Signal
               </p>
             </div>
           </a>
@@ -139,12 +138,19 @@ export default async function ContactPage({
             </div>
           </a>
 
-          {/* WhatsApp */}
-          <div>
-            <p style={{ margin: '0 0 0.5rem', fontSize: '0.82rem', opacity: 0.55 }}>
-              Vous préférez WhatsApp ?
+          {/* Signal */}
+          <div style={{
+            background: '#e8f5e9',
+            borderRadius: 12,
+            padding: '0.85rem 1rem',
+            display: 'flex',
+            gap: '0.6rem',
+            alignItems: 'flex-start',
+          }}>
+            <span style={{ fontSize: '1.1rem', flexShrink: 0 }} aria-hidden>💬</span>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#245c2a', lineHeight: 1.55 }}>
+              {t('signal_info')}
             </p>
-            <ContactForm />
           </div>
         </div>
 
@@ -204,21 +210,6 @@ export default async function ContactPage({
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Signal */}
-          <div style={{
-            background: '#e8f5e9',
-            borderRadius: 12,
-            padding: '0.85rem 1rem',
-            display: 'flex',
-            gap: '0.6rem',
-            alignItems: 'flex-start',
-          }}>
-            <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>💬</span>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#245c2a', lineHeight: 1.55 }}>
-              {t('signal_info')}
-            </p>
           </div>
         </div>
 
