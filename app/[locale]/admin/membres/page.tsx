@@ -53,6 +53,7 @@ const MEMBER_STATUS = MEMBER_STATUS_LABELS
 const ORDER_STATUS: Record<string, { label: string; color: string }> = {
   confirmed: { label: 'Confirmée', color: '#DC7F00' },
   delivered: { label: 'Livrée',    color: '#1565c0' },
+  closed:    { label: 'Clôturée',  color: '#2e7d32' },
   cancelled: { label: 'Annulée',   color: '#c0392b' },
 }
 

@@ -1,6 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminUser } from '@/lib/admin/auth'
 import { sendOrderItemCancelled } from '@/lib/email/sendOrderItemCancelled'
+import { orderIsModifiable } from '@/lib/orders/lifecycle'
+import { syncOrderGrossTotal } from '@/lib/orders/totals'
 import { NextResponse, type NextRequest } from 'next/server'
 
 type CancelItemBody = {
@@ -50,9 +52,9 @@ export async function POST(request: NextRequest) {
     supplier: { name: string } | null
   }
 
-  if (order.status !== 'confirmed') {
+  if (!orderIsModifiable(order.status)) {
     return NextResponse.json(
-      { error: 'Seules les commandes « Confirmées » peuvent être modifiées ligne par ligne.' },
+      { error: 'Cette commande ne peut plus être modifiée (clôturée ou annulée).' },
       { status: 400 },
     )
   }
@@ -93,16 +95,26 @@ export async function POST(request: NextRequest) {
     }
   })
 
-  const newTotal = Math.round(
-    remaining.reduce((s, r) => s + r.quantity * r.unitPrice, 0) * 100,
-  ) / 100
-
   const orderFullyCancelled = remaining.length === 0
-  const newStatus = orderFullyCancelled ? 'cancelled' : 'confirmed'
+  const newStatus = orderFullyCancelled ? 'cancelled' : order.status
+
+  let newTotal: number
+  try {
+    newTotal = orderFullyCancelled
+      ? 0
+      : await syncOrderGrossTotal(admin, order.id)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Erreur recalcul total.'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 
   const { error: orderErr } = await admin
     .from('orders')
-    .update({ total: newTotal, status: newStatus })
+    .update({
+      total: newTotal,
+      status: newStatus,
+      ...(orderFullyCancelled ? { credit_applied: 0 } : {}),
+    })
     .eq('id', order.id)
 
   if (orderErr) {

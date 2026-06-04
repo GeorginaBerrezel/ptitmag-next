@@ -17,7 +17,7 @@ export function archiveCutoffDate(from = new Date()): Date {
 
 export function isEligibleForArchive(order: ArchivableOrder, from = new Date()): boolean {
   if (order.archived_at) return false
-  if (order.status !== 'delivered') return false
+  if (order.status !== 'closed') return false
   return new Date(order.created_at) < archiveCutoffDate(from)
 }
 

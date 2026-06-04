@@ -9,9 +9,10 @@ const PAGE_SIZE = 40
 type Props = {
   products: Product[]
   nowMs: number
+  extendOrderId?: string | null
 }
 
-function ProductListInner({ products, nowMs }: Props) {
+function ProductListInner({ products, nowMs, extendOrderId = null }: Props) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
@@ -25,7 +26,12 @@ function ProductListInner({ products, nowMs }: Props) {
     <>
       <div style={{ display: 'grid', gap: '0.5rem' }}>
         {visible.map(product => (
-          <ProductCard key={product.id} product={product} nowMs={nowMs} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            nowMs={nowMs}
+            extendOrderId={extendOrderId}
+          />
         ))}
       </div>
       {remaining > 0 && (

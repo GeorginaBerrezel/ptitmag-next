@@ -24,6 +24,7 @@ type AdminOrder = {
   id: string
   status: string
   total: number
+  credit_applied?: number
   created_at: string
   archived_at?: string | null
   member: { full_name: string | null; email: string | null; username: string | null } | null
@@ -36,6 +37,7 @@ type AdminOrder = {
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
   confirmed: { label: 'Confirmée', bg: '#fff8e6', color: '#DC7F00', border: '#DC7F00' },
   delivered: { label: 'Livrée',    bg: '#e3f2fd', color: '#1565c0', border: '#1565c0' },
+  closed:    { label: 'Clôturée',  bg: '#e8f5e9', color: '#2e7d32', border: '#2e7d32' },
   cancelled: { label: 'Annulée',   bg: '#fdecea', color: '#c0392b', border: '#c0392b' },
 }
 
@@ -90,6 +92,7 @@ export default function AdminCommandesPage({
   const [updating, setUpdating]       = useState<string | null>(null)
   const [exporting, setExporting]     = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
+  const [closingOrderId, setClosingOrderId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivableCount, setArchivableCount] = useState(0)
   const [archiving, setArchiving] = useState(false)
@@ -182,6 +185,7 @@ export default function AdminCommandesPage({
     archived:    orders.filter(o => o.archived_at).length,
     confirmed:   orders.filter(o => o.status === 'confirmed' && !o.archived_at).length,
     delivered:   orders.filter(o => o.status === 'delivered' && !o.archived_at).length,
+    closed:      orders.filter(o => o.status === 'closed' && !o.archived_at).length,
     cancelled:   orders.filter(o => o.status === 'cancelled' && !o.archived_at).length,
     totalAmount: orders
       .filter(o => o.status !== 'cancelled' && !o.archived_at)
@@ -214,6 +218,45 @@ export default function AdminCommandesPage({
     }
 
     setUpdating(null)
+  }
+
+  async function closeOrder(orderId: string) {
+    const order = orders.find(o => o.id === orderId)
+    const ok = window.confirm(
+      `Clôturer la commande de ${order ? getMemberName(order) : 'ce membre'} ?\n\n` +
+        'Le total final sera calculé, l\'avoir éventuel sera déduit, et un email récapitulatif sera envoyé.',
+    )
+    if (!ok) return
+
+    setClosingOrderId(orderId)
+    try {
+      const res = await fetch('/api/admin/orders/close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de la clôture.')
+
+      setOrders(prev => prev.map(o =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: 'closed',
+              total: data.total as number,
+              credit_applied: data.creditApplied as number,
+            }
+          : o,
+      ))
+
+      if (data.emailSent === false) {
+        alert('Commande clôturée, mais l\'email n\'a pas pu être envoyé.')
+      }
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setClosingOrderId(null)
+    }
   }
 
   async function cancelOrderItem(orderId: string, item: OrderItem) {
@@ -286,7 +329,7 @@ export default function AdminCommandesPage({
 
   async function archiveEligibleOrders() {
     const ok = window.confirm(
-      `Archiver ${archivableCount} commande(s) livrée(s) de plus de ${ARCHIVE_AFTER_MONTHS} mois ?\n\nElles disparaîtront de l'historique actif mais restent en base (bilan annuel, export adhérent).`,
+      `Archiver ${archivableCount} commande(s) clôturée(s) de plus de ${ARCHIVE_AFTER_MONTHS} mois ?\n\nElles disparaîtront de l'historique actif mais restent en base (bilan annuel, export adhérent).`,
     )
     if (!ok) return
 
@@ -408,6 +451,7 @@ export default function AdminCommandesPage({
           { label: 'Total',       value: stats.total,       color: '#1a1a2e' },
           { label: 'Confirmées',  value: stats.confirmed,   color: '#DC7F00' },
           { label: 'Livrées',     value: stats.delivered,   color: '#1565c0' },
+          { label: 'Clôturées',   value: stats.closed,      color: '#2e7d32' },
           { label: 'Annulées',    value: stats.cancelled,   color: '#c0392b' },
           { label: 'Archivées',   value: showArchived ? stats.archived : '—', color: '#6b7280' },
           { label: 'CA total',    value: `CHF ${stats.totalAmount.toFixed(2)}`, color: '#2e7d32' },
@@ -571,6 +615,7 @@ export default function AdminCommandesPage({
               <option value="">Tous les statuts</option>
               <option value="confirmed">Confirmées</option>
               <option value="delivered">Livrées</option>
+              <option value="closed">Clôturées</option>
               <option value="cancelled">Annulées</option>
             </select>
 
@@ -771,18 +816,20 @@ export default function AdminCommandesPage({
                     </p>
                   )}
 
-                  {order.status === 'confirmed' && order.order_items.length > 0 && (
+                  {(order.status === 'confirmed' || order.status === 'delivered') && order.order_items.length > 0 && (
                     <p style={{
                       margin: '0 0 0.85rem',
                       padding: '0.55rem 0.75rem',
-                      background: '#fff8ed',
-                      border: '1px solid #ffe082',
+                      background: order.status === 'delivered' ? '#e3f2fd' : '#fff8ed',
+                      border: `1px solid ${order.status === 'delivered' ? '#90caf9' : '#ffe082'}`,
                       borderRadius: 8,
                       fontSize: '0.8rem',
-                      color: '#92400e',
+                      color: order.status === 'delivered' ? '#1565c0' : '#92400e',
                       lineHeight: 1.45,
                     }}>
-                      Produit indisponible ? Cliquez <strong>Retirer</strong> — le total est recalculé et le membre est prévenu par email.
+                      {order.status === 'delivered'
+                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou ajout de produits (membre ou admin). Avoir déduit à la clôture.</>
+                        : <>Produit indisponible ? <strong>Retirer</strong> — total recalculé, email au membre.</>}
                     </p>
                   )}
 
@@ -791,7 +838,7 @@ export default function AdminCommandesPage({
                     {order.order_items.map(item => {
                       const lineTotal = item.quantity * item.unit_price
                       const isRemoving = removingItemId === item.id
-                      const canRemove = order.status === 'confirmed'
+                      const canRemove = order.status === 'confirmed' || order.status === 'delivered'
 
                       return (
                         <div key={item.id} className={lineStyles.orderLine}>
@@ -846,8 +893,17 @@ export default function AdminCommandesPage({
                       gap: '0.75rem',
                       flexWrap: 'wrap',
                     }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Total commande</span>
-                      <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>CHF {order.total.toFixed(2)}</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        {order.status === 'closed' ? 'Total final' : 'Total provisoire'}
+                      </span>
+                      <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>
+                        CHF {order.total.toFixed(2)}
+                        {(Number(order.credit_applied) || 0) > 0 && (
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: '#2e7d32', fontWeight: 600 }}>
+                            Avoir −{Number(order.credit_applied).toFixed(2)}
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </div>
 
@@ -861,13 +917,20 @@ export default function AdminCommandesPage({
                     <span style={{ fontSize: '0.8rem', opacity: 0.55, marginRight: '0.15rem' }}>
                       Changer le statut :
                     </span>
-                    {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
+                    {Object.entries(STATUS_CONFIG)
+                      .filter(([key]) => key !== 'closed')
+                      .map(([key, cfg]) => {
                       const isCurrent = order.status === key
+                      const disabled =
+                        isCurrent ||
+                        isUpdating ||
+                        order.status === 'closed' ||
+                        (key === 'confirmed' && order.status === 'delivered')
                       return (
                         <button
                           key={key}
-                          onClick={e => { e.preventDefault(); if (!isCurrent) updateStatus(order.id, key) }}
-                          disabled={isCurrent || isUpdating}
+                          onClick={e => { e.preventDefault(); if (!disabled) updateStatus(order.id, key) }}
+                          disabled={disabled}
                           style={{
                             padding: '0.28rem 0.85rem',
                             borderRadius: 999,
@@ -886,6 +949,30 @@ export default function AdminCommandesPage({
                     })}
                     {isUpdating && (
                       <span style={{ fontSize: '0.78rem', opacity: 0.45 }}>Mise à jour…</span>
+                    )}
+
+                    {order.status === 'delivered' && (
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault()
+                          void closeOrder(order.id)
+                        }}
+                        disabled={closingOrderId === order.id || isUpdating}
+                        style={{
+                          marginLeft: '0.25rem',
+                          padding: '0.35rem 1rem',
+                          borderRadius: 999,
+                          border: 'none',
+                          background: '#2e7d32',
+                          color: '#fff',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          cursor: closingOrderId === order.id ? 'wait' : 'pointer',
+                        }}
+                      >
+                        {closingOrderId === order.id ? 'Clôture…' : '✓ Clôturer'}
+                      </button>
                     )}
 
                     {mode === 'history' && order.archived_at && (
@@ -910,7 +997,7 @@ export default function AdminCommandesPage({
                       </button>
                     )}
 
-                    {mode === 'history' && !order.archived_at && order.status === 'delivered' && (
+                    {mode === 'history' && !order.archived_at && order.status === 'closed' && (
                       <button
                         type="button"
                         onClick={e => {

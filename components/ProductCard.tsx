@@ -32,19 +32,24 @@ type Props = {
   product: Product
   /** Horloge catalogue partagée (CatalogueClient) — évite Date.now() éparpillé. */
   nowMs?: number
+  extendOrderId?: string | null
 }
 
-function ProductCardInner({ product, nowMs }: Props) {
+function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
   const { addItem, items } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
   const now = nowMs ?? Date.now()
+  const [extendLoading, setExtendLoading] = useState(false)
+  const [extendDone, setExtendDone] = useState(false)
 
   const qtyRules = resolveQuantityRules(product)
   const [qty, setQty] = useState(() => getMinAllowedQuantity(qtyRules))
   const [added, setAdded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(() => getProductImageUrl(product))
 
-  const orderable = productOrderableAt(product, now)
+  const orderable = extendOrderId
+    ? product.unit_price != null
+    : productOrderableAt(product, now)
   const supplierStatus = product.supplier
     ? supplierOrderStatusLabel(product.supplier, now)
     : { isOpen: false, label: 'Commandes fermées' }
@@ -105,6 +110,30 @@ function ProductCardInner({ product, nowMs }: Props) {
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
+  }
+
+  async function handleExtendAdd() {
+    if (!extendOrderId || effectivePrice == null) return
+    setExtendLoading(true)
+    try {
+      const res = await fetch('/api/member/orders/add-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: extendOrderId,
+          productId: product.id,
+          quantity: qty,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Ajout impossible')
+      setExtendDone(true)
+      setTimeout(() => setExtendDone(false), 2500)
+    } catch (err) {
+      alert((err as Error).message)
+    } finally {
+      setExtendLoading(false)
+    }
   }
 
   const cardClass = [
@@ -250,20 +279,36 @@ function ProductCardInner({ product, nowMs }: Props) {
               <span style={{ fontSize: '0.78rem', opacity: 0.55 }}>{product.unit}</span>
             </div>
 
-            <button
-              type="button"
-              onClick={handleAdd}
-              className={[
-                styles.addBtn,
-                added ? styles.addBtnAdded : '',
-                !added && inCart ? styles.addBtnInCart : '',
-              ].filter(Boolean).join(' ')}
-            >
-              {added ? '✓ Ajouté' : inCart ? '✎ Modifier' : '+ Panier'}
-            </button>
+            {extendOrderId ? (
+              <button
+                type="button"
+                onClick={() => void handleExtendAdd()}
+                disabled={extendLoading}
+                className={[
+                  styles.addBtn,
+                  extendDone ? styles.addBtnAdded : '',
+                ].filter(Boolean).join(' ')}
+              >
+                {extendLoading ? '…' : extendDone ? '✓ Ajouté à la commande' : '+ Ajouter à ma commande'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAdd}
+                className={[
+                  styles.addBtn,
+                  added ? styles.addBtnAdded : '',
+                  !added && inCart ? styles.addBtnInCart : '',
+                ].filter(Boolean).join(' ')}
+              >
+                {added ? '✓ Ajouté' : inCart ? '✎ Modifier' : '+ Panier'}
+              </button>
+            )}
 
             <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.5, lineHeight: 1.3 }}>
-              {quantityHintText(qtyRules, product.unit)}
+              {extendOrderId
+                ? 'Sera ajouté à votre commande livrée (total à la clôture).'
+                : quantityHintText(qtyRules, product.unit)}
             </p>
           </>
         ) : (

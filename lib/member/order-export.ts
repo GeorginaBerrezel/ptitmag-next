@@ -19,6 +19,7 @@ const STATUS_LABEL: Record<string, string> = {
   draft: 'Brouillon',
   confirmed: 'Confirmée',
   delivered: 'Livrée',
+  closed: 'Clôturée',
   cancelled: 'Annulée',
 }
 

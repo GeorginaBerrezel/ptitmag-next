@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   // ── Étape 1 : toutes les commandes (pagination : PostgREST limite à 1000 lignes par défaut)
   const PAGE = 1000
   const selectPayload = `
-      id, status, total, created_at, archived_at, member_id,
+      id, status, total, credit_applied, created_at, archived_at, closed_at, member_id,
       supplier:suppliers(name, type),
       order_items(
         id, quantity, unit_price, cancelled_at,
@@ -96,7 +96,9 @@ export async function GET(request: NextRequest) {
       id: order.id,
       status: order.status,
       total: order.total,
+      credit_applied: order.credit_applied ?? 0,
       created_at: order.created_at,
+      closed_at: order.closed_at ?? null,
       archived_at: order.archived_at ?? null,
       supplier: order.supplier,
       order_items: activeItems,
@@ -160,7 +162,7 @@ export async function PATCH(request: NextRequest) {
 
   if (
     status === 'cancelled' &&
-    previousStatus !== 'cancelled' &&
+    previousStatus === 'closed' &&
     creditApplied > 0 &&
     existingOrder.member_id
   ) {

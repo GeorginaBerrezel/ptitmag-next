@@ -32,6 +32,9 @@ const SEARCH_DEBOUNCE_MS = 300
 type Props = {
   summaries: CatalogueSupplierSummary[]
   initialEphemere?: boolean
+  /** Compléter une commande livrée (Mon compte → catalogue). */
+  extendOrderId?: string | null
+  extendSupplierId?: string | null
 }
 
 function cacheKey(supplierId: string, featuredOnly: boolean, category?: string | null) {
@@ -39,7 +42,12 @@ function cacheKey(supplierId: string, featuredOnly: boolean, category?: string |
   return featuredOnly ? `${supplierId}:featured` : supplierId
 }
 
-export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
+export default function CatalogueClient({
+  summaries,
+  initialEphemere = false,
+  extendOrderId = null,
+  extendSupplierId = null,
+}: Props) {
   const { totalItems } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
   const stickyTop = totalItems > 0 ? 'var(--cart-bar-height)' : '0'
@@ -333,6 +341,12 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     setSearch('')
   }
 
+  useEffect(() => {
+    if (!extendOrderId || !extendSupplierId) return
+    openSupplier(extendSupplierId)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ouverture initiale complément commande
+  }, [extendOrderId, extendSupplierId])
+
   function goBack() {
     if (activeCategory) {
       setActiveCategory(null)
@@ -466,6 +480,22 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
             </p>
           </div>
         </div>
+
+        {extendOrderId && (
+          <div style={{
+            marginBottom: '1rem',
+            padding: '0.65rem 1rem',
+            background: '#e3f2fd',
+            border: '1.5px solid #90caf9',
+            borderRadius: 10,
+            fontSize: '0.88rem',
+            color: '#1565c0',
+            lineHeight: 1.45,
+          }}>
+            <strong>Compléter une commande livrée</strong> — choisissez un produit du même fournisseur, puis cliquez{' '}
+            <strong>Ajouter à ma commande</strong>. Le total sera mis à jour à la clôture.
+          </div>
+        )}
 
         <div className="catalogue-search" style={{ position: 'relative', marginBottom: '1.25rem' }}>
           <span style={{
@@ -773,10 +803,18 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
               title={`Produits trouvés (${displayedProducts.length})`}
               subtitle={`Dans ${activeCategory} — ${activeSummary?.supplier.name ?? ''}`}
             >
-              <ProductList products={displayedProducts} nowMs={catalogNow} />
+              <ProductList
+              products={displayedProducts}
+              nowMs={catalogNow}
+              extendOrderId={extendOrderId}
+            />
             </SearchResultsSection>
           ) : (
-            <ProductList products={displayedProducts} nowMs={catalogNow} />
+            <ProductList
+              products={displayedProducts}
+              nowMs={catalogNow}
+              extendOrderId={extendOrderId}
+            />
           )
         )}
 

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       .from('orders')
       .select('id, status, created_at, archived_at')
       .is('archived_at', null)
-      .eq('status', 'delivered')
+      .eq('status', 'closed')
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -87,9 +87,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Commande introuvable.' }, { status: 404 })
   }
 
-  if ((order as { status: string }).status !== 'delivered') {
+  if ((order as { status: string }).status !== 'closed') {
     return NextResponse.json({
-      error: 'Seules les commandes livrées peuvent être archivées.',
+      error: 'Seules les commandes clôturées peuvent être archivées.',
     }, { status: 400 })
   }
 

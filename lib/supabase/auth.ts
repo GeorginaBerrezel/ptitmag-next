@@ -50,7 +50,7 @@ export type OrderWithItems = {
   total: number
   credit_applied?: number
   created_at: string
-  supplier: { name: string; type: string } | null
+  supplier: { id: string; name: string; type: string } | null
   order_items: {
     id: string
     quantity: number
@@ -73,7 +73,7 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
     .from('orders')
     .select(`
       id, status, total, credit_applied, created_at,
-      supplier:suppliers(name, type),
+      supplier:suppliers(id, name, type),
       order_items(
         id, quantity, unit_price, cancelled_at,
         product:products(name, unit)

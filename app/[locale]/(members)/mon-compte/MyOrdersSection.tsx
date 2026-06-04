@@ -11,6 +11,7 @@ const ORDER_STATUS: Record<string, { label: string; bg: string; color: string }>
   draft:     { label: 'Brouillon',  bg: '#f3f4f6', color: '#374151' },
   confirmed: { label: 'Confirmée', bg: '#fff8e6', color: '#DC7F00' },
   delivered: { label: 'Livrée',    bg: '#e3f2fd', color: '#1565c0' },
+  closed:    { label: 'Clôturée',  bg: '#e8f5e9', color: '#2e7d32' },
   cancelled: { label: 'Annulée',   bg: '#fdecea', color: '#c0392b' },
 }
 
@@ -42,7 +43,7 @@ function monthLabel(key: string) {
 }
 
 function isActiveOrder(status: string) {
-  return status === 'confirmed' || status === 'draft'
+  return status === 'confirmed' || status === 'draft' || status === 'delivered'
 }
 
 function groupByMonth(orders: OrderWithItems[]) {
@@ -236,7 +237,9 @@ export default function MyOrdersSection({
                             {st.label}
                           </span>
                           <span className={styles.total}>
-                            CHF {order.total.toFixed(2)}
+                            {order.status === 'closed'
+                              ? <>CHF {order.total.toFixed(2)}</>
+                              : <>CHF {order.total.toFixed(2)} <span style={{ fontSize: '0.72rem', fontWeight: 500, opacity: 0.55 }}>(provisoire)</span></>}
                             {(Number(order.credit_applied) || 0) > 0 && (
                               <span style={{
                                 display: 'block',
@@ -280,7 +283,7 @@ export default function MyOrdersSection({
                           <tfoot>
                             <tr>
                               <td colSpan={3} style={{ paddingTop: '0.5rem', fontWeight: 600, opacity: 0.65 }}>
-                                Total commande
+                                {order.status === 'closed' ? 'Total final' : 'Total provisoire'}
                               </td>
                               <td style={{ paddingTop: '0.5rem', fontWeight: 800 }}>
                                 CHF {order.total.toFixed(2)}
@@ -288,6 +291,29 @@ export default function MyOrdersSection({
                             </tr>
                           </tfoot>
                         </table>
+                        {order.status === 'delivered' && hasCatalogAccess && order.supplier?.id && (
+                          <Link
+                            href={`/commandes?extendOrder=${order.id}&supplierId=${order.supplier.id}`}
+                            style={{
+                              display: 'inline-flex',
+                              marginTop: '0.85rem',
+                              padding: '0.45rem 0.9rem',
+                              borderRadius: 999,
+                              border: '1.5px solid #DC7F00',
+                              color: '#DC7F00',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
+                              textDecoration: 'none',
+                            }}
+                          >
+                            + Compléter cette commande
+                          </Link>
+                        )}
+                        {order.status === 'delivered' && (
+                          <p style={{ margin: '0.65rem 0 0', fontSize: '0.78rem', opacity: 0.6, lineHeight: 1.45 }}>
+                            Commande modifiable jusqu&apos;à clôture par l&apos;équipe. Avoir appliqué à ce moment-là.
+                          </p>
+                        )}
                       </div>
                     </details>
                   )
