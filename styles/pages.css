@@ -166,6 +166,25 @@
   cursor: default;
 }
 
+.catalogue-change-category-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999;
+  border: 1.5px solid rgba(16, 24, 40, 0.12);
+  background: #fff;
+  color: #DC7F00;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.catalogue-sticky-categories-shell .catalogue-sticky-categories-wrap {
+  margin-bottom: 0;
+}
+
 .catalogue-supplier-sidebar {
   background: #f8faf8;
   border: 1px solid rgba(46, 125, 50, 0.2);

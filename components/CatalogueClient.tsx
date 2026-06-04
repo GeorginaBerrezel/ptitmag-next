@@ -10,6 +10,7 @@ import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
+import { useCategoryGridBackNav, useCompactCategoryNav } from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import CategoryCard from './catalogue/CategoryCard'
@@ -41,6 +42,7 @@ function cacheKey(supplierId: string, featuredOnly: boolean, category?: string |
 export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
   const { totalItems } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
+  const stickyTop = totalItems > 0 ? 'var(--cart-bar-height)' : '0'
 
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
@@ -111,6 +113,10 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
   )
 
   const showSupplierSidebar = activeSupplierId != null && openSuppliersCount >= 2
+
+  const categoryCount = activeCategories.length
+  const compactCategoryNav = useCompactCategoryNav(categoryCount)
+  const categoryGridBackNav = useCategoryGridBackNav(categoryCount)
 
   const view: 'suppliers' | 'categories' | 'products' =
     activeSummary && activeCategory ? 'products'
@@ -450,8 +456,8 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
             <p className="catalogue-page-sub" style={{ margin: 0, opacity: 0.7 }}>
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
               {view === 'categories' && (
-                isLargeCatalog
-                  ? 'Choisissez une catégorie ou recherchez un produit — pas de liste complète.'
+                categoryGridBackNav
+                  ? 'Choisissez une catégorie ci-dessous ou utilisez la recherche.'
                   : 'Choisissez une catégorie pour afficher les produits.'
               )}
               {view === 'products' && activeProducts && !isSearching && (
@@ -533,30 +539,6 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           </HorizontalScrollStrip>
         )}
 
-        {view === 'categories' && isLargeCatalog && filteredCategories.length > 8 && (
-          <HorizontalScrollStrip
-            className="catalogue-sticky-categories-wrap"
-            ariaLabel="Catégories du catalogue"
-          >
-            <div className="catalogue-sticky-categories">
-              {filteredCategories.map(({ name }) => {
-                const count = activeSummary?.categories.find(c => c.name === name)?.count ?? 0
-                return (
-                  <button key={name} type="button" onClick={() => openCategory(name)} style={{
-                    padding: '0.35rem 0.85rem', borderRadius: 999, border: '1px solid',
-                    borderColor: 'rgba(16,24,40,0.12)',
-                    background: '#fff',
-                    color: '#555',
-                    fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-                  }}>
-                    {name} ({count})
-                  </button>
-                )
-              })}
-            </div>
-          </HorizontalScrollStrip>
-        )}
-
         {ephemereOnly && view === 'suppliers' && (
           <div style={{
             background: '#fff8ed', border: '1.5px solid #DC7F00', borderRadius: 10,
@@ -567,24 +549,54 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           </div>
         )}
 
-        {view === 'products' && isLargeCatalog && !isSearching && (
+        {view === 'products' && compactCategoryNav && (
+          <div
+            className="catalogue-sticky-categories-shell"
+            style={{ top: stickyTop }}
+          >
+            <HorizontalScrollStrip
+              className="catalogue-sticky-categories-wrap"
+              ariaLabel="Catégories du fournisseur"
+            >
+              <div className="catalogue-sticky-categories">
+                {activeCategories.map(({ name }) => {
+                  const count =
+                    activeSummary?.categories.find(c => c.name === name)?.count ?? 0
+                  const active = activeCategory === name
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => openCategory(name)}
+                      aria-current={active ? 'true' : undefined}
+                      style={{
+                        padding: '0.35rem 0.85rem',
+                        borderRadius: 999,
+                        border: '1px solid',
+                        borderColor: active ? '#DC7F00' : 'rgba(16,24,40,0.12)',
+                        background: active ? '#DC7F00' : '#fff',
+                        color: active ? '#fff' : '#555',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {name}
+                      {count > 0 ? ` (${count})` : ''}
+                    </button>
+                  )
+                })}
+              </div>
+            </HorizontalScrollStrip>
+          </div>
+        )}
+
+        {view === 'products' && categoryGridBackNav && !isSearching && (
           <button
             type="button"
             onClick={() => { setActiveCategory(null); setSearch('') }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              marginBottom: '1rem',
-              padding: '0.45rem 0.85rem',
-              borderRadius: 999,
-              border: '1.5px solid rgba(16,24,40,0.12)',
-              background: '#fff',
-              color: '#DC7F00',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className="catalogue-change-category-btn"
           >
             ← Changer de catégorie
           </button>
