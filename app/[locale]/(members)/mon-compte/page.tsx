@@ -1,9 +1,9 @@
 import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import { Suspense } from 'react'
-import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
-import DeleteAccountSection from './DeleteAccountSection'
+import AccountSessionSection from './AccountSessionSection'
+import styles from './mon-compte.module.css'
 import CompteConfirmeBanner from '@/components/CompteConfirmeBanner'
 import MyOrdersSection from './MyOrdersSection'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
@@ -32,19 +32,15 @@ export default async function MonComptePage({
   const creditBalance = Number(profile?.credit_balance) || 0
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 700 }}>
+    <div className={`container ${styles.page}`}>
 
-      {/* Fil d'ariane */}
-      <nav aria-label="Fil d'ariane" style={{
-        display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', color: 'rgba(16,24,40,0.4)', marginBottom: '1.5rem',
-      }}>
+      <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
         <span>Accueil</span>
         <span aria-hidden>›</span>
-        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Mon compte</span>
+        <span className={styles.breadcrumbCurrent}>Mon compte</span>
       </nav>
 
-      <div style={{ display: 'grid', gap: '1rem' }}>
+      <div className={styles.grid}>
 
         <Suspense fallback={null}>
           <CompteConfirmeBanner />
@@ -52,15 +48,7 @@ export default async function MonComptePage({
 
         {!hasCatalogAccess && (
           <>
-            <div style={{
-              background: '#f0f7ff',
-              border: '1px solid #bfdbfe',
-              borderRadius: 12,
-              padding: '1rem 1.15rem',
-              fontSize: '0.92rem',
-              lineHeight: 1.6,
-              color: '#1e3a5f',
-            }}>
+            <div className={styles.pendingBanner}>
               <strong>Adhésion en attente.</strong> Joel validera votre statut membre
               avant l&apos;accès au catalogue. Vous recevrez un <strong>e-mail</strong> dès que
               votre adhésion sera activée. Il peut aussi vous contacter via le téléphone
@@ -75,121 +63,57 @@ export default async function MonComptePage({
         <ProfileHeader profile={profile} />
 
         {/* Barre d'info compacte : statut + email + bouton commander */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid rgba(16,24,40,0.08)',
-          borderRadius: 14,
-          padding: '0.85rem 1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          flexWrap: 'wrap',
-        }}>
-          {/* Badge statut */}
-          <span style={{
-            background: memberStatus.bg,
-            color: memberStatus.color,
-            borderRadius: 999,
-            padding: '0.2rem 0.75rem',
-            fontSize: '0.82rem',
-            fontWeight: 700,
-            whiteSpace: 'nowrap',
-          }}>
+        <div className={styles.statusBar}>
+          <span
+            className={styles.badge}
+            style={{ background: memberStatus.bg, color: memberStatus.color }}
+          >
             {memberStatus.label}
           </span>
 
           {showCielMarkup && hasCatalogAccess && (
-            <span style={{
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#4338ca',
-              background: '#eef2ff',
-              borderRadius: 999,
-              padding: '0.2rem 0.75rem',
-              whiteSpace: 'nowrap',
-            }}>
+            <span className={`${styles.badge} ${styles.badgeCiel}`}>
               +20&nbsp;% sur le catalogue
             </span>
           )}
 
           {showTerrePricing && hasCatalogAccess && !showCielMarkup && (
-            <span style={{
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#2e7d32',
-              background: '#e8f5e9',
-              borderRadius: 999,
-              padding: '0.2rem 0.75rem',
-              whiteSpace: 'nowrap',
-            }}>
+            <span className={`${styles.badge} ${styles.badgeTerre}`}>
               Prix juste — sans marge
             </span>
           )}
 
-          {/* Email */}
           {profile?.email && (
-            <span style={{ fontSize: '0.83rem', opacity: 0.55, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span className={styles.meta}>
               ✉ {profile.email}
             </span>
           )}
 
           {showCotisation && (
-            <span style={{ fontSize: '0.83rem', opacity: 0.55, whiteSpace: 'nowrap' }}>
+            <span className={styles.meta} style={{ whiteSpace: 'nowrap' }}>
               Cotisation : {formatCotisation(profile?.cotisation_amount)}
               {profile?.cotisation_active ? ' (active)' : profile?.cotisation_amount ? ' (inactive)' : ''}
             </span>
           )}
 
           {hasCatalogAccess && (
-          <Link
-            href="/commandes"
-            style={{
-              marginLeft: 'auto',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              background: '#DC7F00',
-              color: '#fff',
-              borderRadius: 8,
-              padding: '0.4rem 1rem',
-              fontWeight: 700,
-              textDecoration: 'none',
-              fontSize: '0.85rem',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            + Commander
-          </Link>
+            <Link href="/commandes" className={styles.orderBtn}>
+              + Commander
+            </Link>
           )}
         </div>
 
         {creditBalance > 0 ? (
-          <div style={{
-            background: '#ecfdf5',
-            border: '1px solid #a7f3d0',
-            borderRadius: 12,
-            padding: '1rem 1.15rem',
-            fontSize: '0.92rem',
-            lineHeight: 1.55,
-            color: '#065f46',
-          }}>
+          <div className={styles.creditPositive}>
             <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
-            <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 400, marginTop: '0.25rem', opacity: 0.85 }}>
+            <span className={styles.creditSub}>
               Déduit automatiquement au panier ou à la clôture de votre commande.
             </span>
           </div>
         ) : (
-          <div style={{
-            background: '#f8f9fa',
-            border: '1px solid rgba(16, 24, 40, 0.1)',
-            borderRadius: 12,
-            padding: '0.85rem 1.15rem',
-            fontSize: '0.85rem',
-            lineHeight: 1.5,
-            color: 'rgba(16, 24, 40, 0.65)',
-          }}>
+          <div className={styles.creditNeutral}>
             <strong>Pas d&apos;avoir</strong> sur votre compte pour le moment.
-            <span style={{ display: 'block', marginTop: '0.25rem', fontSize: '0.8rem', opacity: 0.85 }}>
+            <span className={styles.creditSub}>
               L&apos;équipe du magasin peut en ajouter un si besoin (remboursement, geste commercial…).
             </span>
           </div>
@@ -198,11 +122,7 @@ export default async function MonComptePage({
         {/* ── Mes commandes ── */}
         <MyOrdersSection orders={orders} hasCatalogAccess={hasCatalogAccess} />
 
-        {/* Déconnexion + suppression de compte */}
-        <div style={{ marginTop: '0.5rem' }}>
-          <SignOutButton />
-          <DeleteAccountSection locale={locale} />
-        </div>
+        <AccountSessionSection locale={locale} />
 
       </div>
     </div>

@@ -1,0 +1,206 @@
+.panel {
+  background: #fff;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.sessionBlock {
+  padding: 1.1rem 1.25rem;
+}
+
+.sessionTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.sessionHint {
+  margin: 0 0 1rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: rgba(16, 24, 40, 0.62);
+}
+
+.signOutBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 1.25rem;
+  border-radius: 10px;
+  border: 1.5px solid rgba(36, 92, 42, 0.45);
+  background: #fff;
+  color: #245c2a;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.signOutBtn:hover {
+  background: #f3faf4;
+  border-color: #245c2a;
+}
+
+.signOutBtn:focus {
+  outline: none;
+}
+
+.signOutBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.divider {
+  margin: 0;
+  border: none;
+  border-top: 1px solid rgba(16, 24, 40, 0.08);
+}
+
+.dangerBlock {
+  padding: 1.1rem 1.25rem;
+  background: #fffafa;
+}
+
+.dangerTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.dangerHint {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(16, 24, 40, 0.65);
+}
+
+.dangerHint strong {
+  color: #1a1a2e;
+}
+
+.deleteTriggerBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: 1.5px solid #e57373;
+  background: #fff;
+  color: #c0392b;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.deleteTriggerBtn:hover {
+  background: #fff5f5;
+}
+
+.deleteTriggerBtn:focus {
+  outline: none;
+}
+
+.deleteTriggerBtn:focus-visible {
+  outline: 2px solid #c0392b;
+  outline-offset: 2px;
+}
+
+.confirmPanel {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.confirmLabel {
+  margin: 0;
+  font-size: 0.83rem;
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.confirmInput {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e57373;
+  font-size: 0.875rem;
+  max-width: 240px;
+}
+
+.confirmInput:focus {
+  outline: none;
+}
+
+.confirmInput:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 1px;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.confirmDeleteBtn {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.confirmDeleteBtnEnabled {
+  background: #c0392b;
+  color: #fff;
+  cursor: pointer;
+}
+
+.confirmDeleteBtnDisabled {
+  background: #e8e8e8;
+  color: #888;
+  cursor: default;
+}
+
+.confirmCancelBtn {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.confirmCancelBtn:focus-visible,
+.confirmDeleteBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.83rem;
+  color: #c0392b;
+}
+
+@media (min-width: 560px) {
+  .sessionRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .sessionRow .sessionHint {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 200px;
+  }
+}

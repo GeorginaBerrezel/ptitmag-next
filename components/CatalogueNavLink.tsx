@@ -59,6 +59,7 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
       locale={locale}
       onClick={onNavigate}
       aria-current={isActive ? 'page' : undefined}
+      title={locale === 'fr' ? 'Catalogue réservé aux membres actifs' : 'Catalog for active members'}
     >
       {t('catalogue')}
     </Link>

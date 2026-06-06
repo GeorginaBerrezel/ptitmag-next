@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Link } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
 import Avatar from './Avatar'
 
 type MiniProfile = {
@@ -14,8 +14,11 @@ type MiniProfile = {
 }
 
 export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
+  const pathname = usePathname()
   const [profile, setProfile] = useState<MiniProfile | null>(null)
   const [loggedIn, setLoggedIn] = useState(false)
+
+  const isAccountPage = pathname === '/mon-compte' || pathname.startsWith('/mon-compte/')
 
   useEffect(() => {
     const supabase = createClient()
@@ -53,6 +56,8 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
       <Link
         href="/mon-compte"
         locale={locale}
+        aria-label={`Mon compte — ${displayName}`}
+        aria-current={isAccountPage ? 'page' : undefined}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -78,14 +83,27 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
 
   if (loggedIn) {
     return (
-      <Link href="/mon-compte" locale={locale} style={{ fontWeight: 600 }}>
+      <Link
+        href="/mon-compte"
+        locale={locale}
+        aria-label="Mon compte"
+        aria-current={isAccountPage ? 'page' : undefined}
+        style={{ fontWeight: 600 }}
+      >
         Mon compte
       </Link>
     )
   }
 
+  const isLoginPage = pathname === '/connexion' || pathname.startsWith('/connexion/')
+
   return (
-    <Link href="/connexion" locale={locale}>
+    <Link
+      href="/connexion"
+      locale={locale}
+      aria-label="Connexion"
+      aria-current={isLoginPage ? 'page' : undefined}
+    >
       Connexion
     </Link>
   )

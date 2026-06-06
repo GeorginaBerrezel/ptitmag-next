@@ -80,6 +80,16 @@
   border-top: 1px solid rgba(255,255,255,0.18);
 }
 
+/* Compte connecté : page courante lisible au clavier */
+.header-account a[aria-current="page"]{
+  color: #fff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.85);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
 /* Burger lines */
 .nav-toggle span{
   background: var(--header-fg);
