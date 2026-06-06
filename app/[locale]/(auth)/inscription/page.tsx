@@ -63,7 +63,7 @@ export default function InscriptionPage({
         : 'sur le site où vous vous êtes inscrit·e.'
 
     return (
-      <main className="container" style={{ maxWidth: 480, paddingTop: '3rem', paddingBottom: '3rem' }}>
+      <div className="container" style={{ maxWidth: 480, paddingTop: '3rem', paddingBottom: '3rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Vérifiez votre e-mail</h1>
         <p>
           Un lien de confirmation a été envoyé à <strong>{email}</strong>.
@@ -88,12 +88,12 @@ export default function InscriptionPage({
           Vous pouvez fermer cette page. Le lien est valable 24 heures.
           Ouvrez le lien <strong>{siteHint}</strong>
         </p>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="container" style={{ maxWidth: 480, paddingTop: '3rem', paddingBottom: '3rem' }}>
+    <div className="container" style={{ maxWidth: 480, paddingTop: '3rem', paddingBottom: '3rem' }}>
       <h1 style={{ marginBottom: '0.25rem' }}>Créer un compte</h1>
       <p style={{ marginBottom: '1.75rem', opacity: 0.7, lineHeight: 1.55 }}>
         Inscription gratuite. L&apos;accès au catalogue sera activé par Joel après validation
@@ -232,6 +232,6 @@ export default function InscriptionPage({
           Se connecter
         </Link>
       </p>
-    </main>
+    </div>
   )
 }

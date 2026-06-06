@@ -14,6 +14,15 @@
     "producers": "Producteurs",
     "membership": "Adhésion",
     "catalogue": "Catalogue",
+    "commander": "Commander",
+    "cart": "Panier",
+    "pendingActivation": "Activation en cours",
+    "pendingTitle": "Votre adhésion est en cours de validation — le catalogue sera accessible très bientôt",
+    "menuOpen": "Ouvrir le menu",
+    "menuClose": "Fermer le menu",
+    "menu": "Menu",
+    "headerActions": "Actions du bandeau",
+    "langSwitch": "Choisir la langue",
     "contact": "Contact",
     "courses": "Fonctionnement",
     "pricing": "Cotisations",
@@ -25,6 +34,7 @@
   "home": {
     "title": "Le p’tit mag : Consommer autrement, ensemble",
     "subtitle": "Commandes groupées, prix revendeur, sans marge.",
+    "subtitle_hint": "Vous payez ce que le magasin paie ses fournisseurs — pas de marge commerciale.",
     "objective": "Objectif : faciliter une consommation locale et éthique, hors logique marchande, en favorisant circuits courts, transparence et entraide.",
     "block1_title": "Magasin associatif sans but lucratif permettant à ses membres de faire l’entier de leur approvisionnement en produits alimentaires et ménagers :",
     "block1_text": "Auprès de producteurs locaux → de grossistes bio → au prix revendeur, sans marge → dans une ambiance conviviale.",
@@ -48,7 +58,7 @@
       },
       {
         "title": "Retirez au local",
-        "desc": "Venez chercher vos achats à St-Romain (mer., ven., sam.). On se retrouve, on discute, on joue aux cartes — bien plus qu'un simple retrait !"
+        "desc": "Venez chercher vos achats à St-Romain (vendredi 16h30–18h30, samedi 9h–12h). On se retrouve, on discute, on joue aux cartes — bien plus qu'un simple retrait !"
       }
     ],
     "trial_title": "Créez votre compte et commandez",
@@ -152,6 +162,8 @@
     "addressTitle": "Adresse",
     "directions": "Itinéraire",
     "linksTitle": "Liens",
+    "producers": "Producteurs",
+    "membership": "Adhésion",
     "home": "Accueil",
     "courses": "Fonctionnement",
     "pricing": "Cotisations",

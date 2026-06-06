@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import Avatar from '@/components/Avatar'
 import type { Profile } from '@/lib/supabase/auth'
+import styles from './profile-header.module.css'
 
 export default function ProfileHeader({ profile }: { profile: Profile | null }) {
   const [username, setUsername] = useState(profile?.username ?? '')
@@ -17,6 +18,10 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
 
   const displayName = profile?.username ?? profile?.full_name?.split(' ')[0] ?? 'Adhérent·e'
   const shownAvatar = previewUrl ?? avatarUrl
+
+  function openFilePicker() {
+    fileRef.current?.click()
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -71,61 +76,42 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
   }
 
   return (
-    <div style={{
-      background: '#fff',
-      border: '1px solid rgba(16,24,40,0.08)',
-      borderRadius: 16,
-      padding: '1.5rem',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      textAlign: 'center',
-      gap: '0.75rem',
-    }}>
-      {/* Avatar cliquable */}
-      <div style={{ position: 'relative' }}>
-        <Avatar
-          src={shownAvatar}
-          name={profile?.full_name ?? profile?.username}
-          email={profile?.email}
-          userId={profile?.id}
-          size={80}
-          onClick={() => fileRef.current?.click()}
-          editable
-        />
+    <section className={styles.card} aria-label="Profil">
+      <div className={styles.avatarWrap}>
+        <button
+          type="button"
+          className={styles.avatarBtn}
+          onClick={openFilePicker}
+          aria-label="Changer ma photo de profil"
+        >
+          <Avatar
+            src={shownAvatar}
+            name={profile?.full_name ?? profile?.username}
+            email={profile?.email}
+            userId={profile?.id}
+            size={80}
+            editable
+          />
+        </button>
         <input
           ref={fileRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
           style={{ display: 'none' }}
           onChange={handleFileChange}
+          aria-hidden
+          tabIndex={-1}
         />
         <button
-          onClick={() => fileRef.current?.click()}
-          style={{
-            position: 'absolute',
-            bottom: -2,
-            right: -2,
-            width: 26,
-            height: 26,
-            borderRadius: '50%',
-            background: '#DC7F00',
-            border: '2px solid #fff',
-            color: '#fff',
-            fontSize: '0.75rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 700,
-          }}
-          title="Changer la photo"
+          type="button"
+          onClick={openFilePicker}
+          className={styles.editPhotoBtn}
+          aria-label="Changer ma photo de profil"
         >
           ✎
         </button>
       </div>
 
-      {/* Pseudo */}
       {editing ? (
         <input
           type="text"
@@ -134,35 +120,17 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
           placeholder="Votre pseudo…"
           maxLength={30}
           autoFocus
-          style={{
-            textAlign: 'center',
-            fontSize: '1.15rem',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: '2px solid #DC7F00',
-            outline: 'none',
-            background: 'transparent',
-            padding: '0.1rem 0.5rem',
-            width: '100%',
-            maxWidth: 220,
-          }}
+          className={styles.usernameInput}
+          aria-label="Pseudo affiché sur le site"
         />
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>
-            {displayName}
-          </span>
+        <div className={styles.nameRow}>
+          <span className={styles.displayName}>{displayName}</span>
           <button
+            type="button"
             onClick={() => setEditing(true)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#999',
-              fontSize: '0.85rem',
-              padding: '0.2rem',
-            }}
-            title="Modifier le pseudo"
+            className={styles.editNameBtn}
+            aria-label="Modifier mon pseudo"
           >
             ✎
           </button>
@@ -170,55 +138,32 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
       )}
 
       {profile?.full_name && profile.username && (
-        <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.55 }}>{profile.full_name}</p>
+        <p className={styles.fullName}>{profile.full_name}</p>
       )}
 
-      {/* Boutons save/cancel */}
       {editing && (
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+        <div className={styles.actions}>
           <button
-            onClick={handleSave}
+            type="button"
+            onClick={() => void handleSave()}
             disabled={saving}
-            style={{
-              background: '#1a1a2e',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              padding: '0.4rem 1rem',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.7 : 1,
-            }}
+            className={styles.saveBtn}
           >
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
-          <button
-            onClick={handleCancel}
-            style={{
-              background: 'transparent',
-              border: '1px solid rgba(16,24,40,0.15)',
-              borderRadius: 8,
-              padding: '0.4rem 0.9rem',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-            }}
-          >
+          <button type="button" onClick={handleCancel} className={styles.cancelBtn}>
             Annuler
           </button>
         </div>
       )}
 
-      {error && (
-        <p style={{ margin: 0, fontSize: '0.82rem', color: '#c0392b' }}>{error}</p>
-      )}
-      {success && (
-        <p style={{ margin: 0, fontSize: '0.82rem', color: '#2e7d32' }}>✓ Profil mis à jour !</p>
-      )}
+      {error && <p role="alert" className={styles.error}>{error}</p>}
+      {success && <p role="status" className={styles.success}>✓ Profil mis à jour !</p>}
 
-      <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.4 }}>
-        Cliquez sur l&apos;avatar pour changer la photo
+      <p className={styles.hint}>
+        Cliquez sur l&apos;avatar pour changer la photo — rien n&apos;est envoyé tant que vous n&apos;avez pas
+        cliqué sur Enregistrer.
       </p>
-    </div>
+    </section>
   )
 }

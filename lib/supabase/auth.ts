@@ -49,8 +49,9 @@ export type OrderWithItems = {
   status: string
   total: number
   credit_applied?: number
+  created_via_complement?: boolean
   created_at: string
-  supplier: { name: string; type: string } | null
+  supplier: { id: string; name: string; type: string } | null
   order_items: {
     id: string
     quantity: number
@@ -72,8 +73,8 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
   const { data, error } = await supabase
     .from('orders')
     .select(`
-      id, status, total, credit_applied, created_at,
-      supplier:suppliers(name, type),
+      id, status, total, credit_applied, created_via_complement, created_at,
+      supplier:suppliers(id, name, type),
       order_items(
         id, quantity, unit_price, cancelled_at,
         product:products(name, unit)

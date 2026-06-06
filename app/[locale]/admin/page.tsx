@@ -54,6 +54,7 @@ type DashboardData = {
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   confirmed: { label: 'Confirmée', color: '#DC7F00', bg: '#fff8e6' },
   delivered: { label: 'Livrée',    color: '#1565c0', bg: '#e3f2fd' },
+  closed:    { label: 'Clôturée',  color: '#2e7d32', bg: '#e8f5e9' },
   cancelled: { label: 'Annulée',   color: '#c0392b', bg: '#fdecea' },
 }
 

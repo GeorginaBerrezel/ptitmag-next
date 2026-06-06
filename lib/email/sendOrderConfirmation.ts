@@ -24,6 +24,8 @@ type Params = {
   orders: OrderEmailGroup[]
   globalTotal: number
   creditUsed?: number
+  /** @deprecated conservé pour compatibilité — avoir appliqué à la commande via creditUsed. */
+  creditPending?: boolean
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -38,6 +40,7 @@ export async function sendOrderConfirmation({
   orders,
   globalTotal,
   creditUsed,
+  creditPending,
 }: Params): Promise<void> {
   if (!isSmtpConfigured()) {
     console.warn('[email] Variables SMTP absentes — email de confirmation non envoyé.')
@@ -65,6 +68,7 @@ export async function sendOrderConfirmation({
       orders,
       globalTotal,
       creditUsed,
+      creditPending,
       date: now,
       audience: 'member',
     }),
@@ -85,6 +89,7 @@ export async function sendOrderConfirmation({
         orders,
         globalTotal,
         creditUsed,
+        creditPending,
         date: now,
         audience: 'admin',
       }),
@@ -102,6 +107,7 @@ function buildHtml({
   orders,
   globalTotal,
   creditUsed,
+  creditPending,
   date,
   audience,
 }: {
@@ -110,6 +116,7 @@ function buildHtml({
   orders: OrderEmailGroup[]
   globalTotal: number
   creditUsed?: number
+  creditPending?: boolean
   date: string
   audience: 'member' | 'admin'
 }): string {
@@ -216,11 +223,13 @@ function buildHtml({
               ${
                 creditUsed && creditUsed > 0
                   ? `<p style="margin:0 0 8px;font-size:14px;color:#2e7d32;">Avoir déduit sur cette commande : <strong>CHF ${creditUsed.toFixed(2)}</strong></p>`
-                  : ''
+                  : creditPending
+                    ? `<p style="margin:0 0 8px;font-size:14px;color:#1565c0;">Votre avoir sera appliqué à la <strong>clôture</strong> de chaque commande (montant définitif après livraison).</p>`
+                    : ''
               }
               <!-- Global total -->
               <div style="background:#1a1a2e;border-radius:10px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-                <span style="color:#fff;font-size:15px;font-weight:600;">Total à payer</span>
+                <span style="color:#fff;font-size:15px;font-weight:600;">${creditPending ? 'Total provisoire' : 'Total à payer'}</span>
                 <span style="color:#fff;font-size:20px;font-weight:700;">CHF ${globalTotal.toFixed(2)}</span>
               </div>
 

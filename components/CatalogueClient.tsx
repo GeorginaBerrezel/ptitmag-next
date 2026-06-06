@@ -32,6 +32,9 @@ const SEARCH_DEBOUNCE_MS = 300
 type Props = {
   summaries: CatalogueSupplierSummary[]
   initialEphemere?: boolean
+  /** Compléter une commande livrée (Mon compte → catalogue). */
+  extendOrderId?: string | null
+  extendSupplierId?: string | null
 }
 
 function cacheKey(supplierId: string, featuredOnly: boolean, category?: string | null) {
@@ -39,7 +42,12 @@ function cacheKey(supplierId: string, featuredOnly: boolean, category?: string |
   return featuredOnly ? `${supplierId}:featured` : supplierId
 }
 
-export default function CatalogueClient({ summaries, initialEphemere = false }: Props) {
+export default function CatalogueClient({
+  summaries,
+  initialEphemere = false,
+  extendOrderId = null,
+  extendSupplierId = null,
+}: Props) {
   const { totalItems } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
   const stickyTop = totalItems > 0 ? 'var(--cart-bar-height)' : '0'
@@ -333,6 +341,12 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
     setSearch('')
   }
 
+  useEffect(() => {
+    if (!extendOrderId || !extendSupplierId) return
+    openSupplier(extendSupplierId)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ouverture initiale complément commande
+  }, [extendOrderId, extendSupplierId])
+
   function goBack() {
     if (activeCategory) {
       setActiveCategory(null)
@@ -467,16 +481,37 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           </div>
         </div>
 
+        {extendOrderId && (
+          <div style={{
+            marginBottom: '1rem',
+            padding: '0.65rem 1rem',
+            background: '#e3f2fd',
+            border: '1.5px solid #90caf9',
+            borderRadius: 10,
+            fontSize: '0.88rem',
+            color: '#1565c0',
+            lineHeight: 1.45,
+          }}>
+            <strong>Compléter sur place</strong> — parcourez le catalogue et cliquez{' '}
+            <strong>Ajouter à ma commande</strong>. Chaque fournisseur garde sa propre commande livrée.
+          </div>
+        )}
+
         <div className="catalogue-search" style={{ position: 'relative', marginBottom: '1.25rem' }}>
+          <label htmlFor="catalogue-search-input" className="sr-only">
+            {searchPlaceholder}
+          </label>
           <span style={{
             position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
             fontSize: '1rem', opacity: 0.4, pointerEvents: 'none',
-          }}>🔍</span>
+          }} aria-hidden="true">🔍</span>
           <input
-            type="text"
+            id="catalogue-search-input"
+            type="search"
             placeholder={searchPlaceholder}
             value={search}
             onChange={e => setSearch(e.target.value)}
+            aria-label={searchPlaceholder}
             style={{
               width: '100%',
               padding: '0.65rem 1rem 0.65rem 2.5rem',
@@ -484,7 +519,6 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
               border: '1.5px solid rgba(16,24,40,0.15)',
               borderRadius: 10,
               fontSize: '0.95rem',
-              outline: 'none',
               boxSizing: 'border-box',
             }}
           />
@@ -506,12 +540,13 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
           <HorizontalScrollStrip className="catalogue-type-filters-wrap" ariaLabel="Types de fournisseurs">
             <div className="catalogue-type-filters">
               {hasFeatured && (
-                <button type="button" onClick={handleEphemereClick} style={{
+                <button type="button" onClick={handleEphemereClick} aria-pressed={ephemereOnly} style={{
                   padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
                   borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
                   background: ephemereOnly ? '#DC7F00' : '#fff',
                   color: ephemereOnly ? '#fff' : '#1a1a2e',
                   fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                  minHeight: 44,
                 }}>
                   ⏳ Éphémères
                 </button>
@@ -521,12 +556,13 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                 if (count === 0) return null
                 const active = selectedType === type
                 return (
-                  <button key={type} type="button" onClick={() => handleTypeClick(type)} style={{
+                  <button key={type} type="button" onClick={() => handleTypeClick(type)} aria-pressed={active} style={{
                     padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
                     borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
                     background: active ? '#1a1a2e' : '#fff',
                     color: active ? '#fff' : '#1a1a2e',
                     fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                    minHeight: 44,
                   }}>
                     {TYPE_LABELS[type] ?? type}
                     <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
@@ -627,7 +663,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                 title={`Produits trouvés (${globalSearchResults.length}${globalSearchResults.length >= 100 ? '+' : ''})`}
                 subtitle="Ajoutez directement au panier ou ouvrez le fournisseur pour voir la catégorie."
               >
-                <ProductList products={globalSearchResults} nowMs={catalogNow} />
+                <ProductList products={globalSearchResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
               </SearchResultsSection>
             )}
 
@@ -689,7 +725,7 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
                 title={`Produits trouvés (${inlineSupplierResults.length})`}
                 subtitle={`Dans ${activeSummary.supplier.name} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
               >
-                <ProductList products={inlineSupplierResults} nowMs={catalogNow} />
+                <ProductList products={inlineSupplierResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
               </SearchResultsSection>
             )}
 
@@ -773,10 +809,18 @@ export default function CatalogueClient({ summaries, initialEphemere = false }: 
               title={`Produits trouvés (${displayedProducts.length})`}
               subtitle={`Dans ${activeCategory} — ${activeSummary?.supplier.name ?? ''}`}
             >
-              <ProductList products={displayedProducts} nowMs={catalogNow} />
+              <ProductList
+              products={displayedProducts}
+              nowMs={catalogNow}
+              extendOrderId={extendOrderId}
+            />
             </SearchResultsSection>
           ) : (
-            <ProductList products={displayedProducts} nowMs={catalogNow} />
+            <ProductList
+              products={displayedProducts}
+              nowMs={catalogNow}
+              extendOrderId={extendOrderId}
+            />
           )
         )}
 

@@ -1,0 +1,169 @@
+.card {
+  background: #fff;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.avatarWrap {
+  position: relative;
+}
+
+.avatarBtn {
+  border: none;
+  padding: 0;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: block;
+}
+
+.avatarBtn:focus {
+  outline: none;
+}
+
+.avatarBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 3px;
+}
+
+.editPhotoBtn {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #dc7f00;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.editPhotoBtn:focus {
+  outline: none;
+}
+
+.editPhotoBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
+}
+
+.displayName {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.editNameBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(16, 24, 40, 0.5);
+  font-size: 0.85rem;
+  padding: 0.2rem;
+  border-radius: 4px;
+}
+
+.editNameBtn:focus {
+  outline: none;
+}
+
+.editNameBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.usernameInput {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border: none;
+  border-bottom: 2px solid #dc7f00;
+  outline: none;
+  background: transparent;
+  padding: 0.1rem 0.5rem;
+  width: 100%;
+  max-width: 220px;
+}
+
+.usernameInput:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 4px;
+}
+
+.fullName {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.saveBtn {
+  background: #1a1a2e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.saveBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.saveBtn:focus-visible,
+.cancelBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 1px solid rgba(16, 24, 40, 0.15);
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #c0392b;
+}
+
+.success {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #2e7d32;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(16, 24, 40, 0.55);
+}

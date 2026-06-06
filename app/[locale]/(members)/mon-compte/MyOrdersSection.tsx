@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import type { OrderWithItems } from '@/lib/supabase/auth'
+import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
+import AccordionChevron from '@/components/ui/AccordionChevron'
 import styles from './my-orders.module.css'
 
 const PAGE_SIZE = 15
@@ -11,6 +13,7 @@ const ORDER_STATUS: Record<string, { label: string; bg: string; color: string }>
   draft:     { label: 'Brouillon',  bg: '#f3f4f6', color: '#374151' },
   confirmed: { label: 'Confirmée', bg: '#fff8e6', color: '#DC7F00' },
   delivered: { label: 'Livrée',    bg: '#e3f2fd', color: '#1565c0' },
+  closed:    { label: 'Clôturée',  bg: '#e8f5e9', color: '#2e7d32' },
   cancelled: { label: 'Annulée',   bg: '#fdecea', color: '#c0392b' },
 }
 
@@ -20,7 +23,7 @@ const SUPPLIER_TYPE: Record<string, string> = {
   autre:         'Autre',
 }
 
-type TabId = 'active' | 'history'
+type TabId = 'confirmed' | 'delivered' | 'closed' | 'cancelled'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
@@ -41,10 +44,6 @@ function monthLabel(key: string) {
   })
 }
 
-function isActiveOrder(status: string) {
-  return status === 'confirmed' || status === 'draft'
-}
-
 function groupByMonth(orders: OrderWithItems[]) {
   const groups = new Map<string, OrderWithItems[]>()
   for (const order of orders) {
@@ -56,6 +55,14 @@ function groupByMonth(orders: OrderWithItems[]) {
   return [...groups.entries()].sort((a, b) => b[0].localeCompare(a[0]))
 }
 
+function tabActiveClass(tab: TabId, current: TabId): string {
+  if (tab !== current) return styles.tab
+  if (current === 'delivered') return `${styles.tab} ${styles.tabActiveDelivered}`
+  if (current === 'closed') return `${styles.tab} ${styles.tabActiveClosed}`
+  if (current === 'cancelled') return `${styles.tab} ${styles.tabActiveCancelled}`
+  return `${styles.tab} ${styles.tabActive}`
+}
+
 export default function MyOrdersSection({
   orders,
   hasCatalogAccess,
@@ -63,26 +70,40 @@ export default function MyOrdersSection({
   orders: OrderWithItems[]
   hasCatalogAccess: boolean
 }) {
-  const [tab, setTab] = useState<TabId>('active')
+  const [tab, setTab] = useState<TabId>('confirmed')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [exporting, setExporting] = useState(false)
 
-  const activeOrders = useMemo(
-    () => orders.filter(o => isActiveOrder(o.status)),
+  const confirmedOrders = useMemo(
+    () => orders.filter(o => o.status === 'confirmed' || o.status === 'draft'),
     [orders],
   )
-  const historyOrders = useMemo(
-    () => orders.filter(o => !isActiveOrder(o.status)),
+  const deliveredOrders = useMemo(
+    () => orders.filter(o => o.status === 'delivered'),
+    [orders],
+  )
+  const closedOrders = useMemo(
+    () => orders.filter(o => o.status === 'closed'),
+    [orders],
+  )
+  const cancelledOrders = useMemo(
+    () => orders.filter(o => o.status === 'cancelled'),
     [orders],
   )
 
-  const tabOrders = tab === 'active' ? activeOrders : historyOrders
+  const tabOrders =
+    tab === 'confirmed' ? confirmedOrders
+    : tab === 'delivered' ? deliveredOrders
+    : tab === 'closed' ? closedOrders
+    : cancelledOrders
+
   const visibleOrders = tabOrders.slice(0, visibleCount)
   const monthGroups = useMemo(() => groupByMonth(visibleOrders), [visibleOrders])
 
   const currentMonthKey = monthKey(new Date().toISOString())
-  const confirmedCount = orders.filter(o => o.status === 'confirmed').length
-  const activeTotal = activeOrders.reduce((s, o) => s + o.total, 0)
+  const confirmedCount = confirmedOrders.length
+  const deliveredCount = deliveredOrders.length
+  const activeTotal = [...confirmedOrders, ...deliveredOrders].reduce((s, o) => s + o.total, 0)
 
   function switchTab(next: TabId) {
     setTab(next)
@@ -131,7 +152,7 @@ export default function MyOrdersSection({
                 textDecoration: 'none',
               }}
             >
-              Voir le catalogue →
+              Commander →
             </Link>
           ) : (
             <p style={{ margin: 0, fontSize: '0.9rem' }}>
@@ -154,7 +175,7 @@ export default function MyOrdersSection({
             </span>
           )}
           <span className={styles.muted}>
-            {activeOrders.length} active{activeOrders.length !== 1 ? 's' : ''}
+            {confirmedCount + deliveredCount} en cours
             {' · '}CHF {activeTotal.toFixed(2)}
           </span>
           <button
@@ -172,30 +193,64 @@ export default function MyOrdersSection({
         <button
           type="button"
           role="tab"
-          aria-selected={tab === 'active'}
-          className={`${styles.tab} ${tab === 'active' ? styles.tabActive : ''}`}
-          onClick={() => switchTab('active')}
+          id="tab-confirmed"
+          aria-controls="panel-orders"
+          aria-selected={tab === 'confirmed'}
+          className={tabActiveClass('confirmed', tab)}
+          onClick={() => switchTab('confirmed')}
         >
-          En cours
-          <span className={styles.tabCount}>{activeOrders.length}</span>
+          Confirmées
+          <span className={styles.tabCount}>{confirmedCount}</span>
         </button>
         <button
           type="button"
           role="tab"
-          aria-selected={tab === 'history'}
-          className={`${styles.tab} ${tab === 'history' ? styles.tabActive : ''}`}
-          onClick={() => switchTab('history')}
+          id="tab-delivered"
+          aria-controls="panel-orders"
+          aria-selected={tab === 'delivered'}
+          className={tabActiveClass('delivered', tab)}
+          onClick={() => switchTab('delivered')}
         >
-          Historique
-          <span className={styles.tabCount}>{historyOrders.length}</span>
+          Livrées
+          <span className={styles.tabCount}>{deliveredCount}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-closed"
+          aria-controls="panel-orders"
+          aria-selected={tab === 'closed'}
+          className={tabActiveClass('closed', tab)}
+          onClick={() => switchTab('closed')}
+        >
+          Clôturées
+          <span className={styles.tabCount}>{closedOrders.length}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-cancelled"
+          aria-controls="panel-orders"
+          aria-selected={tab === 'cancelled'}
+          className={tabActiveClass('cancelled', tab)}
+          onClick={() => switchTab('cancelled')}
+        >
+          Annulées
+          <span className={styles.tabCount}>{cancelledOrders.length}</span>
         </button>
       </div>
 
+      <div
+        id="panel-orders"
+        role="tabpanel"
+        aria-labelledby={`tab-${tab}`}
+      >
       {tabOrders.length === 0 ? (
         <div className={styles.empty}>
-          {tab === 'active'
-            ? 'Aucune commande en cours.'
-            : 'Aucune commande dans l\u2019historique pour le moment.'}
+          {tab === 'confirmed' && 'Aucune commande confirmée en attente.'}
+          {tab === 'delivered' && 'Aucune commande livrée à compléter pour le moment.'}
+          {tab === 'closed' && 'Aucune commande clôturée — les commandes finalisées apparaîtront ici.'}
+          {tab === 'cancelled' && 'Aucune commande annulée.'}
         </div>
       ) : (
         <>
@@ -205,8 +260,12 @@ export default function MyOrdersSection({
               className={styles.monthGroup}
               open={key === currentMonthKey || monthGroups.length === 1}
             >
-              <summary className={styles.monthSummary}>
-                <span style={{ textTransform: 'capitalize' }}>{monthLabel(key)}</span>
+              <summary className={styles.monthSummary} aria-label={`Mois ${monthLabel(key)}, afficher les commandes`}>
+                <span className={styles.summaryLead}>
+                  <AccordionChevron />
+                  <span className={styles.monthLabel}>{monthLabel(key)}</span>
+                  <span className={styles.expandHint}>Mois</span>
+                </span>
                 <span className={styles.monthMeta}>
                   {monthOrders.length} commande{monthOrders.length !== 1 ? 's' : ''}
                   {' · '}CHF {monthOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}
@@ -216,79 +275,53 @@ export default function MyOrdersSection({
               <div className={styles.monthOrders}>
                 {monthOrders.map(order => {
                   const st = ORDER_STATUS[order.status] ?? ORDER_STATUS.draft
+                  const supplierName = order.supplier?.name ?? 'Fournisseur inconnu'
                   return (
                     <details key={order.id} className={styles.order}>
-                      <summary className={styles.orderSummary}>
-                        <div style={{ minWidth: 0 }}>
-                          <span className={styles.supplierName}>
-                            {order.supplier?.name ?? 'Fournisseur inconnu'}
-                          </span>
+                      <summary
+                        className={styles.orderSummary}
+                        aria-label={`Commande ${supplierName}, afficher le détail`}
+                      >
+                        <div className={styles.supplierBlock}>
+                          <span className={styles.supplierName}>{supplierName}</span>
                           <span className={styles.supplierType}>
                             {SUPPLIER_TYPE[order.supplier?.type ?? ''] ?? ''}
                           </span>
+                          {order.created_via_complement && (
+                            <div className={styles.badgeRow}>
+                              <span className={styles.complementBadge}>Ajout sur place</span>
+                            </div>
+                          )}
                         </div>
                         <div className={styles.orderMeta}>
-                          <span className={styles.date}>{formatDate(order.created_at)}</span>
-                          <span
-                            className={styles.status}
-                            style={{ background: st.bg, color: st.color }}
-                          >
-                            {st.label}
-                          </span>
+                          <div className={styles.orderMetaTop}>
+                            <span className={styles.date}>{formatDate(order.created_at)}</span>
+                            <span
+                              className={styles.status}
+                              style={{ background: st.bg, color: st.color }}
+                            >
+                              {st.label}
+                            </span>
+                          </div>
                           <span className={styles.total}>
                             CHF {order.total.toFixed(2)}
-                            {(Number(order.credit_applied) || 0) > 0 && (
-                              <span style={{
-                                display: 'block',
-                                fontSize: '0.72rem',
-                                fontWeight: 600,
-                                color: '#2e7d32',
-                              }}>
+                            {order.status !== 'closed' && order.status !== 'cancelled' && (
+                              <span className={styles.totalProvisional}> (provisoire)</span>
+                            )}
+                            {(Number(order.credit_applied) || 0) > 0 && order.status === 'closed' && (
+                              <span className={styles.creditHint}>
                                 Avoir −{(Number(order.credit_applied)).toFixed(2)} CHF
                               </span>
                             )}
                           </span>
                         </div>
+                        <AccordionChevron className={styles.orderChevron} />
                       </summary>
 
-                      <div className={styles.orderDetail}>
-                        <table className={styles.table}>
-                          <thead>
-                            <tr>
-                              <th>Produit</th>
-                              <th>Qté</th>
-                              <th>P.U.</th>
-                              <th>Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {order.order_items.map(item => (
-                              <tr key={item.id}>
-                                <td>{item.product?.name ?? '—'}</td>
-                                <td style={{ opacity: 0.7 }}>
-                                  {item.quantity} {item.product?.unit}
-                                </td>
-                                <td style={{ opacity: 0.55 }}>
-                                  CHF {item.unit_price.toFixed(2)}
-                                </td>
-                                <td style={{ fontWeight: 600 }}>
-                                  CHF {(item.quantity * item.unit_price).toFixed(2)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot>
-                            <tr>
-                              <td colSpan={3} style={{ paddingTop: '0.5rem', fontWeight: 600, opacity: 0.65 }}>
-                                Total commande
-                              </td>
-                              <td style={{ paddingTop: '0.5rem', fontWeight: 800 }}>
-                                CHF {order.total.toFixed(2)}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
+                      <MemberOrderDetail
+                        order={order}
+                        hasCatalogAccess={hasCatalogAccess}
+                      />
                     </details>
                   )
                 })}
@@ -307,6 +340,7 @@ export default function MyOrdersSection({
           )}
         </>
       )}
+      </div>
     </div>
   )
 }

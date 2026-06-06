@@ -350,7 +350,9 @@
     overflow-y: hidden;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.35) transparent;
+    padding-bottom: 2px;
   }
 
   .admin-nav::-webkit-scrollbar {
@@ -359,7 +361,7 @@
 }
 
 .contact-hours-time {
-  opacity: 0.65;
+  color: rgba(16, 24, 40, 0.62);
   font-size: 0.85rem;
 }
 

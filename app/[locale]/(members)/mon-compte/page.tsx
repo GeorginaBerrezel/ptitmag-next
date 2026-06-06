@@ -1,9 +1,9 @@
 import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import { Suspense } from 'react'
-import SignOutButton from './SignOutButton'
 import ProfileHeader from './ProfileHeader'
-import DeleteAccountSection from './DeleteAccountSection'
+import AccountSessionSection from './AccountSessionSection'
+import styles from './mon-compte.module.css'
 import CompteConfirmeBanner from '@/components/CompteConfirmeBanner'
 import MyOrdersSection from './MyOrdersSection'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
@@ -30,22 +30,21 @@ export default async function MonComptePage({
     profile?.status === 'member' ||
     (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
   const creditBalance = Number(profile?.credit_balance) || 0
-  const showCredit = creditBalance > 0
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 700 }}>
+    <div className={`container ${styles.page}`}>
 
-      {/* Fil d'ariane */}
-      <nav aria-label="Fil d'ariane" style={{
-        display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', color: 'rgba(16,24,40,0.4)', marginBottom: '1.5rem',
-      }}>
-        <span>Accueil</span>
+      <h1 className={styles.pageTitle}>Mon compte</h1>
+
+      <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
+        <Link href="/" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>
+          Accueil
+        </Link>
         <span aria-hidden>›</span>
-        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Mon compte</span>
+        <span className={styles.breadcrumbCurrent} aria-current="page">Mon compte</span>
       </nav>
 
-      <div style={{ display: 'grid', gap: '1rem' }}>
+      <div className={styles.grid}>
 
         <Suspense fallback={null}>
           <CompteConfirmeBanner />
@@ -53,15 +52,7 @@ export default async function MonComptePage({
 
         {!hasCatalogAccess && (
           <>
-            <div style={{
-              background: '#f0f7ff',
-              border: '1px solid #bfdbfe',
-              borderRadius: 12,
-              padding: '1rem 1.15rem',
-              fontSize: '0.92rem',
-              lineHeight: 1.6,
-              color: '#1e3a5f',
-            }}>
+            <div className={styles.pendingBanner}>
               <strong>Adhésion en attente.</strong> Joel validera votre statut membre
               avant l&apos;accès au catalogue. Vous recevrez un <strong>e-mail</strong> dès que
               votre adhésion sera activée. Il peut aussi vous contacter via le téléphone
@@ -76,107 +67,58 @@ export default async function MonComptePage({
         <ProfileHeader profile={profile} />
 
         {/* Barre d'info compacte : statut + email + bouton commander */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid rgba(16,24,40,0.08)',
-          borderRadius: 14,
-          padding: '0.85rem 1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          flexWrap: 'wrap',
-        }}>
-          {/* Badge statut */}
-          <span style={{
-            background: memberStatus.bg,
-            color: memberStatus.color,
-            borderRadius: 999,
-            padding: '0.2rem 0.75rem',
-            fontSize: '0.82rem',
-            fontWeight: 700,
-            whiteSpace: 'nowrap',
-          }}>
+        <div className={styles.statusBar}>
+          <span
+            className={styles.badge}
+            style={{ background: memberStatus.bg, color: memberStatus.color }}
+          >
             {memberStatus.label}
           </span>
 
           {showCielMarkup && hasCatalogAccess && (
-            <span style={{
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#4338ca',
-              background: '#eef2ff',
-              borderRadius: 999,
-              padding: '0.2rem 0.75rem',
-              whiteSpace: 'nowrap',
-            }}>
+            <span className={`${styles.badge} ${styles.badgeCiel}`}>
               +20&nbsp;% sur le catalogue
             </span>
           )}
 
           {showTerrePricing && hasCatalogAccess && !showCielMarkup && (
-            <span style={{
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#2e7d32',
-              background: '#e8f5e9',
-              borderRadius: 999,
-              padding: '0.2rem 0.75rem',
-              whiteSpace: 'nowrap',
-            }}>
+            <span className={`${styles.badge} ${styles.badgeTerre}`}>
               Prix juste — sans marge
             </span>
           )}
 
-          {/* Email */}
           {profile?.email && (
-            <span style={{ fontSize: '0.83rem', opacity: 0.55, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span className={styles.meta}>
               ✉ {profile.email}
             </span>
           )}
 
           {showCotisation && (
-            <span style={{ fontSize: '0.83rem', opacity: 0.55, whiteSpace: 'nowrap' }}>
+            <span className={styles.meta} style={{ whiteSpace: 'nowrap' }}>
               Cotisation : {formatCotisation(profile?.cotisation_amount)}
               {profile?.cotisation_active ? ' (active)' : profile?.cotisation_amount ? ' (inactive)' : ''}
             </span>
           )}
 
           {hasCatalogAccess && (
-          <Link
-            href="/commandes"
-            style={{
-              marginLeft: 'auto',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              background: '#DC7F00',
-              color: '#fff',
-              borderRadius: 8,
-              padding: '0.4rem 1rem',
-              fontWeight: 700,
-              textDecoration: 'none',
-              fontSize: '0.85rem',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            + Commander
-          </Link>
+            <Link href="/commandes" className={styles.orderBtn}>
+              + Commander
+            </Link>
           )}
         </div>
 
-        {showCredit && (
-          <div style={{
-            background: '#ecfdf5',
-            border: '1px solid #a7f3d0',
-            borderRadius: 12,
-            padding: '1rem 1.15rem',
-            fontSize: '0.92rem',
-            lineHeight: 1.55,
-            color: '#065f46',
-          }}>
+        {creditBalance > 0 ? (
+          <div className={styles.creditPositive}>
             <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
-            <span style={{ display: 'block', marginTop: '0.35rem', opacity: 0.85, fontSize: '0.88rem' }}>
-              Ce montant sera déduit automatiquement sur votre prochaine commande.
+            <span className={styles.creditSub}>
+              Utilisable à la confirmation de commande ou à la clôture — pas de paiement en ligne.
+            </span>
+          </div>
+        ) : (
+          <div className={styles.creditNeutral}>
+            <strong>Pas d&apos;avoir</strong> sur votre compte pour le moment.
+            <span className={styles.creditSub}>
+              L&apos;équipe du magasin peut en ajouter un si besoin (remboursement, geste commercial…).
             </span>
           </div>
         )}
@@ -184,11 +126,7 @@ export default async function MonComptePage({
         {/* ── Mes commandes ── */}
         <MyOrdersSection orders={orders} hasCatalogAccess={hasCatalogAccess} />
 
-        {/* Déconnexion + suppression de compte */}
-        <div style={{ marginTop: '0.5rem' }}>
-          <SignOutButton />
-          <DeleteAccountSection locale={locale} />
-        </div>
+        <AccountSessionSection locale={locale} />
 
       </div>
     </div>

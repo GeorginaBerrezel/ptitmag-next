@@ -9,7 +9,6 @@ import { useTranslations } from 'next-intl'
 type Props = {
   locale: 'fr' | 'en'
   onNavigate?: () => void
-  /** mobile : lien pleine largeur dans le menu burger */
   variant?: 'desktop' | 'mobile'
 }
 
@@ -63,10 +62,6 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
       {t('catalogue')}
     </Link>
   )
-
-  if (variant === 'mobile') {
-    return <li>{link}</li>
-  }
 
   return <li>{link}</li>
 }

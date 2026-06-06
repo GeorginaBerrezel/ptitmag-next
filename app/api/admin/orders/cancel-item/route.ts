@@ -1,6 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminUser } from '@/lib/admin/auth'
 import { sendOrderItemCancelled } from '@/lib/email/sendOrderItemCancelled'
+import { roundChf } from '@/lib/members/credit'
+import { orderIsModifiable } from '@/lib/orders/lifecycle'
+import { syncOrderGrossTotal } from '@/lib/orders/totals'
 import { NextResponse, type NextRequest } from 'next/server'
 
 type CancelItemBody = {
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
       id, quantity, unit_price, cancelled_at, order_id,
       product:products(name, unit),
       order:orders(
-        id, status, total, member_id,
+        id, status, total, member_id, credit_applied,
         supplier:suppliers(name)
       )
     `)
@@ -47,12 +50,13 @@ export async function POST(request: NextRequest) {
     status: string
     total: number
     member_id: string
+    credit_applied: number | null
     supplier: { name: string } | null
   }
 
-  if (order.status !== 'confirmed') {
+  if (!orderIsModifiable(order.status)) {
     return NextResponse.json(
-      { error: 'Seules les commandes « Confirmées » peuvent être modifiées ligne par ligne.' },
+      { error: 'Cette commande ne peut plus être modifiée (clôturée ou annulée).' },
       { status: 400 },
     )
   }
@@ -93,20 +97,47 @@ export async function POST(request: NextRequest) {
     }
   })
 
-  const newTotal = Math.round(
-    remaining.reduce((s, r) => s + r.quantity * r.unitPrice, 0) * 100,
-  ) / 100
-
   const orderFullyCancelled = remaining.length === 0
-  const newStatus = orderFullyCancelled ? 'cancelled' : 'confirmed'
+  const newStatus = orderFullyCancelled ? 'cancelled' : order.status
+  const creditApplied = roundChf(Number(order.credit_applied) || 0)
+
+  let newTotal: number
+  try {
+    newTotal = orderFullyCancelled
+      ? 0
+      : await syncOrderGrossTotal(admin, order.id)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Erreur recalcul total.'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 
   const { error: orderErr } = await admin
     .from('orders')
-    .update({ total: newTotal, status: newStatus })
+    .update({
+      total: newTotal,
+      status: newStatus,
+      ...(orderFullyCancelled ? { credit_applied: 0 } : {}),
+    })
     .eq('id', order.id)
 
   if (orderErr) {
     return NextResponse.json({ error: orderErr.message }, { status: 500 })
+  }
+
+  if (orderFullyCancelled && creditApplied > 0) {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('credit_balance')
+      .eq('id', order.member_id)
+      .single()
+
+    if (profile) {
+      const restored = roundChf((Number(profile.credit_balance) || 0) + creditApplied)
+      await admin
+        .from('profiles')
+        .update({ credit_balance: restored })
+        .eq('id', order.member_id)
+    }
   }
 
   const { data: profile } = await admin

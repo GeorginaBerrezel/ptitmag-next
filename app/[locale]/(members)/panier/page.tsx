@@ -62,9 +62,9 @@ export default function PanierPage({
 
   if (catalogAccess === 'loading') {
     return (
-      <main className="container" style={{ paddingTop: '3rem', textAlign: 'center', opacity: 0.5 }}>
+      <div className="container" style={{ paddingTop: '3rem', textAlign: 'center', color: 'rgba(16,24,40,0.55)' }}>
         Chargement…
-      </main>
+      </div>
     )
   }
 
@@ -159,9 +159,9 @@ export default function PanierPage({
     return (
       <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
         <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
-          <span>Accueil</span>
+          <Link href="/" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Accueil</Link>
           <span aria-hidden>›</span>
-          <span>Catalogue</span>
+          <Link href="/commandes" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Catalogue</Link>
           <span aria-hidden>›</span>
           <span style={crumbActiveStyle}>Panier</span>
         </nav>
@@ -181,96 +181,77 @@ export default function PanierPage({
             textDecoration: 'none',
           }}
         >
-          Voir le catalogue
+          Commander
         </Link>
       </div>
     )
   }
 
+  const creditRemaining = roundChf(creditBalance - estimatedCredit)
+  const confirmLabel = supplierCount > 1
+    ? `Confirmer mes ${supplierCount} commandes`
+    : 'Confirmer ma commande'
+
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 720 }}>
-      {/* Fil d'ariane */}
       <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
-        <span>Accueil</span>
+        <Link href="/" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Accueil</Link>
         <span aria-hidden>›</span>
-        <span>Catalogue</span>
+        <Link href="/commandes" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Catalogue</Link>
         <span aria-hidden>›</span>
         <span style={crumbActiveStyle}>Panier</span>
       </nav>
 
-      {/* En-tête */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+      <div className={styles.pageHead}>
         <h1 style={{ margin: 0 }}>Mon panier</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={clearCart}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#c0392b',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              padding: '0.25rem 0',
-            }}
-          >
-            Vider le panier
-          </button>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
-            {estimatedCredit > 0 && (
-              <>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#2e7d32', fontWeight: 600 }}>
-                  Avoir appliqué : − CHF {estimatedCredit.toFixed(2)}
-                </p>
-                <p style={{
-                  margin: 0,
-                  fontSize: '1.3rem',
-                  fontWeight: 700,
-                  background: '#1a1a2e',
-                  color: '#fff',
-                  borderRadius: 10,
-                  padding: '0.35rem 1rem',
-                }}>
-                  Total à payer : CHF {payableTotal.toFixed(2)}
-                </p>
-              </>
-            )}
-            <p style={{
-              margin: 0,
-              fontSize: estimatedCredit > 0 ? '0.85rem' : '1.3rem',
-              fontWeight: estimatedCredit > 0 ? 500 : 700,
-              opacity: estimatedCredit > 0 ? 0.55 : 1,
-              ...(estimatedCredit > 0
-                ? {}
-                : {
-                    background: '#1a1a2e',
-                    color: '#fff',
-                    borderRadius: 10,
-                    padding: '0.35rem 1rem',
-                  }),
-            }}>
-              {estimatedCredit > 0 ? `Sous-total : CHF ${globalTotal.toFixed(2)}` : `Total global : CHF ${globalTotal.toFixed(2)}`}
-            </p>
-          </div>
-        </div>
+        <button type="button" onClick={clearCart} className={styles.clearBtn}>
+          Vider le panier
+        </button>
       </div>
-      <p style={{ opacity: 0.6, marginBottom: applyCielMarkup ? '0.75rem' : '2rem' }}>
-        {supplierCount} commande{supplierCount > 1 ? 's' : ''} seront créées (une par fournisseur)
+
+      <section className={styles.recapCard} aria-label="Récapitulatif du panier">
+        <h2 className={styles.recapTitle}>Récapitulatif</h2>
+        <div className={styles.recapTotalRow}>
+          <span className={styles.recapTotalLabel}>Valeur de la commande</span>
+          <span className={styles.recapTotalAmount}>CHF {globalTotal.toFixed(2)}</span>
+        </div>
+
+        {estimatedCredit > 0 && (
+          <div className={styles.recapPreview}>
+            <div className={styles.recapRow}>
+              <span className={styles.recapLabel}>Prévision — pris sur votre avoir</span>
+              <span className={styles.recapCredit}>CHF {estimatedCredit.toFixed(2)}</span>
+            </div>
+            {creditRemaining > 0 && (
+              <div className={styles.recapRow}>
+                <span className={styles.recapLabel}>Solde avoir après confirmation</span>
+                <span>CHF {creditRemaining.toFixed(2)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {payableTotal > 0 && (
+          <div className={styles.recapRow}>
+            <span className={styles.recapLabel}>Complément estimé au retrait</span>
+            <span className={styles.recapComplement}>CHF {payableTotal.toFixed(2)}</span>
+          </div>
+        )}
+
+        <p className={styles.recapNote}>
+          Pas de paiement en ligne — la confirmation enregistre votre commande au magasin.
+          {estimatedCredit > 0 && payableTotal <= 0 && (
+            <> L&apos;avoir sera déduit <strong>à la confirmation</strong>, pas avant.</>
+          )}
+        </p>
+      </section>
+
+      <p className={styles.supplierNote}>
+        {supplierCount} commande{supplierCount > 1 ? 's' : ''} sera{supplierCount > 1 ? 'ont' : ''} créée{supplierCount > 1 ? 's' : ''} (une par fournisseur).
       </p>
 
       {applyCielMarkup && (
-        <p style={{
-          margin: '0 0 2rem',
-          padding: '0.65rem 1rem',
-          background: '#eef2ff',
-          border: '1px solid #c7d2fe',
-          borderRadius: 8,
-          color: '#4338ca',
-          fontSize: '0.88rem',
-          fontWeight: 500,
-        }}>
+        <p className={styles.cielBanner}>
           Membre Ciel — les prix incluent une majoration de +20&nbsp;%.
         </p>
       )}
@@ -361,7 +342,7 @@ export default function PanierPage({
                           disabled={item.quantity <= minAllowed}
                           aria-label="Diminuer"
                           style={{
-                            width: 28, height: 28,
+                            width: 44, height: 44, minWidth: 44, minHeight: 44,
                             border: '1px solid rgba(16,24,40,0.15)',
                             borderRadius: 6,
                             background: item.quantity <= minAllowed ? '#f5f5f5' : '#fff',
@@ -379,7 +360,7 @@ export default function PanierPage({
                           onClick={() => updateQuantity(item.productId, incrementQuantity(item.quantity, qtyRules))}
                           aria-label="Augmenter"
                           style={{
-                            width: 28, height: 28,
+                            width: 44, height: 44, minWidth: 44, minHeight: 44,
                             border: '1px solid rgba(16,24,40,0.15)',
                             borderRadius: 6, background: '#fff', color: '#1a1a2e',
                             cursor: 'pointer', fontSize: '1rem', fontWeight: 700,
@@ -436,40 +417,18 @@ export default function PanierPage({
         })}
       </div>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-        <Link
-          href="/commandes"
-          locale={locale}
-          style={{
-            padding: '0.6rem 1.5rem',
-            borderRadius: 8,
-            border: '1px solid rgba(16,24,40,0.15)',
-            color: 'inherit',
-            textDecoration: 'none',
-            fontWeight: 500,
-          }}
-        >
+      <div className={styles.actions}>
+        <Link href="/commandes" locale={locale} className={styles.continueLink}>
           ← Continuer mes achats
         </Link>
         <button
-          onClick={handleConfirm}
+          type="button"
+          onClick={() => void handleConfirm()}
           disabled={loading}
-          style={{
-            background: '#DC7F00',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: '0.6rem 2rem',
-            fontWeight: 700,
-            fontSize: '1rem',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1,
-          }}
+          className={styles.confirmBtn}
+          aria-busy={loading}
         >
-          {loading
-            ? 'Envoi en cours…'
-            : `Confirmer ${supplierCount > 1 ? `les ${supplierCount} commandes` : 'la commande'} — CHF ${globalTotal.toFixed(2)}`}
+          {loading ? 'Envoi en cours…' : confirmLabel}
         </button>
       </div>
     </div>
@@ -485,6 +444,11 @@ const breadcrumbStyle: CSSProperties = {
   fontSize: '0.8rem',
   color: 'rgba(16,24,40,0.4)',
   marginBottom: '1.5rem',
+}
+
+const crumbLinkStyle: CSSProperties = {
+  color: 'rgba(16,24,40,0.55)',
+  textDecoration: 'none',
 }
 
 const crumbActiveStyle: CSSProperties = {

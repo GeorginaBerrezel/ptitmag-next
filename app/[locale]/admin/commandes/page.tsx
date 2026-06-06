@@ -9,7 +9,9 @@ import {
 } from '@/lib/admin/order-export'
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
-import lineStyles from './commandes.module.css'
+import lineStyles from '@/components/orders/order-lines.module.css'
+import AccordionChevron from '@/components/ui/AccordionChevron'
+import accordionStyles from '@/components/ui/accordion.module.css'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +26,7 @@ type AdminOrder = {
   id: string
   status: string
   total: number
+  credit_applied?: number
   created_at: string
   archived_at?: string | null
   member: { full_name: string | null; email: string | null; username: string | null } | null
@@ -36,6 +39,7 @@ type AdminOrder = {
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
   confirmed: { label: 'Confirmée', bg: '#fff8e6', color: '#DC7F00', border: '#DC7F00' },
   delivered: { label: 'Livrée',    bg: '#e3f2fd', color: '#1565c0', border: '#1565c0' },
+  closed:    { label: 'Clôturée',  bg: '#e8f5e9', color: '#2e7d32', border: '#2e7d32' },
   cancelled: { label: 'Annulée',   bg: '#fdecea', color: '#c0392b', border: '#c0392b' },
 }
 
@@ -83,13 +87,14 @@ export default function AdminCommandesPage({
   const [error, setError]             = useState<string | null>(null)
   // Mode : 'action' = commandes à traiter (confirmed par défaut)
   //        'history' = tout l'historique avec filtres libres
-  const [mode, setMode]               = useState<'action' | 'history'>('action')
+  const [mode, setMode]               = useState<'action' | 'toClose' | 'closed' | 'history'>('action')
   const [filterStatus, setFilterStatus]     = useState('')
   const [filterSupplier, setFilterSupplier] = useState('')
   const [filterDate, setFilterDate]         = useState('')
   const [updating, setUpdating]       = useState<string | null>(null)
   const [exporting, setExporting]     = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
+  const [closingOrderId, setClosingOrderId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivableCount, setArchivableCount] = useState(0)
   const [archiving, setArchiving] = useState(false)
@@ -135,9 +140,9 @@ export default function AdminCommandesPage({
   ) as string[]
 
   const filtered = orders.filter(o => {
-    // En mode "action" : on n'affiche que les commandes confirmées (à traiter)
     if (mode === 'action' && o.status !== 'confirmed') return false
-    // En mode "history" : les filtres manuels s'appliquent
+    if (mode === 'toClose' && o.status !== 'delivered') return false
+    if (mode === 'closed' && o.status !== 'closed') return false
     if (mode === 'history') {
       if (filterStatus && o.status !== filterStatus) return false
     }
@@ -161,15 +166,8 @@ export default function AdminCommandesPage({
     [aggregatedSummary],
   )
 
-  function switchToHistory() {
-    setMode('history')
-    setFilterStatus('')
-    setFilterSupplier('')
-    setFilterDate('')
-  }
-
-  function switchToAction() {
-    setMode('action')
+  function switchMode(next: 'action' | 'toClose' | 'closed' | 'history') {
+    setMode(next)
     setFilterStatus('')
     setFilterSupplier('')
     setFilterDate('')
@@ -182,6 +180,8 @@ export default function AdminCommandesPage({
     archived:    orders.filter(o => o.archived_at).length,
     confirmed:   orders.filter(o => o.status === 'confirmed' && !o.archived_at).length,
     delivered:   orders.filter(o => o.status === 'delivered' && !o.archived_at).length,
+    toClose:     orders.filter(o => o.status === 'delivered' && !o.archived_at).length,
+    closed:      orders.filter(o => o.status === 'closed' && !o.archived_at).length,
     cancelled:   orders.filter(o => o.status === 'cancelled' && !o.archived_at).length,
     totalAmount: orders
       .filter(o => o.status !== 'cancelled' && !o.archived_at)
@@ -214,6 +214,45 @@ export default function AdminCommandesPage({
     }
 
     setUpdating(null)
+  }
+
+  async function closeOrder(orderId: string) {
+    const order = orders.find(o => o.id === orderId)
+    const ok = window.confirm(
+      `Clôturer la commande de ${order ? getMemberName(order) : 'ce membre'} ?\n\n` +
+        'Le total final sera recalculé. L\'avoir sera déduit s\'il ne l\'était pas encore. Un email récapitulatif sera envoyé.',
+    )
+    if (!ok) return
+
+    setClosingOrderId(orderId)
+    try {
+      const res = await fetch('/api/admin/orders/close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de la clôture.')
+
+      setOrders(prev => prev.map(o =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: 'closed',
+              total: data.total as number,
+              credit_applied: data.creditApplied as number,
+            }
+          : o,
+      ))
+
+      if (data.emailSent === false) {
+        alert('Commande clôturée, mais l\'email n\'a pas pu être envoyé.')
+      }
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setClosingOrderId(null)
+    }
   }
 
   async function cancelOrderItem(orderId: string, item: OrderItem) {
@@ -286,7 +325,7 @@ export default function AdminCommandesPage({
 
   async function archiveEligibleOrders() {
     const ok = window.confirm(
-      `Archiver ${archivableCount} commande(s) livrée(s) de plus de ${ARCHIVE_AFTER_MONTHS} mois ?\n\nElles disparaîtront de l'historique actif mais restent en base (bilan annuel, export adhérent).`,
+      `Archiver ${archivableCount} commande(s) clôturée(s) de plus de ${ARCHIVE_AFTER_MONTHS} mois ?\n\nElles disparaîtront de l'historique actif mais restent en base (bilan annuel, export adhérent).`,
     )
     if (!ok) return
 
@@ -370,12 +409,20 @@ export default function AdminCommandesPage({
       }}>
         <div>
           <h1 style={{ margin: '0 0 0.2rem' }}>
-            {mode === 'action' ? 'Commandes à traiter' : 'Historique des commandes'}
+            {mode === 'action' && 'Commandes à traiter'}
+            {mode === 'toClose' && 'Commandes à clôturer'}
+            {mode === 'closed' && 'Commandes clôturées'}
+            {mode === 'history' && 'Historique des commandes'}
           </h1>
           <p style={{ opacity: 0.55, margin: 0, fontSize: '0.85rem' }}>
-            {mode === 'action'
-              ? 'Commandes en attente de traitement. Marque-les "Livrée" après distribution ou "Annulée" si besoin.'
-              : 'Historique complet — utilise les filtres pour retrouver une commande passée.'}
+            {mode === 'action' &&
+              'Confirmées : marquer « Livrée » après distribution, ou « Annulée » si besoin.'}
+            {mode === 'toClose' &&
+              'Livrées : le membre peut encore ajouter des produits. Quand tout est bon, clique « Clôturer » — le total est figé et le statut passe à Clôturée.'}
+            {mode === 'closed' &&
+              'Commandes finalisées — montant et avoir définitifs. Utilise « Historique » pour les filtres avancés.'}
+            {mode === 'history' &&
+              'Historique complet — filtre par statut (dont Clôturées) pour retrouver une commande.'}
           </p>
         </div>
         <button
@@ -403,11 +450,18 @@ export default function AdminCommandesPage({
       }}>
         {(mode === 'action' ? [
           { label: 'À traiter',   value: stats.confirmed,   color: '#DC7F00', highlight: true },
+          { label: 'À clôturer',  value: stats.toClose,     color: '#1565c0' },
           { label: 'CA semaine',  value: `CHF ${stats.totalAmount.toFixed(2)}`, color: '#2e7d32' },
+        ] : mode === 'toClose' ? [
+          { label: 'À clôturer',  value: stats.toClose,     color: '#1565c0', highlight: true },
+          { label: 'Clôturées',   value: stats.closed,      color: '#2e7d32' },
+        ] : mode === 'closed' ? [
+          { label: 'Clôturées',   value: stats.closed,      color: '#2e7d32', highlight: true },
         ] : [
           { label: 'Total',       value: stats.total,       color: '#1a1a2e' },
           { label: 'Confirmées',  value: stats.confirmed,   color: '#DC7F00' },
           { label: 'Livrées',     value: stats.delivered,   color: '#1565c0' },
+          { label: 'Clôturées',   value: stats.closed,      color: '#2e7d32' },
           { label: 'Annulées',    value: stats.cancelled,   color: '#c0392b' },
           { label: 'Archivées',   value: showArchived ? stats.archived : '—', color: '#6b7280' },
           { label: 'CA total',    value: `CHF ${stats.totalAmount.toFixed(2)}`, color: '#2e7d32' },
@@ -536,16 +590,22 @@ export default function AdminCommandesPage({
         border: '1px solid #e8e8e8', alignItems: 'center',
       }}>
         {/* Onglets À traiter / Historique */}
-        <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
+        <div role="tablist" aria-label="Filtrer les commandes admin" style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
           {([
-            { key: 'action',  label: '⚡ À traiter' },
-            { key: 'history', label: '📋 Historique' },
+            { key: 'action',  label: `À traiter${stats.confirmed ? ` (${stats.confirmed})` : ''}` },
+            { key: 'toClose', label: `À clôturer${stats.toClose ? ` (${stats.toClose})` : ''}` },
+            { key: 'closed',  label: `Clôturées${stats.closed ? ` (${stats.closed})` : ''}` },
+            { key: 'history', label: 'Historique' },
           ] as const).map(tab => (
             <button
               key={tab.key}
-              onClick={() => tab.key === 'action' ? switchToAction() : switchToHistory()}
+              type="button"
+              role="tab"
+              aria-selected={mode === tab.key}
+              onClick={() => switchMode(tab.key)}
               style={{
-                padding: '0.38rem 0.9rem',
+                padding: '0.55rem 0.9rem',
+                minHeight: 44,
                 border: 'none',
                 background: mode === tab.key ? '#1a1a2e' : '#fff',
                 color: mode === tab.key ? '#fff' : '#555',
@@ -566,11 +626,13 @@ export default function AdminCommandesPage({
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
+              aria-label="Filtrer par statut de commande"
               style={selectStyle}
             >
               <option value="">Tous les statuts</option>
               <option value="confirmed">Confirmées</option>
               <option value="delivered">Livrées</option>
+              <option value="closed">Clôturées</option>
               <option value="cancelled">Annulées</option>
             </select>
 
@@ -655,18 +717,21 @@ export default function AdminCommandesPage({
       {!loading && !error && filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
           <p style={{ fontSize: '2rem', margin: '0 0 0.5rem' }}>
-            {mode === 'action' ? '✓' : '📭'}
+            {mode === 'action' || mode === 'toClose' ? '✓' : '📭'}
           </p>
           <p style={{ opacity: 0.5, margin: '0 0 1rem' }}>
-            {mode === 'action'
-              ? 'Aucune commande en attente — tout est à jour !'
-              : hasFilters
+            {mode === 'action' && 'Aucune commande confirmée en attente — tout est à jour !'}
+            {mode === 'toClose' && 'Aucune commande livrée à clôturer pour le moment.'}
+            {mode === 'closed' && 'Aucune commande clôturée pour le moment.'}
+            {mode === 'history' && (
+              hasFilters
                 ? 'Aucune commande ne correspond à ces filtres.'
-                : "Aucune commande dans l'historique."}
+                : "Aucune commande dans l'historique."
+            )}
           </p>
-          {mode === 'action' && (
+          {(mode === 'action' || mode === 'toClose' || mode === 'closed') && (
             <button
-              onClick={switchToHistory}
+              onClick={() => switchMode('history')}
               style={{ ...selectStyle, cursor: 'pointer', color: '#1a1a2e', borderColor: '#1a1a2e' }}
             >
               Voir l&apos;historique complet
@@ -695,26 +760,24 @@ export default function AdminCommandesPage({
             return (
               <details
                 key={order.id}
+                className={accordionStyles.card}
                 style={{
-                  border: '1px solid rgba(16,24,40,0.09)',
-                  borderRadius: 12, overflow: 'hidden',
                   opacity: isUpdating ? 0.65 : 1,
                   transition: 'opacity 0.2s',
-                  background: order.archived_at ? '#f9fafb' : '#fff',
+                  background: order.archived_at ? '#f9fafb' : undefined,
                 }}
               >
                 {/* ── En-tête cliquable (résumé) ── */}
-                <summary style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto',
-                  gap: '0.5rem 1rem',
-                  padding: '0.85rem 1.1rem',
-                  cursor: 'pointer',
-                  listStyle: 'none',
-                  background: '#fafafa',
-                  alignItems: 'center',
-                  userSelect: 'none',
-                }}>
+                <summary
+                  className={accordionStyles.cardSummary}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto auto',
+                    gap: '0.5rem 1rem',
+                    alignItems: 'center',
+                  }}
+                  aria-label={`Commande ${memberName}, ${order.supplier?.name ?? 'fournisseur'}, afficher le détail`}
+                >
                   {/* Colonne gauche : membre + fournisseur + date */}
                   <div style={{ display: 'grid', gap: '0.2rem' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'baseline' }}>
@@ -757,13 +820,11 @@ export default function AdminCommandesPage({
                       CHF {order.total.toFixed(2)}
                     </span>
                   </div>
+                  <AccordionChevron />
                 </summary>
 
                 {/* ── Contenu déplié ── */}
-                <div style={{
-                  padding: '0.9rem 1.1rem',
-                  borderTop: '1px solid rgba(16,24,40,0.06)',
-                }}>
+                <div className={`${accordionStyles.panel} ${accordionStyles.panelInner}`}>
                   {/* Email du membre */}
                   {order.member?.email && (
                     <p style={{ margin: '0 0 0.9rem', fontSize: '0.8rem', opacity: 0.5 }}>
@@ -771,18 +832,20 @@ export default function AdminCommandesPage({
                     </p>
                   )}
 
-                  {order.status === 'confirmed' && order.order_items.length > 0 && (
+                  {(order.status === 'confirmed' || order.status === 'delivered') && order.order_items.length > 0 && (
                     <p style={{
                       margin: '0 0 0.85rem',
                       padding: '0.55rem 0.75rem',
-                      background: '#fff8ed',
-                      border: '1px solid #ffe082',
+                      background: order.status === 'delivered' ? '#e3f2fd' : '#fff8ed',
+                      border: `1px solid ${order.status === 'delivered' ? '#90caf9' : '#ffe082'}`,
                       borderRadius: 8,
                       fontSize: '0.8rem',
-                      color: '#92400e',
+                      color: order.status === 'delivered' ? '#1565c0' : '#92400e',
                       lineHeight: 1.45,
                     }}>
-                      Produit indisponible ? Cliquez <strong>Retirer</strong> — le total est recalculé et le membre est prévenu par email.
+                      {order.status === 'delivered'
+                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou ajout de produits (membre ou admin). Avoir déjà déduit à la commande.</>
+                        : <>Produit indisponible ? <strong>Retirer</strong> — total recalculé, email au membre.</>}
                     </p>
                   )}
 
@@ -791,10 +854,10 @@ export default function AdminCommandesPage({
                     {order.order_items.map(item => {
                       const lineTotal = item.quantity * item.unit_price
                       const isRemoving = removingItemId === item.id
-                      const canRemove = order.status === 'confirmed'
+                      const canRemove = order.status === 'confirmed' || order.status === 'delivered'
 
                       return (
-                        <div key={item.id} className={lineStyles.orderLine}>
+                        <div key={item.id} className={`${lineStyles.orderLine} ${lineStyles.orderLineAdmin}`}>
                           <div className={lineStyles.lineInfo}>
                             <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.product?.name ?? '—'}</span>
                             {item.product?.supplier_ref && (
@@ -846,8 +909,17 @@ export default function AdminCommandesPage({
                       gap: '0.75rem',
                       flexWrap: 'wrap',
                     }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Total commande</span>
-                      <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>CHF {order.total.toFixed(2)}</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        {order.status === 'closed' ? 'Total final' : 'Total provisoire'}
+                      </span>
+                      <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>
+                        CHF {order.total.toFixed(2)}
+                        {(Number(order.credit_applied) || 0) > 0 && (
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: '#2e7d32', fontWeight: 600 }}>
+                            Avoir −{Number(order.credit_applied).toFixed(2)}
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </div>
 
@@ -861,13 +933,34 @@ export default function AdminCommandesPage({
                     <span style={{ fontSize: '0.8rem', opacity: 0.55, marginRight: '0.15rem' }}>
                       Changer le statut :
                     </span>
-                    {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
+                    {order.status === 'closed' && (
+                      <span style={{
+                        padding: '0.28rem 0.85rem',
+                        borderRadius: 999,
+                        border: `1px solid ${STATUS_CONFIG.closed.border}`,
+                        background: STATUS_CONFIG.closed.bg,
+                        color: STATUS_CONFIG.closed.color,
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                      }}>
+                        Clôturée
+                      </span>
+                    )}
+
+                    {order.status !== 'closed' && Object.entries(STATUS_CONFIG)
+                      .filter(([key]) => key !== 'closed')
+                      .map(([key, cfg]) => {
                       const isCurrent = order.status === key
+                      const disabled =
+                        isCurrent ||
+                        isUpdating ||
+                        order.status === 'closed' ||
+                        (key === 'confirmed' && order.status === 'delivered')
                       return (
                         <button
                           key={key}
-                          onClick={e => { e.preventDefault(); if (!isCurrent) updateStatus(order.id, key) }}
-                          disabled={isCurrent || isUpdating}
+                          onClick={e => { e.preventDefault(); if (!disabled) updateStatus(order.id, key) }}
+                          disabled={disabled}
                           style={{
                             padding: '0.28rem 0.85rem',
                             borderRadius: 999,
@@ -886,6 +979,30 @@ export default function AdminCommandesPage({
                     })}
                     {isUpdating && (
                       <span style={{ fontSize: '0.78rem', opacity: 0.45 }}>Mise à jour…</span>
+                    )}
+
+                    {order.status === 'delivered' && (
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault()
+                          void closeOrder(order.id)
+                        }}
+                        disabled={closingOrderId === order.id || isUpdating}
+                        style={{
+                          marginLeft: '0.25rem',
+                          padding: '0.35rem 1rem',
+                          borderRadius: 999,
+                          border: 'none',
+                          background: '#2e7d32',
+                          color: '#fff',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          cursor: closingOrderId === order.id ? 'wait' : 'pointer',
+                        }}
+                      >
+                        {closingOrderId === order.id ? 'Clôture…' : '✓ Clôturer'}
+                      </button>
                     )}
 
                     {mode === 'history' && order.archived_at && (
@@ -910,7 +1027,7 @@ export default function AdminCommandesPage({
                       </button>
                     )}
 
-                    {mode === 'history' && !order.archived_at && order.status === 'delivered' && (
+                    {mode === 'history' && !order.archived_at && order.status === 'closed' && (
                       <button
                         type="button"
                         onClick={e => {
@@ -1016,13 +1133,16 @@ function AggregatedSummaryPanel({
 
       <div style={{ padding: '0.75rem 1.25rem 1rem', overflowX: 'auto', background: '#fff' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', minWidth: 480 }}>
+          <caption style={{ captionSide: 'top', textAlign: 'left', padding: '0 0 0.65rem', fontWeight: 700, fontSize: '0.85rem' }}>
+            Récapitulatif des articles à commander par fournisseur
+          </caption>
           <thead>
-            <tr style={{ opacity: 0.55, fontSize: '0.78rem' }}>
-              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>N° article</th>
-              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>Désignation</th>
-              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Qté totale</th>
-              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>P.U.</th>
-              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Total</th>
+            <tr style={{ color: 'rgba(16,24,40,0.62)', fontSize: '0.78rem' }}>
+              <th scope="col" style={{ ...thStyle, paddingBottom: '0.5rem' }}>N° article</th>
+              <th scope="col" style={{ ...thStyle, paddingBottom: '0.5rem' }}>Désignation</th>
+              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Qté totale</th>
+              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>P.U.</th>
+              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Total</th>
             </tr>
           </thead>
           <tbody>

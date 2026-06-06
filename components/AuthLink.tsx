@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Link } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import Avatar from './Avatar'
 
 type MiniProfile = {
@@ -14,8 +15,13 @@ type MiniProfile = {
 }
 
 export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
+  const t = useTranslations('nav')
+  const pathname = usePathname()
   const [profile, setProfile] = useState<MiniProfile | null>(null)
   const [loggedIn, setLoggedIn] = useState(false)
+
+  const isAccountPage = pathname === '/mon-compte' || pathname.startsWith('/mon-compte/')
+  const isLoginPage = pathname === '/connexion' || pathname.startsWith('/connexion/')
 
   useEffect(() => {
     const supabase = createClient()
@@ -47,12 +53,14 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
   }, [])
 
   if (loggedIn && profile) {
-    const displayName = profile.username ?? profile.full_name?.split(' ')[0] ?? 'Mon compte'
+    const displayName = profile.username ?? profile.full_name?.split(' ')[0] ?? t('monCompte')
 
     return (
       <Link
         href="/mon-compte"
         locale={locale}
+        aria-label={`${t('monCompte')} — ${displayName}`}
+        aria-current={isAccountPage ? 'page' : undefined}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -78,15 +86,26 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
 
   if (loggedIn) {
     return (
-      <Link href="/mon-compte" locale={locale} style={{ fontWeight: 600 }}>
-        Mon compte
+      <Link
+        href="/mon-compte"
+        locale={locale}
+        aria-label={t('monCompte')}
+        aria-current={isAccountPage ? 'page' : undefined}
+        style={{ fontWeight: 600 }}
+      >
+        {t('monCompte')}
       </Link>
     )
   }
 
   return (
-    <Link href="/connexion" locale={locale}>
-      Connexion
+    <Link
+      href="/connexion"
+      locale={locale}
+      aria-label={t('connexion')}
+      aria-current={isLoginPage ? 'page' : undefined}
+    >
+      {t('connexion')}
     </Link>
   )
 }

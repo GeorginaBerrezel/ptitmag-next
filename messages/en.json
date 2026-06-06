@@ -14,6 +14,15 @@
     "producers": "Producers",
     "membership": "Membership",
     "catalogue": "Catalogue",
+    "commander": "Order",
+    "cart": "Cart",
+    "pendingActivation": "Activation pending",
+    "pendingTitle": "Your membership is being validated — catalogue access coming soon",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "menu": "Menu",
+    "headerActions": "Header actions",
+    "langSwitch": "Language switch",
     "contact": "Contact",
     "courses": "How it works",
     "pricing": "Contributions",
@@ -25,6 +34,7 @@
   "home": {
     "title": "Le p’tit mag : consuming differently, together",
     "subtitle": "Group orders, reseller price, no margin.",
+    "subtitle_hint": "You pay what the shop pays its suppliers — no commercial markup.",
     "objective": "Goal: support ethical, local consumption outside a market-driven logic, focusing on short supply chains, transparency and mutual aid.",
     "block1_title": "A non-profit association shop enabling members to cover their food and household needs:",
     "block1_text": "From local producers → organic wholesalers → at reseller price, without margin → in a friendly atmosphere.",
@@ -48,7 +58,7 @@
       },
       {
         "title": "Pick up at the store",
-        "desc": "Come pick up your purchases in St-Romain (Wed, Fri, Sat). We chat, play cards and share good moments — much more than just a pick-up!"
+        "desc": "Come pick up your purchases in St-Romain (Friday 4:30–6:30 pm, Saturday 9 am–12 pm). We chat, play cards and share good moments — much more than just a pick-up!"
       }
     ],
     "trial_title": "Create your account and order",
@@ -152,6 +162,8 @@
     "addressTitle": "Address",
     "directions": "Directions",
     "linksTitle": "Links",
+    "producers": "Producers",
+    "membership": "Membership",
     "home": "Home",
     "courses": "How it works",
     "pricing": "Contributions",

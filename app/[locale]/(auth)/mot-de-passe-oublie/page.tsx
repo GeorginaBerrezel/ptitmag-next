@@ -38,7 +38,7 @@ export default function MotDePasseOubliePage({
 
   if (success) {
     return (
-      <main className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
+      <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>E-mail envoyé</h1>
         <p>
           Si un compte existe pour <strong>{email}</strong>, vous recevrez un lien
@@ -52,12 +52,12 @@ export default function MotDePasseOubliePage({
             Retour à la connexion
           </Link>
         </p>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
+    <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
       <h1 style={{ marginBottom: '0.25rem' }}>Mot de passe oublié</h1>
       <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
         Entrez votre e-mail : nous vous enverrons un lien pour définir un nouveau mot de passe.
@@ -93,6 +93,6 @@ export default function MotDePasseOubliePage({
           Retour à la connexion
         </Link>
       </p>
-    </main>
+    </div>
   )
 }

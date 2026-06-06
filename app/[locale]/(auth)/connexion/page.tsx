@@ -45,7 +45,7 @@ export default function ConnexionPage({
   }
 
   return (
-    <main className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
+    <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
       <h1 style={{ marginBottom: '0.25rem' }}>Connexion</h1>
       <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
         Accédez à votre espace adhérent.
@@ -106,6 +106,6 @@ export default function ConnexionPage({
           S&apos;inscrire
         </Link>
       </p>
-    </main>
+    </div>
   )
 }

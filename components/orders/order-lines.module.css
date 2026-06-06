@@ -1,0 +1,277 @@
+/* Panneau détail commande membre — contenu déplié isolé (style SNCF) */
+
+.orderDetail {
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fb;
+  border-top: 1px solid rgba(16, 24, 40, 0.06);
+}
+
+.hintBanner {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border-radius: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(16, 24, 40, 0.06);
+}
+
+.hintBannerDelivered {
+  background: #e8f4fd;
+  border-bottom-color: #bbdefb;
+  color: #0d47a1;
+}
+
+.hintBannerClosed {
+  background: #edf7ee;
+  border-bottom-color: #c8e6c9;
+  color: #1b5e20;
+}
+
+.hintBannerConfirmed {
+  background: #fff8ed;
+  border-bottom-color: #ffe082;
+  color: #92400e;
+}
+
+.orderLines {
+  padding: 0;
+  background: #fff;
+  margin: 0.65rem 0.75rem 0;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.orderLine {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 1rem;
+  align-items: start;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(16, 24, 40, 0.06);
+}
+
+.orderLine:last-child {
+  border-bottom: none;
+}
+
+.lineInfo {
+  min-width: 0;
+}
+
+.lineName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: block;
+  line-height: 1.35;
+  color: #1a1a2e;
+}
+
+.lineMeta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.lineQty {
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: block;
+  color: rgba(16, 24, 40, 0.75);
+}
+
+.lineUnitPrice {
+  display: block;
+  font-size: 0.74rem;
+  opacity: 0.55;
+  margin-top: 0.1rem;
+}
+
+.lineTotal {
+  display: block;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  color: #1a1a2e;
+}
+
+.detailFooter {
+  margin: 0.65rem 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.totalsBlock {
+  background: #fffbf5;
+  border: 1.5px solid rgba(220, 127, 0, 0.35);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 1px 0 rgba(220, 127, 0, 0.08);
+}
+
+.totalsLabel {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #b35c00;
+  margin: 0 0 0.4rem;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.84rem;
+  padding: 0.15rem 0;
+}
+
+.totalsRowMuted {
+  color: rgba(16, 24, 40, 0.65);
+}
+
+.totalsRowCredit {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.totalsRowFinal {
+  margin-top: 0.4rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(16, 24, 40, 0.15);
+}
+
+.totalsFinalLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.totalsFinalAmount {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  line-height: 1.2;
+}
+
+.orderActions {
+  padding: 0;
+  margin: 0;
+  border-top: none;
+}
+
+.complementBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 46px;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #dc7f00;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, transform 0.1s;
+  box-sizing: border-box;
+}
+
+.complementBtn:hover {
+  background: #c47200;
+}
+
+.complementBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
+}
+
+.complementBtn:active {
+  transform: translateY(1px);
+}
+
+.removeBtn {
+  background: none;
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  color: #c0392b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.45rem 0.65rem;
+  line-height: 1.2;
+  flex-shrink: 0;
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.removeBtn:hover:not(:disabled) {
+  background: #fdf2f2;
+}
+
+.removeBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.orderLineAdmin {
+  grid-template-columns: 1fr auto auto;
+}
+
+.orderTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+  border-top: 2px solid rgba(16, 24, 40, 0.1);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .orderLine {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .lineMeta {
+    text-align: left;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.75rem;
+  }
+
+  .lineTotal {
+    margin-left: auto;
+  }
+
+  .orderLineAdmin {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'info remove'
+      'meta meta';
+  }
+
+  .orderLineAdmin .lineInfo {
+    grid-area: info;
+  }
+
+  .orderLineAdmin .lineMeta {
+    grid-area: meta;
+  }
+
+  .orderLineAdmin .removeBtn {
+    grid-area: remove;
+    justify-self: end;
+  }
+}

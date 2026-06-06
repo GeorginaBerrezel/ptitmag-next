@@ -35,6 +35,14 @@
   gap: 0.75rem;
 }
 
+.subtitleHint {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(16, 24, 40, 0.68);
+  font-style: italic;
+}
+
 .subtitle {
   font-size: clamp(1rem, 2.5vw, 1.15rem);
   opacity: 0.95;
