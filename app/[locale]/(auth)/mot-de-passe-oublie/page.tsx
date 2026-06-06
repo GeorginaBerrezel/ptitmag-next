@@ -1,9 +1,10 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useId, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { authCallbackUrl } from '@/lib/auth/urls'
 import { Link } from '@/i18n/navigation'
+import styles from '@/components/auth/auth-form.module.css'
 
 export default function MotDePasseOubliePage({
   params,
@@ -11,6 +12,7 @@ export default function MotDePasseOubliePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = use(params)
+  const errorId = useId()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,17 +40,17 @@ export default function MotDePasseOubliePage({
 
   if (success) {
     return (
-      <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>E-mail envoyé</h1>
-        <p>
+      <div className={`container ${styles.page} ${styles.pageNarrow}`}>
+        <h1 className={styles.title}>E-mail envoyé</h1>
+        <p className={styles.intro}>
           Si un compte existe pour <strong>{email}</strong>, vous recevrez un lien
           pour choisir un nouveau mot de passe.
         </p>
-        <p style={{ opacity: 0.7, marginTop: '1rem', fontSize: '0.9rem' }}>
+        <p className={styles.hint} style={{ marginTop: '1rem' }}>
           Pensez à vérifier vos spams. Le lien est valable 24 heures.
         </p>
         <p style={{ marginTop: '1.5rem' }}>
-          <Link href="/connexion" locale={locale}>
+          <Link href="/connexion" locale={locale} className={styles.link}>
             Retour à la connexion
           </Link>
         </p>
@@ -57,21 +59,26 @@ export default function MotDePasseOubliePage({
   }
 
   return (
-    <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
-      <h1 style={{ marginBottom: '0.25rem' }}>Mot de passe oublié</h1>
-      <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
+    <div className={`container ${styles.page} ${styles.pageNarrow}`}>
+      <h1 className={styles.title}>Mot de passe oublié</h1>
+      <p className={styles.intro}>
         Entrez votre e-mail : nous vous enverrons un lien pour définir un nouveau mot de passe.
       </p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        className={styles.form}
+        aria-describedby={error ? errorId : undefined}
+        noValidate
+      >
         {error && (
-          <p role="alert" style={{ color: '#c0392b', background: '#fdf2f2', padding: '0.75rem 1rem', borderRadius: 8, margin: 0 }}>
+          <p id={errorId} role="alert" className={styles.error}>
             {error}
           </p>
         )}
 
-        <div style={{ display: 'grid', gap: '0.375rem' }}>
-          <label htmlFor="email">E-mail</label>
+        <div className={styles.field}>
+          <label htmlFor="email" className={styles.label}>E-mail</label>
           <input
             id="email"
             type="email"
@@ -79,17 +86,22 @@ export default function MotDePasseOubliePage({
             onChange={e => setEmail(e.target.value)}
             required
             autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            enterKeyHint="send"
             placeholder="votre@email.com"
+            aria-invalid={error ? true : undefined}
+            className={`${styles.input} ${error ? styles.inputInvalid : ''}`}
           />
         </div>
 
-        <button type="submit" disabled={loading} className="btn btn-primary">
+        <button type="submit" disabled={loading} className={`btn btn-primary ${styles.submitBtn}`}>
           {loading ? 'Envoi…' : 'Envoyer le lien'}
         </button>
       </form>
 
-      <p style={{ marginTop: '1.5rem', textAlign: 'center', opacity: 0.7 }}>
-        <Link href="/connexion" locale={locale}>
+      <p className={styles.footer}>
+        <Link href="/connexion" locale={locale} className={styles.link}>
           Retour à la connexion
         </Link>
       </p>

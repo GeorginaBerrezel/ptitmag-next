@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import PasswordCriteria from '@/components/auth/PasswordCriteria'
+import styles from '@/components/auth/password-input.module.css'
 
 type Props = {
   id: string
@@ -10,6 +12,11 @@ type Props = {
   placeholder?: string
   minLength?: number
   required?: boolean
+  /** Inscription / réinitialisation : critères visibles pendant la saisie. */
+  showCriteria?: boolean
+  confirmValue?: string
+  invalid?: boolean
+  describedBy?: string
 }
 
 export default function PasswordInput({
@@ -20,11 +27,20 @@ export default function PasswordInput({
   placeholder = '••••••••',
   minLength,
   required,
+  showCriteria = false,
+  confirmValue,
+  invalid = false,
+  describedBy,
 }: Props) {
   const [visible, setVisible] = useState(false)
+  const criteriaId = useId()
+  const ariaDescribedBy = [
+    describedBy,
+    showCriteria ? criteriaId : undefined,
+  ].filter(Boolean).join(' ') || undefined
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className={styles.wrap}>
       <input
         id={id}
         type={visible ? 'text' : 'password'}
@@ -34,30 +50,27 @@ export default function PasswordInput({
         autoComplete={autoComplete}
         placeholder={placeholder}
         minLength={minLength}
-        style={{ width: '100%', paddingRight: '2.75rem', boxSizing: 'border-box' }}
+        aria-invalid={invalid || undefined}
+        aria-describedby={ariaDescribedBy}
+        enterKeyHint={autoComplete === 'new-password' ? 'next' : 'done'}
+        className={`${styles.input} ${invalid ? styles.inputInvalid : ''}`}
       />
       <button
         type="button"
         onClick={() => setVisible(v => !v)}
+        className={styles.toggle}
         aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
         aria-pressed={visible}
-        style={{
-          position: 'absolute',
-          right: 8,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '0.25rem 0.4rem',
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          color: 'rgba(16,24,40,0.55)',
-          lineHeight: 1,
-        }}
       >
         {visible ? 'Masquer' : 'Afficher'}
       </button>
+      {showCriteria && (
+        <PasswordCriteria
+          id={criteriaId}
+          password={value}
+          confirm={confirmValue}
+        />
+      )}
     </div>
   )
 }

@@ -1,0 +1,176 @@
+.page {
+  max-width: 480px;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.pageNarrow {
+  max-width: 440px;
+}
+
+.title {
+  margin: 0 0 0.35rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+
+.intro {
+  margin: 0 0 1.75rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(16, 24, 40, 0.68);
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.fieldRowNpa {
+  display: grid;
+  grid-template-columns: minmax(88px, 110px) 1fr;
+  gap: 0.75rem;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1a1a2e;
+}
+
+.labelOptional {
+  font-weight: 400;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid rgba(16, 24, 40, 0.18);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.input:focus-visible {
+  border-color: #6e9b6d;
+  box-shadow: 0 0 0 3px rgba(110, 155, 109, 0.25);
+}
+
+.inputInvalid {
+  border-color: #e57373;
+}
+
+.inputInvalid:focus-visible {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(16, 24, 40, 0.58);
+}
+
+.error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #fdf2f2;
+  color: #c0392b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.footer {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(16, 24, 40, 0.62);
+}
+
+.link {
+  color: #1565c0;
+  font-weight: 600;
+}
+
+.linkSubtle {
+  font-size: 0.85rem;
+  color: rgba(16, 24, 40, 0.65);
+  font-weight: 600;
+}
+
+.submitBtn {
+  min-height: 48px;
+  width: 100%;
+}
+
+.criteria {
+  margin: 0.15rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.criterion {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.criterionMet {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.criterionIcon {
+  flex-shrink: 0;
+  width: 1.1rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.infoBox {
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #1e3a5f;
+}

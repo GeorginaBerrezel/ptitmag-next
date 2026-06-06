@@ -17,6 +17,7 @@ import {
   quantityHintText,
 } from '@/lib/catalog/quantity-rules'
 import type { Product } from '@/lib/supabase/products'
+import CielPriceHint from '@/components/catalog/CielPriceHint'
 import styles from './ProductCard.module.css'
 
 function daysLeft(deadline: string, nowMs: number): number {
@@ -228,15 +229,8 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
                   Prix TTC
                 </p>
               )}
-              {applyCielMarkup && (
-                <p style={{
-                  margin: '0.1rem 0 0',
-                  fontSize: '0.72rem',
-                  color: '#5c6bc0',
-                  fontWeight: 600,
-                }}>
-                  +20% (membre Ciel)
-                </p>
+              {applyCielMarkup && product.unit_price != null && (
+                <CielPriceHint baseUnitPrice={product.unit_price} />
               )}
               {hasSurcharge && (
                 <p style={{
