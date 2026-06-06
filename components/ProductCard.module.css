@@ -111,6 +111,23 @@
 
 .priceBlock {
   text-align: left;
+  max-width: 100%;
+}
+
+.priceNotes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: 0.1rem;
+  max-width: 100%;
+}
+
+.surchargeNote {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #DC7F00;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .price {
@@ -119,17 +136,17 @@
 }
 
 .qtyRow {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-  flex-wrap: wrap;
+  display: inline-flex;
+  gap: 0;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  max-width: 100%;
 }
 
 .qtyBtn {
   width: 44px;
   height: 44px;
   border: 1px solid rgba(16, 24, 40, 0.15);
-  border-radius: 8px;
   background: #fff;
   color: #1a1a2e;
   cursor: pointer;
@@ -143,6 +160,18 @@
   flex-shrink: 0;
 }
 
+.qtyBtn:first-of-type {
+  border-radius: 8px 0 0 8px;
+}
+
+.qtyBtn:last-of-type {
+  border-radius: 0 8px 8px 0;
+}
+
+.qtyBtn + .qtyBtn {
+  border-left: none;
+}
+
 .qtyBtn:disabled {
   background: #f5f5f5;
   color: #bbb;
@@ -150,10 +179,30 @@
 }
 
 .qtyValue {
-  min-width: 36px;
+  min-width: 2.75rem;
+  padding: 0 0.35rem;
   text-align: center;
   font-weight: 700;
   font-size: 0.95rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid rgba(16, 24, 40, 0.15);
+  border-bottom: 1px solid rgba(16, 24, 40, 0.15);
+  background: #f6f8fb;
+  color: #1a1a2e;
+  cursor: default;
+  user-select: none;
+  pointer-events: none;
+}
+
+.qtyUnit {
+  margin-left: 0.45rem;
+  font-size: 0.78rem;
+  opacity: 0.55;
+  line-height: 1.35;
+  align-self: center;
 }
 
 .addBtn {

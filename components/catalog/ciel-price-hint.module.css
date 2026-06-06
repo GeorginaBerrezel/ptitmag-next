@@ -1,7 +1,22 @@
 .hint {
   margin: 0.15rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  max-width: 100%;
+}
+
+.line {
+  margin: 0;
   font-size: 0.72rem;
-  line-height: 1.45;
-  color: rgba(16, 24, 40, 0.58);
+  line-height: 1.35;
   font-weight: 500;
+}
+
+.lineTerre {
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.lineCiel {
+  color: rgba(21, 101, 192, 0.88);
 }

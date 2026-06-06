@@ -245,31 +245,32 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
                 CHF {effectivePrice.toFixed(2)}
                 <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85rem' }}>/{product.unit}</span>
               </p>
-              {product.supplier?.type === 'grossiste_bio' && (
-                <p style={{ margin: '0.1rem 0 0', fontSize: '0.68rem', opacity: 0.5 }}>
-                  Prix TTC
-                </p>
-              )}
-              {applyCielMarkup && product.unit_price != null && (
-                <CielPriceHint baseUnitPrice={product.unit_price} />
-              )}
-              {hasSurcharge && (
-                <p style={{
-                  margin: '0.1rem 0 0',
-                  fontSize: '0.72rem',
-                  color: '#DC7F00',
-                  fontWeight: 600,
-                }}>
-                  +10% (qté &lt; min.)
-                </p>
-              )}
+              <div className={styles.priceNotes}>
+                {product.supplier?.type === 'grossiste_bio' && (
+                  <p style={{ margin: 0, fontSize: '0.68rem', opacity: 0.5 }}>
+                    Prix TTC
+                  </p>
+                )}
+                {applyCielMarkup && product.unit_price != null && (
+                  <CielPriceHint baseUnitPrice={product.unit_price} />
+                )}
+                {hasSurcharge && (
+                  <p className={styles.surchargeNote}>
+                    +10&nbsp;% (qté &lt; min.)
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {orderable ? (
           <>
-            <div className={styles.qtyRow}>
+            <div
+              className={styles.qtyRow}
+              role="group"
+              aria-label={`Quantité : ${formatQuantityDisplay(qty, qtyRules)} ${product.unit}`}
+            >
               <button
                 type="button"
                 onClick={decrement}
@@ -280,7 +281,12 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
                 −
               </button>
 
-              <span className={styles.qtyValue}>{formatQuantityDisplay(qty, qtyRules)}</span>
+              <span
+                className={styles.qtyValue}
+                aria-hidden="true"
+              >
+                {formatQuantityDisplay(qty, qtyRules)}
+              </span>
 
               <button
                 type="button"
@@ -291,7 +297,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
                 +
               </button>
 
-              <span style={{ fontSize: '0.78rem', opacity: 0.55 }}>{product.unit}</span>
+              <span className={styles.qtyUnit}>{product.unit}</span>
             </div>
 
             {extendOrderId ? (
