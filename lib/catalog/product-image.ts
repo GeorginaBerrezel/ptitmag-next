@@ -30,7 +30,7 @@ function getBiopartnerProductImageUrl(product: Product): string | null {
  */
 export function getProductImageUrl(product: Product): string | null {
   if (isBrasseriesAyentSupplier(product.supplier?.name)) {
-    return buildBrasseriesAyentImagePath(product.name)
+    return buildBrasseriesAyentImagePath(product.name) ?? PRODUCT_IMAGE_PLACEHOLDER
   }
   if (product.supplier?.type === 'grossiste_bio') {
     return getBiopartnerProductImageUrl(product)
@@ -39,9 +39,7 @@ export function getProductImageUrl(product: Product): string | null {
 }
 
 export function showProductImage(product: Product): boolean {
-  if (isBrasseriesAyentSupplier(product.supplier?.name)) {
-    return buildBrasseriesAyentImagePath(product.name) != null
-  }
+  if (isBrasseriesAyentSupplier(product.supplier?.name)) return true
   return product.supplier?.type === 'grossiste_bio'
 }
 

@@ -10,7 +10,11 @@ import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
-import { useCategoryScrollNav, useChangeCategoryBackNav } from '@/lib/catalog/category-nav'
+import {
+  CATEGORY_SCROLL_NAV_MAX_WIDTH_PX,
+  useCategoryScrollNav,
+  useChangeCategoryBackNav,
+} from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import CategoryCard from './catalogue/CategoryCard'
@@ -64,6 +68,15 @@ export default function CatalogueClient({
 
   const [globalSearchResults, setGlobalSearchResults] = useState<Product[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${CATEGORY_SCROLL_NAV_MAX_WIDTH_PX}px)`)
+    const update = () => setIsMobileViewport(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     const bump = () => setCatalogNow(Date.now())
@@ -121,7 +134,7 @@ export default function CatalogueClient({
   const showSupplierSidebar = activeSupplierId != null && openSuppliersCount >= 2
 
   const categoryCount = activeCategories.length
-  const categoryScrollNav = useCategoryScrollNav(categoryCount)
+  const categoryScrollNav = useCategoryScrollNav(categoryCount, isMobileViewport)
   const changeCategoryBackNav = useChangeCategoryBackNav(categoryCount)
 
   const view: 'suppliers' | 'categories' | 'products' =

@@ -26,6 +26,8 @@ export default function CategoryCard({
         alignItems: 'flex-start',
         gap: '0.35rem',
         width: '100%',
+        minWidth: 0,
+        overflow: 'hidden',
         textAlign: 'left',
         padding: '0.85rem 1rem',
         background: active ? '#1a1a2e' : '#fff',
@@ -49,8 +51,19 @@ export default function CategoryCard({
         e.currentTarget.style.transform = 'translateY(0)'
       }}
     >
-      <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
-        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', lineHeight: 1.3 }}>{name}</p>
+      <div style={{ display: 'flex', width: '100%', minWidth: 0, justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+        <p style={{
+          margin: 0,
+          flex: 1,
+          minWidth: 0,
+          fontWeight: 700,
+          fontSize: '0.95rem',
+          lineHeight: 1.3,
+          overflowWrap: 'anywhere',
+          wordBreak: 'break-word',
+        }}>
+          {name}
+        </p>
         <span style={{ fontSize: '1rem', opacity: active ? 0.7 : 0.35, flexShrink: 0 }} aria-hidden>›</span>
       </div>
       <p style={{ margin: 0, fontSize: '0.78rem', opacity: active ? 0.85 : 0.55 }}>
