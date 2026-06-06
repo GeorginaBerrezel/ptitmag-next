@@ -3,6 +3,35 @@
 import { useCart } from '@/lib/cart/CartContext'
 import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+import styles from './cart-icon.module.css'
+
+function CartSvg() {
+  return (
+    <svg
+      className={styles.icon}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M6 6h15l-1.5 9H7.5L6 6Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 6 5 3H2"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="20" r="1.5" fill="currentColor" />
+      <circle cx="18" cy="20" r="1.5" fill="currentColor" />
+    </svg>
+  )
+}
 
 export default function CartIcon({ locale }: { locale: 'fr' | 'en' }) {
   const { totalItems } = useCart()
@@ -16,34 +45,12 @@ export default function CartIcon({ locale }: { locale: 'fr' | 'en' }) {
     <Link
       href="/panier"
       locale={locale}
+      className={styles.link}
       aria-label={`${t('cart')} : ${totalItems} produit${totalItems > 1 ? 's' : ''}`}
       aria-current={isActive ? 'page' : undefined}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.3rem',
-        fontWeight: 600,
-        textDecoration: 'none',
-        color: 'inherit',
-        minWidth: '2.75rem',
-        minHeight: '44px',
-        padding: '0.35rem 0.5rem',
-      }}
     >
-      <span aria-hidden="true">🛒</span>
-      <span style={{
-        background: '#DC7F00',
-        color: '#fff',
-        borderRadius: 999,
-        fontSize: '0.7rem',
-        fontWeight: 700,
-        padding: '0.1rem 0.45rem',
-        lineHeight: 1.4,
-        minWidth: '1.25rem',
-        textAlign: 'center',
-      }}>
-        {totalItems}
-      </span>
+      <CartSvg />
+      <span className={styles.badge}>{totalItems}</span>
     </Link>
   )
 }
