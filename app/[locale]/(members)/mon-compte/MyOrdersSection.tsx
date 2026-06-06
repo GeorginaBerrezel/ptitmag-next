@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
+import AccordionChevron from '@/components/ui/AccordionChevron'
 import styles from './my-orders.module.css'
 
 const PAGE_SIZE = 15
@@ -248,7 +249,7 @@ export default function MyOrdersSection({
             >
               <summary className={styles.monthSummary} aria-label={`Mois ${monthLabel(key)}, afficher les commandes`}>
                 <span className={styles.summaryLead}>
-                  <span className={styles.chevron} aria-hidden>▼</span>
+                  <AccordionChevron />
                   <span className={styles.monthLabel}>{monthLabel(key)}</span>
                   <span className={styles.expandHint}>Mois</span>
                 </span>
@@ -301,7 +302,7 @@ export default function MyOrdersSection({
                             )}
                           </span>
                         </div>
-                        <span className={`${styles.chevron} ${styles.orderChevron}`} aria-hidden>▼</span>
+                        <AccordionChevron className={styles.orderChevron} />
                       </summary>
 
                       <MemberOrderDetail

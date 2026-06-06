@@ -71,54 +71,53 @@ export default function MemberOrderDetail({ order, hasCatalogAccess }: Props) {
         })}
       </div>
 
-      <div className={lineStyles.totalsBlock}>
-        <p className={lineStyles.totalsLabel}>Récapitulatif</p>
-        {showCreditBreakdown ? (
-          <>
-            <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowMuted}`}>
-              <span>Sous-total</span>
-              <span>CHF {grossTotal.toFixed(2)}</span>
+      <div className={lineStyles.detailFooter}>
+        <div className={lineStyles.totalsBlock}>
+          <p className={lineStyles.totalsLabel}>Récapitulatif</p>
+          {showCreditBreakdown ? (
+            <>
+              <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowMuted}`}>
+                <span>Sous-total</span>
+                <span>CHF {grossTotal.toFixed(2)}</span>
+              </div>
+              <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowCredit}`}>
+                <span>Avoir déduit</span>
+                <span>− CHF {credit.toFixed(2)}</span>
+              </div>
+              <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
+                <span className={lineStyles.totalsFinalLabel}>Total à payer</span>
+                <span className={lineStyles.totalsFinalAmount}>CHF {order.total.toFixed(2)}</span>
+              </div>
+            </>
+          ) : (
+            <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
+              <span className={lineStyles.totalsFinalLabel}>
+                {isProvisional ? 'Total provisoire' : 'Total final'}
+              </span>
+              <span className={lineStyles.totalsFinalAmount}>
+                CHF {order.total.toFixed(2)}
+              </span>
             </div>
+          )}
+          {credit > 0 && isProvisional && (
             <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowCredit}`}>
-              <span>Avoir déduit</span>
+              <span>Avoir prévu</span>
               <span>− CHF {credit.toFixed(2)}</span>
             </div>
-            <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
-              <span>Total à payer</span>
-              <span>CHF {order.total.toFixed(2)}</span>
-            </div>
-          </>
-        ) : (
-          <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
-            <span>{isProvisional ? 'Total provisoire' : 'Total final'}</span>
-            <span>
-              CHF {order.total.toFixed(2)}
-              {credit > 0 && isProvisional && (
-                <span style={{
-                  display: 'block',
-                  fontSize: '0.75rem',
-                  color: '#2e7d32',
-                  fontWeight: 600,
-                  marginTop: '0.15rem',
-                }}>
-                  Avoir prévu −{credit.toFixed(2)} CHF
-                </span>
-              )}
-            </span>
+          )}
+        </div>
+
+        {(order.status === 'delivered' && hasCatalogAccess && order.supplier?.id) && (
+          <div className={lineStyles.orderActions}>
+            <Link
+              href={`/commandes?extendOrder=${order.id}&supplierId=${order.supplier.id}`}
+              className={lineStyles.complementBtn}
+            >
+              + Compléter cette commande
+            </Link>
           </div>
         )}
       </div>
-
-      {(order.status === 'delivered' && hasCatalogAccess && order.supplier?.id) && (
-        <div className={lineStyles.orderActions}>
-          <Link
-            href={`/commandes?extendOrder=${order.id}&supplierId=${order.supplier.id}`}
-            className={lineStyles.complementBtn}
-          >
-            + Compléter cette commande
-          </Link>
-        </div>
-      )}
     </div>
   )
 }

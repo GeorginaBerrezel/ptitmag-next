@@ -3,6 +3,8 @@
 import { use, useCallback, useEffect, useState } from 'react'
 import { ADMIN_MEMBER_STATUSES, MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
 import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/status-guide'
+import AccordionChevron from '@/components/ui/AccordionChevron'
+import accordionStyles from '@/components/ui/accordion.module.css'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -504,26 +506,23 @@ export default function AdminMembresPage({
             return (
               <details
                 key={member.id}
+                className={accordionStyles.card}
                 style={{
-                  border: '1px solid rgba(16,24,40,0.09)',
-                  borderRadius: 12, overflow: 'hidden',
-                  background: '#fff',
                   opacity: isUpdating ? 0.65 : 1,
                   transition: 'opacity 0.2s',
                 }}
               >
                 {/* ── Résumé cliquable ── */}
-                <summary style={{
-                  display: 'grid',
-                  gridTemplateColumns: '44px 1fr auto',
-                  gap: '0.5rem 0.9rem',
-                  padding: '0.85rem 1.1rem',
-                  cursor: 'pointer',
-                  listStyle: 'none',
-                  background: '#fafafa',
-                  alignItems: 'center',
-                  userSelect: 'none',
-                }}>
+                <summary
+                  className={accordionStyles.cardSummary}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '44px 1fr auto auto',
+                    gap: '0.5rem 0.9rem',
+                    alignItems: 'center',
+                  }}
+                  aria-label={`Membre ${name}, afficher le détail`}
+                >
 
                   {/* Avatar */}
                   <div style={{
@@ -584,10 +583,11 @@ export default function AdminMembresPage({
                       </span>
                     )}
                   </div>
+                  <AccordionChevron />
                 </summary>
 
                 {/* ── Contenu déplié ── */}
-                <div style={{ padding: '1rem 1.1rem', borderTop: '1px solid rgba(16,24,40,0.06)' }}>
+                <div className={`${accordionStyles.panel} ${accordionStyles.panelInner}`}>
 
                   {/* Cotisation */}
                   <div style={{

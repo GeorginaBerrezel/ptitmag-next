@@ -55,6 +55,11 @@
   background: #fafafa;
 }
 
+.exportBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
 .exportBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -76,6 +81,11 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+.tab:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
 }
 
 .tabActive {
@@ -114,48 +124,14 @@
   opacity: 0.6;
 }
 
-/* ── Chevron accordéon (standard UX : couleur seule ne suffit pas) ── */
-
-.chevron {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.1rem;
-  height: 1.1rem;
-  font-size: 0.65rem;
-  line-height: 1;
-  opacity: 0.55;
-  transition: transform 0.2s ease;
-}
-
-details[open] > summary .chevron {
-  transform: rotate(180deg);
-}
-
-.summaryLead {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.expandHint {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  opacity: 0.45;
-  white-space: nowrap;
-}
-
-/* ── Niveau 1 : mois (fond gris foncé + barre latérale) ── */
+/* ── Niveau 1 : mois ── */
 
 .monthGroup {
   border: 1px solid rgba(16, 24, 40, 0.1);
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
+  background: #fff;
 }
 
 .monthSummary {
@@ -166,19 +142,28 @@ details[open] > summary .chevron {
   padding: 0.8rem 1rem;
   cursor: pointer;
   list-style: none;
-  background: #e8eaed;
+  background: #e2e5e9;
   font-weight: 700;
   font-size: 0.88rem;
   border-left: 4px solid #1a1a2e;
   user-select: none;
 }
 
-.monthSummary:hover {
-  background: #dfe1e5;
-}
-
 .monthSummary::-webkit-details-marker {
   display: none;
+}
+
+.monthSummary:hover {
+  background: #d8dce1;
+}
+
+.monthSummary:focus {
+  outline: none;
+}
+
+.monthSummary:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: -2px;
 }
 
 .monthLabel {
@@ -193,25 +178,45 @@ details[open] > summary .chevron {
   flex-shrink: 0;
 }
 
+.summaryLead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.expandHint {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.45;
+  white-space: nowrap;
+}
+
+/* Zone commandes : fond légèrement différent + cartes espacées (SNCF) */
 .monthOrders {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  padding: 0;
-  background: #fff;
+  gap: 0.55rem;
+  padding: 0.65rem;
+  background: #eceef1;
 }
 
-/* ── Niveau 2 : commande (fond blanc, chevron à droite) ── */
+/* ── Niveau 2 : une commande = une carte isolée ── */
 
 .order {
-  border: none;
-  border-radius: 0;
-  border-bottom: 1px solid rgba(16, 24, 40, 0.08);
+  border: 1px solid rgba(16, 24, 40, 0.1);
+  border-radius: 10px;
   overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.order:last-child {
-  border-bottom: none;
+.order[open] {
+  border-color: rgba(220, 127, 0, 0.45);
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.1);
 }
 
 .orderSummary {
@@ -226,17 +231,26 @@ details[open] > summary .chevron {
   user-select: none;
 }
 
-.orderSummary:hover {
-  background: #fafbfc;
-}
-
 .orderSummary::-webkit-details-marker {
   display: none;
 }
 
+.orderSummary:hover {
+  background: #fafbfc;
+}
+
+.orderSummary:focus {
+  outline: none;
+}
+
+.orderSummary:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: -2px;
+}
+
 .order[open] > .orderSummary {
-  background: #f8f9fb;
-  border-bottom: 1px solid rgba(16, 24, 40, 0.06);
+  background: #eef0f3;
+  border-bottom: 1px solid rgba(16, 24, 40, 0.08);
 }
 
 .supplierBlock {
@@ -246,16 +260,17 @@ details[open] > summary .chevron {
 
 .supplierName {
   font-weight: 700;
-  font-size: 0.93rem;
+  font-size: 0.95rem;
   display: block;
   line-height: 1.3;
+  color: #1a1a2e;
 }
 
 .supplierType {
   display: block;
-  opacity: 0.45;
+  opacity: 0.5;
   font-size: 0.74rem;
-  margin-top: 0.1rem;
+  margin-top: 0.12rem;
 }
 
 .badgeRow {
@@ -317,15 +332,18 @@ details[open] > summary .chevron {
 
 .total {
   font-weight: 800;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   white-space: nowrap;
   line-height: 1.35;
+  color: #1a1a2e;
 }
 
 .totalProvisional {
-  font-size: 0.7rem;
-  font-weight: 500;
-  opacity: 0.5;
+  font-size: 0.68rem;
+  font-weight: 600;
+  opacity: 0.45;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .creditHint {
@@ -351,6 +369,11 @@ details[open] > summary .chevron {
 
 .loadMore:hover {
   background: #fafafa;
+}
+
+.loadMore:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
 }
 
 @media (max-width: 640px) {

@@ -10,6 +10,8 @@ import {
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import lineStyles from '@/components/orders/order-lines.module.css'
+import AccordionChevron from '@/components/ui/AccordionChevron'
+import accordionStyles from '@/components/ui/accordion.module.css'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -753,26 +755,24 @@ export default function AdminCommandesPage({
             return (
               <details
                 key={order.id}
+                className={accordionStyles.card}
                 style={{
-                  border: '1px solid rgba(16,24,40,0.09)',
-                  borderRadius: 12, overflow: 'hidden',
                   opacity: isUpdating ? 0.65 : 1,
                   transition: 'opacity 0.2s',
-                  background: order.archived_at ? '#f9fafb' : '#fff',
+                  background: order.archived_at ? '#f9fafb' : undefined,
                 }}
               >
                 {/* ── En-tête cliquable (résumé) ── */}
-                <summary style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto',
-                  gap: '0.5rem 1rem',
-                  padding: '0.85rem 1.1rem',
-                  cursor: 'pointer',
-                  listStyle: 'none',
-                  background: '#fafafa',
-                  alignItems: 'center',
-                  userSelect: 'none',
-                }}>
+                <summary
+                  className={accordionStyles.cardSummary}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto auto',
+                    gap: '0.5rem 1rem',
+                    alignItems: 'center',
+                  }}
+                  aria-label={`Commande ${memberName}, ${order.supplier?.name ?? 'fournisseur'}, afficher le détail`}
+                >
                   {/* Colonne gauche : membre + fournisseur + date */}
                   <div style={{ display: 'grid', gap: '0.2rem' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'baseline' }}>
@@ -815,13 +815,11 @@ export default function AdminCommandesPage({
                       CHF {order.total.toFixed(2)}
                     </span>
                   </div>
+                  <AccordionChevron />
                 </summary>
 
                 {/* ── Contenu déplié ── */}
-                <div style={{
-                  padding: '0.9rem 1.1rem',
-                  borderTop: '1px solid rgba(16,24,40,0.06)',
-                }}>
+                <div className={`${accordionStyles.panel} ${accordionStyles.panelInner}`}>
                   {/* Email du membre */}
                   {order.member?.email && (
                     <p style={{ margin: '0 0 0.9rem', fontSize: '0.8rem', opacity: 0.5 }}>

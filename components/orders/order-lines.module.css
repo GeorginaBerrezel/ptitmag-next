@@ -1,9 +1,10 @@
-/* Panneau détail commande membre — bords alignés, lisible mobile */
+/* Panneau détail commande membre — contenu déplié isolé (style SNCF) */
 
 .orderDetail {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid rgba(16, 24, 40, 0.08);
+  background: #f8f9fb;
+  border-top: 1px solid rgba(16, 24, 40, 0.06);
 }
 
 .hintBanner {
@@ -35,6 +36,11 @@
 
 .orderLines {
   padding: 0;
+  background: #fff;
+  margin: 0.65rem 0.75rem 0;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .orderLine {
@@ -56,9 +62,10 @@
 
 .lineName {
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   display: block;
   line-height: 1.35;
+  color: #1a1a2e;
 }
 
 .lineMeta {
@@ -67,14 +74,15 @@
 }
 
 .lineQty {
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
   display: block;
+  color: rgba(16, 24, 40, 0.75);
 }
 
 .lineUnitPrice {
   display: block;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   opacity: 0.55;
   margin-top: 0.1rem;
 }
@@ -82,24 +90,33 @@
 .lineTotal {
   display: block;
   font-weight: 700;
-  margin-top: 0.2rem;
-  font-size: 0.88rem;
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  color: #1a1a2e;
+}
+
+.detailFooter {
+  margin: 0.65rem 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
 .totalsBlock {
-  background: #fff;
-  border-top: 2px solid #dc7f00;
+  background: #fffbf5;
+  border: 1.5px solid rgba(220, 127, 0, 0.35);
+  border-radius: 10px;
   padding: 0.75rem 1rem;
+  box-shadow: 0 1px 0 rgba(220, 127, 0, 0.08);
 }
 
 .totalsLabel {
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #dc7f00;
-  opacity: 0.85;
-  margin-bottom: 0.35rem;
+  letter-spacing: 0.06em;
+  color: #b35c00;
+  margin: 0 0 0.4rem;
 }
 
 .totalsRow {
@@ -107,12 +124,12 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 0.75rem;
-  font-size: 0.85rem;
-  padding: 0.2rem 0;
+  font-size: 0.84rem;
+  padding: 0.15rem 0;
 }
 
 .totalsRowMuted {
-  opacity: 0.7;
+  color: rgba(16, 24, 40, 0.65);
 }
 
 .totalsRowCredit {
@@ -121,15 +138,28 @@
 }
 
 .totalsRowFinal {
-  margin-top: 0.35rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed rgba(16, 24, 40, 0.12);
+  margin-top: 0.4rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(16, 24, 40, 0.15);
+}
+
+.totalsFinalLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.totalsFinalAmount {
+  font-size: 1.12rem;
   font-weight: 800;
-  font-size: 0.95rem;
+  color: #1a1a2e;
+  line-height: 1.2;
 }
 
 .orderActions {
-  padding: 0 1rem 1rem;
+  padding: 0;
   margin: 0;
   border-top: none;
 }
@@ -157,6 +187,11 @@
 
 .complementBtn:hover {
   background: #c47200;
+}
+
+.complementBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
 }
 
 .complementBtn:active {
