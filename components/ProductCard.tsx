@@ -7,6 +7,7 @@ import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
+import { getBiopartnerProductInfoUrl } from '@/lib/catalog/biopartner-product-url'
 import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER, showProductImage } from '@/lib/catalog/product-image'
 import { resolveQuantityRules } from '@/lib/catalog/bioterroir-quantity'
 import {
@@ -60,6 +61,8 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
     : { isOpen: false, label: 'Commandes fermées' }
   const days = supplierDeadlineDaysLeft(product.supplier, now)
   const inCart = items.some(i => i.productId === product.id)
+  const biopartnerInfoUrl = getBiopartnerProductInfoUrl(product)
+
   const supportsProductImage = showProductImage(product)
   const imageUrl = supportsProductImage
     ? (imageSrc ?? PRODUCT_IMAGE_PLACEHOLDER)
@@ -204,6 +207,17 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
             <span style={{ fontSize: '0.75rem', opacity: 0.45 }}>
               Réf. {product.supplier_ref}
             </span>
+          )}
+          {biopartnerInfoUrl && (
+            <a
+              href={biopartnerInfoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.biopartnerInfoLink}
+              aria-label={`Allergènes et fiche produit Biopartner pour ${product.name}`}
+            >
+              Allergènes &amp; fiche Biopartner ↗
+            </a>
           )}
           {deadlineLabel && (
             <span style={{
