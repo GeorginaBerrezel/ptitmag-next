@@ -32,13 +32,206 @@
   padding: 0.35rem 0.5rem;
   line-height: 1;
   flex-shrink: 0;
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .removeBtn:hover {
   background: #fdf2f2;
   border-radius: 8px;
+}
+
+.removeBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.pageHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  color: #c0392b;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0.35rem 0;
+  min-height: 44px;
+}
+
+.clearBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.recapCard {
+  background: #fff;
+  border: 1px solid rgba(16, 24, 40, 0.1);
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+}
+
+.recapTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.recapRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 0.92rem;
+  margin-bottom: 0.45rem;
+}
+
+.recapLabel {
+  color: rgba(16, 24, 40, 0.72);
+}
+
+.recapCredit {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.recapDivider {
+  margin: 0.65rem 0;
+  border: none;
+  border-top: 1px solid rgba(16, 24, 40, 0.1);
+}
+
+.recapTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.recapTotalLabel {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.recapTotalAmount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 0.35rem 0.85rem;
+}
+
+.recapTotalAmountZero {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.recapHint {
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.85rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #065f46;
+}
+
+.recapHintPartial {
+  background: #f0f9ff;
+  border-color: #bfdbfe;
+  color: #1e3a5f;
+}
+
+.supplierNote {
+  margin: 0 0 1.25rem;
+  font-size: 0.88rem;
+  color: rgba(16, 24, 40, 0.62);
+}
+
+.cielBanner {
+  margin: 0 0 1.5rem;
+  padding: 0.65rem 1rem;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  color: #4338ca;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+}
+
+@media (min-width: 520px) {
+  .actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.continueLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 24, 40, 0.15);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+  text-align: center;
+}
+
+.continueLink:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.confirmBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  width: 100%;
+  background: #dc7f00;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.confirmBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.confirmBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
 }
 
 @media (max-width: 640px) {

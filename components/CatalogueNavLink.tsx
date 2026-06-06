@@ -59,7 +59,7 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
       onClick={onNavigate}
       aria-current={isActive ? 'page' : undefined}
     >
-      {t('commander')}
+      {t('catalogue')}
     </Link>
   )
 
