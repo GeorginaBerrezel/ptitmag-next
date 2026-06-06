@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useRef, useState } from 'react'
+import { Link } from '@/i18n/navigation'
 import { nextWednesday1830, nextThursday1200, toDatetimeLocalValue } from '@/lib/import/deadline-defaults'
 import { BIOPARTNER_CATALOGS } from '@/lib/import/biopartner-catalogs'
 
@@ -26,6 +27,8 @@ type SupplierOption = {
   fileHint: string
   fileInstructions: React.ReactNode
   acceptsXlsx?: boolean
+  /** Biopartner : .xlsx recommandé + .csv secours */
+  acceptsCsv?: boolean
   // 'mercredi' = délai mercredi (Graines d'Avenir, Truffes)
   // 'jeudi'    = délai jeudi (tous les autres locaux + Biopartner)
   // undefined  = pas de groupe fixe (grossistes sans contrainte hebdo)
@@ -46,14 +49,15 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Tous les locaux (1 fichier)',
         type: 'local',
         endpoint: '/api/admin/import-hebdo',
-        fileHint: 'Feuille de commande hebdomadaire_vX_JJ.MM.AAAA_TONNOM.xlsx',
+        fileHint: 'Feuille hebdomadaire (.xlsx uniquement — plusieurs onglets)',
         acceptsXlsx: true,
         fileInstructions: (
           <>
-            <strong>Un seul fichier Excel</strong> pour importer tous les producteurs locaux de la semaine.<br />
+            <strong>Un seul fichier Excel (.xlsx)</strong> pour importer tous les producteurs locaux de la semaine
+            (plusieurs onglets — le .csv ne convient pas ici).<br />
             Onglets importés : <strong>Bioterroir, Fermette à Didi, Graines d&apos;Avenir, Brasseries d&apos;Ayent, Vins bio et nature, Truffes</strong>.<br />
             <span style={{ opacity: 0.75 }}>Le catalogue n&apos;est plus effacé — produits absents du fichier : masquer dans Fournisseurs.</span><br />
-            <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé via CSV).</span>
+            <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé en .xlsx — section Biopartner).</span>
           </>
         ),
       },
@@ -67,18 +71,20 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Bioterroir',
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
-        fileHint: 'Bioterroir JJ.MM.AAAA.xlsx',
+        fileHint: 'Bioterroir (.xlsx ou .csv)',
         acceptsXlsx: true,
+        acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Légumes & fruits. Prix d&apos;achat HT (TVA 2.6% non comprise).</>,
+        fileInstructions: <>Légumes &amp; fruits — format Joel (Produit/Prix) ou gabarit simple. Voir Guide colonnes.</>,
       },
       {
         key: 'fermette_didi',
         label: 'Fermette à Didi',
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
-        fileHint: 'Fermette à Didi JJ.MM.AAAA.xlsx',
+        fileHint: 'Fermette à Didi (.xlsx ou .csv)',
         acceptsXlsx: true,
+        acceptsCsv: true,
         deadlineGroup: 'jeudi',
         fileInstructions: <>Produits fermiers (œufs, fromages, charcuterie). Prix TTC.</>,
       },
@@ -87,8 +93,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: "Graines d'Avenir",
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
-        fileHint: "Graines d'avenir JJ.MM.AAAA.xlsx",
+        fileHint: "Graines d'avenir (.xlsx ou .csv)",
         acceptsXlsx: true,
+        acceptsCsv: true,
         deadlineGroup: 'mercredi',
         fileInstructions: <>Pains & pâtisseries. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> — commander avant les autres.</>,
       },
@@ -97,8 +104,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: "Brasseries d'Ayent",
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
-        fileHint: "Brasseries d'Ayent.xlsx",
+        fileHint: "Brasseries d'Ayent (.xlsx ou .csv)",
         acceptsXlsx: true,
+        acceptsCsv: true,
         deadlineGroup: 'jeudi',
         fileInstructions: <>Bières artisanales valaisannes. Prix TTC.</>,
       },
@@ -107,8 +115,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Vins bio et nature',
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
-        fileHint: 'Vins bio et nature.xlsx',
+        fileHint: 'Vins bio et nature (.xlsx ou .csv)',
         acceptsXlsx: true,
+        acceptsCsv: true,
         deadlineGroup: 'jeudi',
         fileInstructions: <>Vins bio valaisans (Chèrouche, Olivier & Stéphanie). Prix TTC.</>,
       },
@@ -117,8 +126,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Truffes',
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
-        fileHint: 'Truffes.xlsx',
+        fileHint: 'Truffes (.xlsx ou .csv)',
         acceptsXlsx: true,
+        acceptsCsv: true,
         deadlineGroup: 'mercredi',
         fileInstructions: <>Truffes au chocolat cru. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> — commander avant les autres.</>,
       },
@@ -131,18 +141,15 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
       label: c.shortLabel,
       type: 'grossiste_bio' as const,
       endpoint: '/api/admin/import-biopartner',
-      fileHint: `Liste de commandes personnelle — ${c.shortLabel} (.csv)`,
+      acceptsXlsx: true,
+      acceptsCsv: true,
+      fileHint: `Biopartner ${c.shortLabel} (.xlsx ou .csv)`,
       fileInstructions: (
         <>
           <strong>{c.name}</strong> — {c.description}<br />
-          <strong>1.</strong> Télécharger le CSV sur{' '}
-          <a href="https://shop.biopartner.ch" target="_blank" rel="noreferrer"
-            style={{ color: '#1e5c35', fontWeight: 600 }}>shop.biopartner.ch</a>
-          {' '}(liste de commandes personnelle filtrée par Joel).<br />
-          <strong>2.</strong> Fichier reçu en <strong>.xlsx</strong> ou <strong>.pdf</strong> ? Ouvrir dans Excel ou LibreOffice, puis{' '}
-          <strong>Enregistrer sous → CSV UTF-8</strong> (séparateur <strong>point-virgule ;</strong>). Le PDF seul ne peut pas être importé.<br />
-          <strong>3.</strong> La colonne <strong>TVA</strong> (col. Z) fixe le taux (2,6&nbsp;% ou 8,1&nbsp;%) — réimporter après une mise à jour des prix.<br />
-          <strong>4.</strong> Importer ici — seuls les produits de <em>ce</em> catalogue sont mis à jour.
+          <strong>Format complexe Biopartner</strong> — voir <strong>Guide colonnes</strong> (type complexe).<br />
+          Déposer le fichier <strong>.xlsx</strong> ou <strong>.csv</strong> tel quel (liste personnelle filtrée).<br />
+          Colonne <strong>TVA</strong> (col.&nbsp;Z) : 2,6&nbsp;% ou 8,1&nbsp;% sur les prix HT. <strong>PDF</strong> non importable.
         </>
       ),
     })),
@@ -155,7 +162,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Cave à levain',
         type: 'local',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'Formulaire commande Cave à levain.csv',
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: 'Cave à levain (.xlsx ou .csv)',
         fileInstructions: (
           <>
             Importer le <strong>formulaire de commande</strong> reçu de la Cave à levain.<br />
@@ -169,7 +178,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Domaine des Dailles',
         type: 'local',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'liste prix dailles ... .csv',
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: 'Dailles (.xlsx ou .csv)',
         fileInstructions: (
           <>
             Importer le <strong>fichier de prix</strong> des Dailles.<br />
@@ -183,7 +194,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Novoma',
         type: 'grossiste_bio',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'Commande Novoma - XXXX.csv',
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: 'Novoma (.xlsx ou .csv)',
         fileInstructions: (
           <>
             Importer le <strong>bon de commande Novoma</strong>.<br />
@@ -196,7 +209,9 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: "NaturMel (M'Cosmetics)",
         type: 'grossiste_bio',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'NaturMel - Formulaire de commande ... .csv',
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: 'NaturMel (.xlsx ou .csv)',
         fileInstructions: (
           <>
             Importer le <strong>formulaire NaturMel</strong>.<br />
@@ -207,18 +222,20 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
     ],
   },
   {
-    label: 'Nouveaux grossistes (CSV générique — point-virgule)',
+    label: 'Nouveaux grossistes (format simple — point-virgule)',
     suppliers: [
       {
         key: 'saldac',
         label: 'Saldac',
         type: 'grossiste_bio',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'Catalogue Saldac.csv',
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: 'Saldac (.xlsx ou .csv)',
         fileInstructions: (
           <>
-            Export CSV <strong>UTF-8</strong>, séparateur <strong>;</strong>. Colonnes minimales :{' '}
-            <strong>nom</strong>, <strong>prix</strong> (optionnel : ref, categorie, unite). Puis activer dans Fournisseurs.
+            <strong>Format simple</strong> — voir Guide colonnes. Colonnes : <strong>nom</strong>, <strong>prix</strong>
+            (optionnel : ref, categorie, unite). UTF-8, séparateur <strong>;</strong>.
           </>
         ),
       },
@@ -227,36 +244,30 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         label: 'Gebana',
         type: 'grossiste_bio',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'Catalogue Gebana.csv',
-        fileInstructions: (
-          <>
-            Même format CSV (;) que Saldac. Vérifier les en-têtes (nom, prix, categorie…).
-          </>
-        ),
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: 'Gebana (.xlsx ou .csv)',
+        fileInstructions: <>Même gabarit simple que Saldac (nom + prix minimum).</>,
       },
       {
         key: 'dr_jacobs',
         label: "Dr Jacob's",
         type: 'grossiste_bio',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'Catalogue Dr Jacob ou Naturam.csv',
-        fileInstructions: (
-          <>
-            Compléments alimentaires — CSV (;) avec colonnes nom + prix au minimum.
-          </>
-        ),
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: "Dr Jacob's (.xlsx ou .csv)",
+        fileInstructions: <>Gabarit simple : nom + prix (compléments alimentaires).</>,
       },
       {
         key: 'kumbha',
         label: 'Kumbha Sàrl',
         type: 'grossiste_bio',
         endpoint: '/api/admin/import-supplier',
-        fileHint: 'Catalogue Kumbha.csv',
-        fileInstructions: (
-          <>
-            Grossiste Bio-Vitality — CSV (;) avec colonnes nom + prix au minimum.
-          </>
-        ),
+        acceptsXlsx: true,
+        acceptsCsv: true,
+        fileHint: 'Kumbha (.xlsx ou .csv)',
+        fileInstructions: <>Gabarit simple : nom + prix.</>,
       },
     ],
   },
@@ -297,7 +308,7 @@ export default function ImportPage({
 }: {
   params: Promise<{ locale: string }>
 }) {
-  use(params)
+  const { locale } = use(params)
 
   const fileRef = useRef<HTMLInputElement>(null)
   const [selectedKey, setSelectedKey] = useState<string>('feuille_hebdo')
@@ -392,8 +403,14 @@ export default function ImportPage({
       </nav>
 
       <h1 style={{ marginBottom: '0.25rem' }}>Import catalogue</h1>
-      <p style={{ opacity: 0.65, marginBottom: '2rem' }}>
+      <p style={{ opacity: 0.65, marginBottom: '0.75rem' }}>
         Sélectionnez le fournisseur et importez leur fichier pour mettre à jour le catalogue.
+      </p>
+      <p style={{ margin: '0 0 2rem', fontSize: '0.88rem' }}>
+        <Link href="/admin/guide-import" locale={locale} style={{ color: '#1565c0', fontWeight: 600 }}>
+          Guide colonnes &amp; formats →
+        </Link>
+        {' '}— comment le site lit chaque fichier (Biopartner, locaux, CSV).
       </p>
 
       {/* Sélecteur fournisseur — groupes */}
@@ -602,16 +619,25 @@ export default function ImportPage({
           </p>
         ) : (
           <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'rgba(16,24,40,0.58)' }}>
-            Format {supplier.acceptsXlsx ? 'Excel (.xlsx)' : 'CSV'}
+            Format{' '}
+            {supplier.acceptsXlsx && supplier.acceptsCsv
+              ? 'Excel (.xlsx) ou CSV'
+              : supplier.acceptsXlsx
+                ? 'Excel (.xlsx)'
+                : 'CSV'}
           </p>
         )}
         <input
           id="import-file-input"
           ref={fileRef}
           type="file"
-          accept={supplier.acceptsXlsx
-            ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : '.csv,text/csv'}
+          accept={
+            supplier.acceptsXlsx && supplier.acceptsCsv
+              ? '.xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv'
+              : supplier.acceptsXlsx
+                ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                : '.xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv'
+          }
           style={{
             position: 'absolute',
             width: 1,

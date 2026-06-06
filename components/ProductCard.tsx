@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo } from 'react'
+import { useState, useEffect, memo } from 'react'
 import Image from 'next/image'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
@@ -17,6 +17,7 @@ import {
   quantityHintText,
 } from '@/lib/catalog/quantity-rules'
 import type { Product } from '@/lib/supabase/products'
+import CielPriceHint from '@/components/catalog/CielPriceHint'
 import styles from './ProductCard.module.css'
 
 function daysLeft(deadline: string, nowMs: number): number {
@@ -47,6 +48,10 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
   const [added, setAdded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(() => getProductImageUrl(product))
 
+  useEffect(() => {
+    setImageSrc(getProductImageUrl(product))
+  }, [product.id, product.name, product.supplier_ref, product.supplier?.name, product.supplier?.type])
+
   const orderable = extendOrderId
     ? product.unit_price != null
     : productOrderableAt(product, now)
@@ -55,8 +60,11 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
     : { isOpen: false, label: 'Commandes fermées' }
   const days = supplierDeadlineDaysLeft(product.supplier, now)
   const inCart = items.some(i => i.productId === product.id)
-  const imageUrl = imageSrc
-  const hasImage = showProductImage(product) && imageUrl
+  const supportsProductImage = showProductImage(product)
+  const imageUrl = supportsProductImage
+    ? (imageSrc ?? PRODUCT_IMAGE_PLACEHOLDER)
+    : null
+  const hasImage = supportsProductImage && imageUrl != null
 
   const minAllowed = getMinAllowedQuantity(qtyRules)
 
@@ -228,15 +236,8 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
                   Prix TTC
                 </p>
               )}
-              {applyCielMarkup && (
-                <p style={{
-                  margin: '0.1rem 0 0',
-                  fontSize: '0.72rem',
-                  color: '#5c6bc0',
-                  fontWeight: 600,
-                }}>
-                  +20% (membre Ciel)
-                </p>
+              {applyCielMarkup && product.unit_price != null && (
+                <CielPriceHint baseUnitPrice={product.unit_price} />
               )}
               {hasSurcharge && (
                 <p style={{

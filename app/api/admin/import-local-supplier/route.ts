@@ -1,20 +1,29 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
-import * as XLSX from 'xlsx'
 import {
   LOCAL_SUPPLIER_CONFIG,
   parseBioterroirNumericRows,
   parseLocalSheet,
 } from '@/lib/import/local-suppliers'
+import { tryParseSimpleCatalogGrid } from '@/lib/import/simple-catalog-fallback'
+import { readUploadAsGrid, isExcelFilename, workbookFromBuffer, isCsvFilename } from '@/lib/import/spreadsheet-file'
 import { upsertLocalSupplier } from '@/lib/import/upsert-local'
 import { requireAdminUser } from '@/lib/admin/auth'
+import * as XLSX from 'xlsx'
 
-// ─── POST — importer un fichier xlsx individuel d'un fournisseur local ────────
-//
-// FormData attendu :
-//   file               : fichier .xlsx
-//   supplier           : clé du fournisseur (bioterroir, graines_avenir, truffes…)
-//   date_limite        : datetime ISO optionnel
+// FormData : file (.xlsx ou .csv), supplier, date_limite_commande (optionnel)
+
+function parseLocalFromRows(
+  rows: unknown[][],
+  supplierKey: string,
+  defaultCategory: string,
+) {
+  let result = parseLocalSheet(rows, defaultCategory)
+  if (result.length === 0 && supplierKey === 'bioterroir') {
+    result = parseBioterroirNumericRows(rows, defaultCategory)
+  }
+  return result
+}
 
 export async function POST(request: NextRequest) {
   const user = await requireAdminUser()
@@ -36,29 +45,39 @@ export async function POST(request: NextRequest) {
     }, { status: 400 })
   }
 
-  // Lire le fichier Excel
-  const buffer = Buffer.from(await file.arrayBuffer())
-  let workbook: XLSX.WorkBook
-  try {
-    workbook = XLSX.read(buffer, { type: 'buffer' })
-  } catch {
-    return NextResponse.json({ error: "Impossible de lire le fichier Excel. Vérifiez que c'est un fichier .xlsx valide." }, { status: 400 })
-  }
-
-  // Prendre le premier onglet avec des données
   let parsed: ReturnType<typeof parseLocalSheet> = []
-  for (const sheetName of workbook.SheetNames) {
-    const rows = XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets[sheetName], { header: 1, defval: '' })
-    let result = parseLocalSheet(rows, config.category)
-    if (result.length === 0 && supplierKey === 'bioterroir') {
-      result = parseBioterroirNumericRows(rows, config.category)
+
+  try {
+    if (isCsvFilename(file.name)) {
+      const grid = await readUploadAsGrid(file)
+      parsed = parseLocalFromRows(grid, supplierKey!, config.category)
+      if (parsed.length === 0) {
+        parsed = tryParseSimpleCatalogGrid(grid, config.category) ?? []
+      }
+    } else if (isExcelFilename(file.name)) {
+      const workbook = workbookFromBuffer(await file.arrayBuffer())
+      for (const sheetName of workbook.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets[sheetName], { header: 1, defval: '' })
+        const result = parseLocalFromRows(rows, supplierKey!, config.category)
+        if (result.length > 0) {
+          parsed = result
+          break
+        }
+      }
+      if (parsed.length === 0) {
+        const grid = await readUploadAsGrid(file)
+        parsed = tryParseSimpleCatalogGrid(grid, config.category) ?? []
+      }
+    } else {
+      return NextResponse.json({ error: 'Format non reconnu. Utilisez .xlsx ou .csv.' }, { status: 400 })
     }
-    if (result.length > 0) { parsed = result; break }
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 400 })
   }
 
   if (parsed.length === 0) {
     return NextResponse.json({
-      error: 'Aucun produit trouvé dans ce fichier. Vérifiez que le bon fournisseur est sélectionné et que les prix sont remplis.',
+      error: 'Aucun produit trouvé. Utilisez le format « Produit / Prix / Unité » ou le gabarit simple nom;prix (voir Guide colonnes).',
     }, { status: 400 })
   }
 

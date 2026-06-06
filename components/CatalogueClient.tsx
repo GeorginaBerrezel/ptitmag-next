@@ -10,14 +10,18 @@ import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
-import { useCategoryGridBackNav, useCompactCategoryNav } from '@/lib/catalog/category-nav'
+import {
+  CATEGORY_SCROLL_NAV_MAX_WIDTH_PX,
+  useCategoryScrollNav,
+  useChangeCategoryBackNav,
+} from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import CategoryCard from './catalogue/CategoryCard'
+import CategoryPillButton from './catalogue/CategoryPillButton'
 import HorizontalScrollStrip from './catalogue/HorizontalScrollStrip'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
-import { useCart } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -48,9 +52,7 @@ export default function CatalogueClient({
   extendOrderId = null,
   extendSupplierId = null,
 }: Props) {
-  const { totalItems } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
-  const stickyTop = totalItems > 0 ? 'var(--cart-bar-height)' : '0'
 
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
@@ -66,6 +68,15 @@ export default function CatalogueClient({
 
   const [globalSearchResults, setGlobalSearchResults] = useState<Product[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${CATEGORY_SCROLL_NAV_MAX_WIDTH_PX}px)`)
+    const update = () => setIsMobileViewport(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     const bump = () => setCatalogNow(Date.now())
@@ -123,8 +134,8 @@ export default function CatalogueClient({
   const showSupplierSidebar = activeSupplierId != null && openSuppliersCount >= 2
 
   const categoryCount = activeCategories.length
-  const compactCategoryNav = useCompactCategoryNav(categoryCount)
-  const categoryGridBackNav = useCategoryGridBackNav(categoryCount)
+  const categoryScrollNav = useCategoryScrollNav(categoryCount, isMobileViewport)
+  const changeCategoryBackNav = useChangeCategoryBackNav(categoryCount)
 
   const view: 'suppliers' | 'categories' | 'products' =
     activeSummary && activeCategory ? 'products'
@@ -361,6 +372,54 @@ export default function CatalogueClient({
     return supplierOrderStatusLabel(summary.supplier, catalogNow)
   }
 
+  function renderCategoryPicker(
+    categories: { name: string }[],
+    getOrderableCount: (name: string, count: number) => number,
+  ) {
+    if (!activeSummary) return null
+
+    if (categoryScrollNav) {
+      return (
+        <HorizontalScrollStrip
+          className="catalogue-sticky-categories-wrap"
+          ariaLabel="Catégories du catalogue"
+        >
+          <div className="catalogue-sticky-categories">
+            {categories.map(({ name }) => {
+              const count = activeSummary.categories.find(c => c.name === name)?.count ?? 0
+              return (
+                <CategoryPillButton
+                  key={name}
+                  name={name}
+                  count={count}
+                  onClick={() => openCategory(name)}
+                />
+              )
+            })}
+          </div>
+        </HorizontalScrollStrip>
+      )
+    }
+
+    return (
+      <div className="catalogue-category-grid">
+        {categories.map(({ name }) => {
+          const meta = activeSummary.categories.find(c => c.name === name)
+          const count = meta?.count ?? 0
+          return (
+            <CategoryCard
+              key={name}
+              name={name}
+              productCount={count}
+              orderableCount={getOrderableCount(name, count)}
+              onClick={() => openCategory(name)}
+            />
+          )
+        })}
+      </div>
+    )
+  }
+
   const summariesByType = useMemo(() => {
     const map = new Map<string, CatalogueSupplierSummary[]>()
     for (const s of filteredSummaries) {
@@ -470,8 +529,8 @@ export default function CatalogueClient({
             <p className="catalogue-page-sub" style={{ margin: 0, opacity: 0.7 }}>
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
               {view === 'categories' && (
-                categoryGridBackNav
-                  ? 'Choisissez une catégorie ci-dessous ou utilisez la recherche.'
+                categoryScrollNav
+                  ? 'Faites défiler les catégories ou utilisez la recherche.'
                   : 'Choisissez une catégorie pour afficher les produits.'
               )}
               {view === 'products' && activeProducts && !isSearching && (
@@ -585,50 +644,7 @@ export default function CatalogueClient({
           </div>
         )}
 
-        {view === 'products' && compactCategoryNav && (
-          <div
-            className="catalogue-sticky-categories-shell"
-            style={{ top: stickyTop }}
-          >
-            <HorizontalScrollStrip
-              className="catalogue-sticky-categories-wrap"
-              ariaLabel="Catégories du fournisseur"
-            >
-              <div className="catalogue-sticky-categories">
-                {activeCategories.map(({ name }) => {
-                  const count =
-                    activeSummary?.categories.find(c => c.name === name)?.count ?? 0
-                  const active = activeCategory === name
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => openCategory(name)}
-                      aria-current={active ? 'true' : undefined}
-                      style={{
-                        padding: '0.35rem 0.85rem',
-                        borderRadius: 999,
-                        border: '1px solid',
-                        borderColor: active ? '#DC7F00' : 'rgba(16,24,40,0.12)',
-                        background: active ? '#DC7F00' : '#fff',
-                        color: active ? '#fff' : '#555',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {name}
-                      {count > 0 ? ` (${count})` : ''}
-                    </button>
-                  )
-                })}
-              </div>
-            </HorizontalScrollStrip>
-          </div>
-        )}
-
-        {view === 'products' && categoryGridBackNav && !isSearching && (
+        {view === 'products' && changeCategoryBackNav && !isSearching && (
           <button
             type="button"
             onClick={() => { setActiveCategory(null); setSearch('') }}
@@ -732,29 +748,18 @@ export default function CatalogueClient({
             {!isSearching ? (
               <>
                 <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem' }}>
-                  {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} — cliquez pour voir les produits
+                  {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''}
+                  {categoryScrollNav ? ' — faites défiler ou cliquez' : ' — cliquez pour voir les produits'}
                 </p>
-                <div className="catalogue-category-grid">
-                  {filteredCategories.map(({ name }) => {
-                    const meta = activeSummary.categories.find(c => c.name === name)
-                    const count = meta?.count ?? 0
-                    const orderable = activeProducts && activeSummary
-                      ? activeProducts.filter(p =>
-                          (p.category?.trim() || 'Autres') === name &&
-                          productOrderableAt(p, catalogNow),
-                        ).length
-                      : (activeSummary && supplierOrderStatusLabel(activeSummary.supplier, catalogNow).isOpen ? count : 0)
-                    return (
-                      <CategoryCard
-                        key={name}
-                        name={name}
-                        productCount={count}
-                        orderableCount={orderable}
-                        onClick={() => openCategory(name)}
-                      />
-                    )
-                  })}
-                </div>
+                {renderCategoryPicker(filteredCategories, (name, count) => {
+                  if (activeProducts && activeSummary) {
+                    return activeProducts.filter(p =>
+                      (p.category?.trim() || 'Autres') === name &&
+                      productOrderableAt(p, catalogNow),
+                    ).length
+                  }
+                  return supplierOrderStatusLabel(activeSummary.supplier, catalogNow).isOpen ? count : 0
+                })}
               </>
             ) : filteredCategories.length === 0 && inlineSupplierResults.length === 0 ? (
               <EmptyState message="Aucune catégorie ni produit ne correspond à votre recherche." />
@@ -770,22 +775,10 @@ export default function CatalogueClient({
                     Catégories
                   </h2>
                 )}
-                <div className="catalogue-category-grid">
-                  {filteredCategories.map(({ name }) => {
-                    const meta = activeSummary.categories.find(c => c.name === name)
-                    const count = meta?.count ?? 0
-                    const open = supplierOrderStatusLabel(activeSummary.supplier, catalogNow).isOpen
-                    return (
-                      <CategoryCard
-                        key={name}
-                        name={name}
-                        productCount={count}
-                        orderableCount={open ? count : 0}
-                        onClick={() => openCategory(name)}
-                      />
-                    )
-                  })}
-                </div>
+                {renderCategoryPicker(filteredCategories, (_name, count) => {
+                  const open = supplierOrderStatusLabel(activeSummary.supplier, catalogNow).isOpen
+                  return open ? count : 0
+                })}
               </>
             ) : null}
           </>

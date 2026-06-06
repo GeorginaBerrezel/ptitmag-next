@@ -1,14 +1,21 @@
 /**
- * Navigation catégories catalogue :
- * - Beaucoup de catégories → grille seule pour choisir, puis « Changer de catégorie » en vue produits.
- * - Peu de catégories → barre horizontale (scroll + flèches) en vue produits pour changer sans revenir en arrière.
+ * Navigation catégories catalogue (retours Joel) :
+ * - Desktop : grille de cartes (même avec beaucoup de catégories).
+ * - Mobile : scroll horizontal si beaucoup de catégories.
+ * - Vue produits → pas de liste de catégories : bouton « Changer de catégorie » seulement.
  */
-export const COMPACT_CATEGORY_NAV_MAX = 10
 
-export function useCompactCategoryNav(categoryCount: number): boolean {
-  return categoryCount > 1 && categoryCount <= COMPACT_CATEGORY_NAV_MAX
+/** À partir de ce nombre, le mobile passe en scroll horizontal (desktop reste en cartes). */
+export const CATEGORY_SCROLL_NAV_MIN = 9
+
+/** Aligné sur le breakpoint catalogue mobile (styles/pages.css). */
+export const CATEGORY_SCROLL_NAV_MAX_WIDTH_PX = 719
+
+export function useCategoryScrollNav(categoryCount: number, isMobileViewport: boolean): boolean {
+  return isMobileViewport && categoryCount >= CATEGORY_SCROLL_NAV_MIN
 }
 
-export function useCategoryGridBackNav(categoryCount: number): boolean {
-  return categoryCount > COMPACT_CATEGORY_NAV_MAX
+/** Bouton retour vers le choix de catégorie (dès qu'il y a plus d'une catégorie). */
+export function useChangeCategoryBackNav(categoryCount: number): boolean {
+  return categoryCount > 1
 }

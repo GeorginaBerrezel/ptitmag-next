@@ -1,10 +1,12 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useId, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import PasswordInput from '@/components/PasswordInput'
 import { Link } from '@/i18n/navigation'
+import { isPasswordValid, passwordsMatch } from '@/lib/auth/password-rules'
+import styles from '@/components/auth/auth-form.module.css'
 
 export default function ReinitialiserMotDePassePage({
   params,
@@ -13,6 +15,7 @@ export default function ReinitialiserMotDePassePage({
 }) {
   const { locale } = use(params)
   const router = useRouter()
+  const errorId = useId()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,6 +23,10 @@ export default function ReinitialiserMotDePassePage({
   const [hasSession, setHasSession] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  const passwordOk = isPasswordValid(password)
+  const matchOk = passwordsMatch(password, confirm)
+  const canSubmit = passwordOk && matchOk && !loading
 
   useEffect(() => {
     const supabase = createClient()
@@ -33,11 +40,11 @@ export default function ReinitialiserMotDePassePage({
     e.preventDefault()
     setError(null)
 
-    if (password.length < 8) {
+    if (!passwordOk) {
       setError('Le mot de passe doit contenir au moins 8 caractères.')
       return
     }
-    if (password !== confirm) {
+    if (!matchOk) {
       setError('Les deux mots de passe ne correspondent pas.')
       return
     }
@@ -60,21 +67,21 @@ export default function ReinitialiserMotDePassePage({
 
   if (checkingSession) {
     return (
-      <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
-        <p style={{ opacity: 0.7 }}>Vérification du lien…</p>
+      <div className={`container ${styles.page} ${styles.pageNarrow}`}>
+        <p className={styles.intro}>Vérification du lien…</p>
       </div>
     )
   }
 
   if (!hasSession) {
     return (
-      <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>Lien invalide ou expiré</h1>
-        <p style={{ opacity: 0.7 }}>
+      <div className={`container ${styles.page} ${styles.pageNarrow}`}>
+        <h1 className={styles.title}>Lien invalide ou expiré</h1>
+        <p className={styles.intro}>
           Ce lien de réinitialisation n&apos;est plus valide. Demandez-en un nouveau.
         </p>
         <p style={{ marginTop: '1.5rem' }}>
-          <Link href="/mot-de-passe-oublie" locale={locale}>
+          <Link href="/mot-de-passe-oublie" locale={locale} className={styles.link}>
             Mot de passe oublié
           </Link>
         </p>
@@ -83,24 +90,29 @@ export default function ReinitialiserMotDePassePage({
   }
 
   return (
-    <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
-      <h1 style={{ marginBottom: '0.25rem' }}>Nouveau mot de passe</h1>
-      <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
+    <div className={`container ${styles.page} ${styles.pageNarrow}`}>
+      <h1 className={styles.title}>Nouveau mot de passe</h1>
+      <p className={styles.intro}>
         Choisissez un mot de passe d&apos;au moins 8 caractères.
       </p>
 
       {success ? (
-        <p>Redirection vers votre espace…</p>
+        <p className={styles.intro}>Redirection vers votre espace…</p>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+        <form
+          onSubmit={handleSubmit}
+          className={styles.form}
+          aria-describedby={error ? errorId : undefined}
+          noValidate
+        >
           {error && (
-            <p role="alert" style={{ color: '#c0392b', background: '#fdf2f2', padding: '0.75rem 1rem', borderRadius: 8, margin: 0 }}>
+            <p id={errorId} role="alert" className={styles.error}>
               {error}
             </p>
           )}
 
-          <div style={{ display: 'grid', gap: '0.375rem' }}>
-            <label htmlFor="password">Nouveau mot de passe</label>
+          <div className={styles.field}>
+            <label htmlFor="password" className={styles.label}>Nouveau mot de passe</label>
             <PasswordInput
               id="password"
               value={password}
@@ -108,11 +120,14 @@ export default function ReinitialiserMotDePassePage({
               autoComplete="new-password"
               minLength={8}
               required
+              showCriteria
+              confirmValue={confirm}
+              invalid={password.length > 0 && !passwordOk}
             />
           </div>
 
-          <div style={{ display: 'grid', gap: '0.375rem' }}>
-            <label htmlFor="confirm">Confirmer le mot de passe</label>
+          <div className={styles.field}>
+            <label htmlFor="confirm" className={styles.label}>Confirmer le mot de passe</label>
             <PasswordInput
               id="confirm"
               value={confirm}
@@ -120,10 +135,16 @@ export default function ReinitialiserMotDePassePage({
               autoComplete="new-password"
               minLength={8}
               required
+              invalid={confirm.length > 0 && !matchOk}
             />
           </div>
 
-          <button type="submit" disabled={loading} className="btn btn-primary">
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className={`btn btn-primary ${styles.submitBtn}`}
+            aria-disabled={!canSubmit}
+          >
             {loading ? 'Enregistrement…' : 'Enregistrer le mot de passe'}
           </button>
         </form>

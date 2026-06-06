@@ -28,6 +28,60 @@ export type ParsedBiopartnerCsv = {
   rows: BiopartnerRow[]
 }
 
+const HEADER_ERROR =
+  'En-têtes Biopartner introuvables. Vérifiez que le fichier contient une ligne "Article;Désignation;…"'
+
+/** Normalise une cellule Excel ou CSV en texte (UM, Prix, TVA…). */
+export function biopartnerCellToString(value: unknown): string {
+  if (value == null || value === '') return ''
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) return String(value)
+    const s = value.toString()
+    if (s.includes('e') || s.includes('E')) {
+      return value.toFixed(4).replace(/\.?0+$/, '')
+    }
+    return s
+  }
+  return String(value).trim()
+}
+
+function buildParsedTable(
+  headerIdx: number,
+  grid: string[][],
+): ParsedBiopartnerCsv {
+  const headers = grid[headerIdx].map(h => h.trim())
+  const preamble = grid
+    .slice(0, headerIdx)
+    .map(row => row.filter(Boolean).join(';'))
+    .filter(Boolean)
+
+  const rows = grid
+    .slice(headerIdx + 1)
+    .filter(row => row.some(cell => cell.length > 0))
+    .map(values =>
+      Object.fromEntries(
+        headers.map((h, i) => [h, values[i]?.trim() ?? '']),
+      ) as BiopartnerRow,
+    )
+    .filter(row => row.Article && row.Désignation)
+
+  return { preamble, headers, rows }
+}
+
+/** Parse une grille (Excel ou CSV converti) — ligne « Article » en col. A. */
+export function parseBiopartnerGrid(grid: unknown[][]): ParsedBiopartnerCsv {
+  const stringGrid = grid.map(row =>
+    (Array.isArray(row) ? row : []).map(biopartnerCellToString),
+  )
+
+  const headerIdx = stringGrid.findIndex(row => row[0]?.trim() === 'Article')
+  if (headerIdx === -1) {
+    throw new Error(HEADER_ERROR)
+  }
+
+  return buildParsedTable(headerIdx, stringGrid)
+}
+
 export function parseBiopartnerCsv(text: string): ParsedBiopartnerCsv {
   const lines = text
     .split('\n')
@@ -36,27 +90,11 @@ export function parseBiopartnerCsv(text: string): ParsedBiopartnerCsv {
 
   const headerIdx = lines.findIndex(l => l.trim().startsWith('Article;'))
   if (headerIdx === -1) {
-    throw new Error(
-      'En-têtes Biopartner introuvables. Vérifiez que le fichier contient une ligne "Article;Désignation;…"',
-    )
+    throw new Error(HEADER_ERROR)
   }
 
-  const headers = lines[headerIdx].split(';')
-  const preamble = lines.slice(0, headerIdx).map(l => l.trim()).filter(Boolean)
-
-  const rows = lines
-    .slice(headerIdx + 1)
-    .map(line => line.trim())
-    .filter(Boolean)
-    .map(line => {
-      const values = line.split(';')
-      return Object.fromEntries(
-        headers.map((h, i) => [h, values[i]?.trim() ?? '']),
-      ) as BiopartnerRow
-    })
-    .filter(row => row.Article && row.Désignation)
-
-  return { preamble, headers, rows }
+  const grid = lines.map(line => line.split(';').map(cell => cell.trim()))
+  return buildParsedTable(headerIdx, grid)
 }
 
 export function rowToCsvLine(headers: string[], row: BiopartnerRow): string {

@@ -82,7 +82,7 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     description: 'Bières artisanales bio brassées au cœur des Alpes valaisannes.',
     emoji: '🍺',
     website: 'https://brasseriesdayent.ch',
-    logo: 'brasseries-ayent.png',
+    logo: 'brasseries-ayent.jpg',
   },
   {
     slug: 'cherouche',

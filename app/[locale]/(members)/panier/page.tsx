@@ -7,6 +7,7 @@ import { canAccessCatalog } from '@/lib/members/profile'
 import CatalogueAccessPending from '@/components/CatalogueAccessPending'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
+import CielPriceHint from '@/components/catalog/CielPriceHint'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { allocateCreditAcrossTotals, roundChf } from '@/lib/members/credit'
 import {
@@ -324,9 +325,7 @@ export default function PanierPage({
                           </span>
                         )}
                         {applyCielMarkup && (
-                          <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6bc0', fontWeight: 600 }}>
-                            +20% (membre Ciel)
-                          </span>
+                          <CielPriceHint baseUnitPrice={item.unitPrice} />
                         )}
                         {hasSurcharge && (
                           <span style={{ display: 'block', fontSize: '0.72rem', color: '#DC7F00', fontWeight: 600 }}>
@@ -399,14 +398,14 @@ export default function PanierPage({
                   fontWeight: 700,
                   background: '#f8f9fa',
                 }}>
-                  {applyCielMarkup && (
+                  {applyCielMarkup && supplierItems.length > 0 && (
                     <p style={{
                       margin: '0 0 0.35rem',
                       fontSize: '0.78rem',
-                      fontWeight: 600,
-                      color: '#5c6bc0',
+                      fontWeight: 500,
+                      color: 'rgba(16, 24, 40, 0.58)',
                     }}>
-                      Majoration +20&nbsp;% (membre Ciel) incluse
+                      Prix catalogue Terre + majoration +20&nbsp;% incluse dans les montants ci-dessus
                     </p>
                   )}
                   Sous-total : CHF {supplierTotal.toFixed(2)}

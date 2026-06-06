@@ -1,11 +1,12 @@
 'use client'
 
-import { Suspense, use, useState } from 'react'
+import { Suspense, use, useId, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import PasswordInput from '@/components/PasswordInput'
 import { Link } from '@/i18n/navigation'
 import CompteConfirmeBanner from '@/components/CompteConfirmeBanner'
+import styles from '@/components/auth/auth-form.module.css'
 
 export default function ConnexionPage({
   params,
@@ -17,6 +18,7 @@ export default function ConnexionPage({
   const { locale } = use(params)
   const { error: errorParam, next } = use(searchParams)
   const router = useRouter()
+  const errorId = useId()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -45,25 +47,28 @@ export default function ConnexionPage({
   }
 
   return (
-    <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
-      <h1 style={{ marginBottom: '0.25rem' }}>Connexion</h1>
-      <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
-        Accédez à votre espace adhérent.
-      </p>
+    <div className={`container ${styles.page} ${styles.pageNarrow}`}>
+      <h1 className={styles.title}>Connexion</h1>
+      <p className={styles.intro}>Accédez à votre espace adhérent.</p>
 
       <Suspense fallback={null}>
         <CompteConfirmeBanner variant="connexion" />
       </Suspense>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        className={styles.form}
+        aria-describedby={error ? errorId : undefined}
+        noValidate
+      >
         {error && (
-          <p role="alert" style={{ color: '#c0392b', background: '#fdf2f2', padding: '0.75rem 1rem', borderRadius: 8, margin: 0 }}>
+          <p id={errorId} role="alert" className={styles.error}>
             {error}
           </p>
         )}
 
-        <div style={{ display: 'grid', gap: '0.375rem' }}>
-          <label htmlFor="email">E-mail</label>
+        <div className={styles.field}>
+          <label htmlFor="email" className={styles.label}>E-mail</label>
           <input
             id="email"
             type="email"
@@ -71,17 +76,22 @@ export default function ConnexionPage({
             onChange={e => setEmail(e.target.value)}
             required
             autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            enterKeyHint="next"
             placeholder="votre@email.com"
+            aria-invalid={error ? true : undefined}
+            className={`${styles.input} ${error ? styles.inputInvalid : ''}`}
           />
         </div>
 
-        <div style={{ display: 'grid', gap: '0.375rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem' }}>
-            <label htmlFor="password">Mot de passe</label>
+        <div className={styles.field}>
+          <div className={styles.labelRow}>
+            <label htmlFor="password" className={styles.label}>Mot de passe</label>
             <Link
               href="/mot-de-passe-oublie"
               locale={locale}
-              style={{ fontSize: '0.85rem', opacity: 0.75 }}
+              className={styles.linkSubtle}
             >
               Mot de passe oublié ?
             </Link>
@@ -92,17 +102,19 @@ export default function ConnexionPage({
             onChange={setPassword}
             autoComplete="current-password"
             required
+            invalid={!!error}
+            describedBy={error ? errorId : undefined}
           />
         </div>
 
-        <button type="submit" disabled={loading} className="btn btn-primary">
+        <button type="submit" disabled={loading} className={`btn btn-primary ${styles.submitBtn}`}>
           {loading ? 'Connexion…' : 'Se connecter'}
         </button>
       </form>
 
-      <p style={{ marginTop: '1.5rem', textAlign: 'center', opacity: 0.7 }}>
+      <p className={styles.footer}>
         Pas encore de compte ?{' '}
-        <Link href="/inscription" locale={locale}>
+        <Link href="/inscription" locale={locale} className={styles.link}>
           S&apos;inscrire
         </Link>
       </p>
