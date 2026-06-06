@@ -72,6 +72,7 @@ export default function MemberOrderDetail({ order, hasCatalogAccess }: Props) {
       </div>
 
       <div className={lineStyles.totalsBlock}>
+        <p className={lineStyles.totalsLabel}>Récapitulatif</p>
         {showCreditBreakdown ? (
           <>
             <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowMuted}`}>

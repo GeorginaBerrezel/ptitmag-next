@@ -22,7 +22,7 @@ const SUPPLIER_TYPE: Record<string, string> = {
   autre:         'Autre',
 }
 
-type TabId = 'confirmed' | 'delivered' | 'history'
+type TabId = 'confirmed' | 'delivered' | 'closed' | 'cancelled'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
@@ -43,7 +43,6 @@ function monthLabel(key: string) {
   })
 }
 
-
 function groupByMonth(orders: OrderWithItems[]) {
   const groups = new Map<string, OrderWithItems[]>()
   for (const order of orders) {
@@ -53,6 +52,14 @@ function groupByMonth(orders: OrderWithItems[]) {
     groups.set(key, list)
   }
   return [...groups.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+}
+
+function tabActiveClass(tab: TabId, current: TabId): string {
+  if (tab !== current) return styles.tab
+  if (current === 'delivered') return `${styles.tab} ${styles.tabActiveDelivered}`
+  if (current === 'closed') return `${styles.tab} ${styles.tabActiveClosed}`
+  if (current === 'cancelled') return `${styles.tab} ${styles.tabActiveCancelled}`
+  return `${styles.tab} ${styles.tabActive}`
 }
 
 export default function MyOrdersSection({
@@ -74,15 +81,21 @@ export default function MyOrdersSection({
     () => orders.filter(o => o.status === 'delivered'),
     [orders],
   )
-  const historyOrders = useMemo(
-    () => orders.filter(o => o.status === 'closed' || o.status === 'cancelled'),
+  const closedOrders = useMemo(
+    () => orders.filter(o => o.status === 'closed'),
+    [orders],
+  )
+  const cancelledOrders = useMemo(
+    () => orders.filter(o => o.status === 'cancelled'),
     [orders],
   )
 
   const tabOrders =
     tab === 'confirmed' ? confirmedOrders
     : tab === 'delivered' ? deliveredOrders
-    : historyOrders
+    : tab === 'closed' ? closedOrders
+    : cancelledOrders
+
   const visibleOrders = tabOrders.slice(0, visibleCount)
   const monthGroups = useMemo(() => groupByMonth(visibleOrders), [visibleOrders])
 
@@ -180,7 +193,7 @@ export default function MyOrdersSection({
           type="button"
           role="tab"
           aria-selected={tab === 'confirmed'}
-          className={`${styles.tab} ${tab === 'confirmed' ? styles.tabActive : ''}`}
+          className={tabActiveClass('confirmed', tab)}
           onClick={() => switchTab('confirmed')}
         >
           Confirmées
@@ -190,7 +203,7 @@ export default function MyOrdersSection({
           type="button"
           role="tab"
           aria-selected={tab === 'delivered'}
-          className={`${styles.tab} ${tab === 'delivered' ? styles.tabActive : ''}`}
+          className={tabActiveClass('delivered', tab)}
           onClick={() => switchTab('delivered')}
         >
           Livrées
@@ -199,12 +212,22 @@ export default function MyOrdersSection({
         <button
           type="button"
           role="tab"
-          aria-selected={tab === 'history'}
-          className={`${styles.tab} ${tab === 'history' ? styles.tabActive : ''}`}
-          onClick={() => switchTab('history')}
+          aria-selected={tab === 'closed'}
+          className={tabActiveClass('closed', tab)}
+          onClick={() => switchTab('closed')}
         >
-          Clôturées / annulées
-          <span className={styles.tabCount}>{historyOrders.length}</span>
+          Clôturées
+          <span className={styles.tabCount}>{closedOrders.length}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'cancelled'}
+          className={tabActiveClass('cancelled', tab)}
+          onClick={() => switchTab('cancelled')}
+        >
+          Annulées
+          <span className={styles.tabCount}>{cancelledOrders.length}</span>
         </button>
       </div>
 
@@ -212,7 +235,8 @@ export default function MyOrdersSection({
         <div className={styles.empty}>
           {tab === 'confirmed' && 'Aucune commande confirmée en attente.'}
           {tab === 'delivered' && 'Aucune commande livrée à compléter pour le moment.'}
-          {tab === 'history' && 'Aucune commande clôturée ou annulée dans l\u2019historique.'}
+          {tab === 'closed' && 'Aucune commande clôturée — les commandes finalisées apparaîtront ici.'}
+          {tab === 'cancelled' && 'Aucune commande annulée.'}
         </div>
       ) : (
         <>
@@ -222,8 +246,12 @@ export default function MyOrdersSection({
               className={styles.monthGroup}
               open={key === currentMonthKey || monthGroups.length === 1}
             >
-              <summary className={styles.monthSummary}>
-                <span style={{ textTransform: 'capitalize' }}>{monthLabel(key)}</span>
+              <summary className={styles.monthSummary} aria-label={`Mois ${monthLabel(key)}, afficher les commandes`}>
+                <span className={styles.summaryLead}>
+                  <span className={styles.chevron} aria-hidden>▼</span>
+                  <span className={styles.monthLabel}>{monthLabel(key)}</span>
+                  <span className={styles.expandHint}>Mois</span>
+                </span>
                 <span className={styles.monthMeta}>
                   {monthOrders.length} commande{monthOrders.length !== 1 ? 's' : ''}
                   {' · '}CHF {monthOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}
@@ -233,13 +261,15 @@ export default function MyOrdersSection({
               <div className={styles.monthOrders}>
                 {monthOrders.map(order => {
                   const st = ORDER_STATUS[order.status] ?? ORDER_STATUS.draft
+                  const supplierName = order.supplier?.name ?? 'Fournisseur inconnu'
                   return (
                     <details key={order.id} className={styles.order}>
-                      <summary className={styles.orderSummary}>
+                      <summary
+                        className={styles.orderSummary}
+                        aria-label={`Commande ${supplierName}, afficher le détail`}
+                      >
                         <div className={styles.supplierBlock}>
-                          <span className={styles.supplierName}>
-                            {order.supplier?.name ?? 'Fournisseur inconnu'}
-                          </span>
+                          <span className={styles.supplierName}>{supplierName}</span>
                           <span className={styles.supplierType}>
                             {SUPPLIER_TYPE[order.supplier?.type ?? ''] ?? ''}
                           </span>
@@ -271,6 +301,7 @@ export default function MyOrdersSection({
                             )}
                           </span>
                         </div>
+                        <span className={`${styles.chevron} ${styles.orderChevron}`} aria-hidden>▼</span>
                       </summary>
 
                       <MemberOrderDetail
