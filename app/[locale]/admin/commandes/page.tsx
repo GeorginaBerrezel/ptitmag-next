@@ -217,7 +217,7 @@ export default function AdminCommandesPage({
     const order = orders.find(o => o.id === orderId)
     const ok = window.confirm(
       `Clôturer la commande de ${order ? getMemberName(order) : 'ce membre'} ?\n\n` +
-        'Le total final sera calculé, l\'avoir éventuel sera déduit, et un email récapitulatif sera envoyé.',
+        'Le total final sera recalculé (avoir déjà déduit à la commande) et un email récapitulatif sera envoyé.',
     )
     if (!ok) return
 
@@ -414,7 +414,7 @@ export default function AdminCommandesPage({
             {mode === 'action' &&
               'Confirmées : marquer « Livrée » après distribution, ou « Annulée » si besoin.'}
             {mode === 'toClose' &&
-              'Livrées : le membre peut encore ajouter des produits. Quand tout est bon, clique « Clôturer » — l\'avoir est déduit et le statut passe à Clôturée.'}
+              'Livrées : le membre peut encore ajouter des produits. Quand tout est bon, clique « Clôturer » — le total est figé et le statut passe à Clôturée.'}
             {mode === 'history' &&
               'Historique complet — filtre par statut (dont Clôturées) pour retrouver une commande.'}
           </p>
@@ -833,7 +833,7 @@ export default function AdminCommandesPage({
                       lineHeight: 1.45,
                     }}>
                       {order.status === 'delivered'
-                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou ajout de produits (membre ou admin). Avoir déduit à la clôture.</>
+                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou ajout de produits (membre ou admin). Avoir déjà déduit à la commande.</>
                         : <>Produit indisponible ? <strong>Retirer</strong> — total recalculé, email au membre.</>}
                     </p>
                   )}

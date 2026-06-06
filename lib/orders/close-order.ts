@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { allocateCreditAcrossTotals, roundChf } from '@/lib/members/credit'
+import { roundChf } from '@/lib/members/credit'
 import { ORDER_STATUS } from '@/lib/orders/lifecycle'
 import { grossTotalFromItems } from '@/lib/orders/totals'
 
@@ -59,22 +59,10 @@ export async function closeOrder(
   }
 
   const grossTotal = grossTotalFromItems(active)
-  const memberId = order.member_id as string
-
-  const { data: profile, error: profErr } = await admin
-    .from('profiles')
-    .select('credit_balance, email, full_name, username')
-    .eq('id', memberId)
-    .single()
-
-  if (profErr || !profile) {
-    throw new Error('Profil membre introuvable.')
-  }
-
-  const balance = roundChf(Number(profile.credit_balance) || 0)
-  const creditApplied = roundChf(allocateCreditAcrossTotals([grossTotal], balance)[0] ?? 0)
+  const creditApplied = roundChf(Number(order.credit_applied) || 0)
   const total = roundChf(grossTotal - creditApplied)
   const closedAt = new Date().toISOString()
+  const memberId = order.member_id as string
 
   const { error: updErr } = await admin
     .from('orders')
@@ -88,16 +76,6 @@ export async function closeOrder(
 
   if (updErr) throw new Error(updErr.message)
 
-  if (creditApplied > 0) {
-    const newBalance = roundChf(balance - creditApplied)
-    const { error: creditErr } = await admin
-      .from('profiles')
-      .update({ credit_balance: newBalance })
-      .eq('id', memberId)
-
-    if (creditErr) throw new Error(`Erreur avoir : ${creditErr.message}`)
-  }
-
   const items: OrderLineForEmail[] = active.map(row => ({
     productName: row.product?.name ?? '—',
     quantity: row.quantity,
@@ -105,15 +83,21 @@ export async function closeOrder(
     unitPrice: row.unit_price,
   }))
 
-  let memberEmail = (profile.email as string | null)?.trim() || null
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('email, full_name, username')
+    .eq('id', memberId)
+    .single()
+
+  let memberEmail = (profile?.email as string | null)?.trim() || null
   if (!memberEmail) {
     const { data: authUser } = await admin.auth.admin.getUserById(memberId)
     memberEmail = authUser?.user?.email?.trim() || null
   }
 
   const memberName =
-    (profile.full_name as string | null) ||
-    (profile.username as string | null) ||
+    (profile?.full_name as string | null) ||
+    (profile?.username as string | null) ||
     null
 
   return {

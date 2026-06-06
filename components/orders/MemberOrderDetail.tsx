@@ -11,7 +11,7 @@ const STATUS_HINT: Record<string, { className: string; text: string } | null> = 
   },
   delivered: {
     className: lineStyles.hintBannerDelivered,
-    text: 'Commande livrée — vous pouvez encore compléter sur place. L\'avoir sera déduit à la clôture par l\'équipe.',
+    text: 'Commande livrée — vous pouvez encore compléter sur place. L\'avoir a déjà été déduit à la commande.',
   },
   closed: {
     className: lineStyles.hintBannerClosed,

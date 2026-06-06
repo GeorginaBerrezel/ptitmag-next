@@ -493,7 +493,7 @@ export default function CatalogueClient({
             lineHeight: 1.45,
           }}>
             <strong>Compléter une commande livrée</strong> — choisissez un produit du même fournisseur, puis cliquez{' '}
-            <strong>Ajouter à ma commande</strong>. Le total sera mis à jour à la clôture.
+            <strong>Ajouter à ma commande</strong>. Le total provisoire sera recalculé.
           </div>
         )}
 
@@ -657,7 +657,7 @@ export default function CatalogueClient({
                 title={`Produits trouvés (${globalSearchResults.length}${globalSearchResults.length >= 100 ? '+' : ''})`}
                 subtitle="Ajoutez directement au panier ou ouvrez le fournisseur pour voir la catégorie."
               >
-                <ProductList products={globalSearchResults} nowMs={catalogNow} />
+                <ProductList products={globalSearchResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
               </SearchResultsSection>
             )}
 
@@ -719,7 +719,7 @@ export default function CatalogueClient({
                 title={`Produits trouvés (${inlineSupplierResults.length})`}
                 subtitle={`Dans ${activeSummary.supplier.name} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
               >
-                <ProductList products={inlineSupplierResults} nowMs={catalogNow} />
+                <ProductList products={inlineSupplierResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
               </SearchResultsSection>
             )}
 

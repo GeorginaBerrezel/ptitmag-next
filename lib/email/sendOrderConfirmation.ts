@@ -24,7 +24,7 @@ type Params = {
   orders: OrderEmailGroup[]
   globalTotal: number
   creditUsed?: number
-  /** Avoir sera appliqué à la clôture (plus à la commande). */
+  /** @deprecated conservé pour compatibilité — avoir appliqué à la commande via creditUsed. */
   creditPending?: boolean
 }
 

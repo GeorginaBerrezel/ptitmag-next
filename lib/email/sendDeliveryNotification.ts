@@ -118,7 +118,7 @@ export async function sendDeliveryNotification({
 
               <p style="margin:16px 0 0;font-size:14px;color:#1565c0;line-height:1.7;">
                 Vous pouvez encore <strong>compléter cette commande</strong> sur place (catalogue en ligne : Mon compte → Compléter ma commande).
-                L&apos;avoir éventuel sera déduit au moment de la clôture par l&apos;équipe.
+                L&apos;avoir éventuel a déjà été déduit lors de votre commande.
               </p>
               <p style="margin:20px 0 0;font-size:14px;color:#555;line-height:1.7;">
                 Des questions ? Contactez-nous à

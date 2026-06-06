@@ -162,7 +162,7 @@ export async function PATCH(request: NextRequest) {
 
   if (
     status === 'cancelled' &&
-    previousStatus === 'closed' &&
+    previousStatus !== 'cancelled' &&
     creditApplied > 0 &&
     existingOrder.member_id
   ) {

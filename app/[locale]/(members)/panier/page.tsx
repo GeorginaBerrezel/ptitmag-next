@@ -94,9 +94,10 @@ export default function PanierPage({
       ),
     ),
   )
-  const indicativeCredit = roundChf(
+  const estimatedCredit = roundChf(
     allocateCreditAcrossTotals(supplierSubtotals, creditBalance).reduce((s, c) => s + c, 0),
   )
+  const payableTotal = roundChf(globalTotal - estimatedCredit)
 
   async function handleConfirm() {
     setLoading(true)
@@ -218,21 +219,39 @@ export default function PanierPage({
             Vider le panier
           </button>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
-            {indicativeCredit > 0 && (
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#1565c0', fontWeight: 600, maxWidth: 280, textAlign: 'right' }}>
-                Avoir disponible : CHF {creditBalance.toFixed(2)} — appliqué à la clôture (indicatif −{indicativeCredit.toFixed(2)})
-              </p>
+            {estimatedCredit > 0 && (
+              <>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#2e7d32', fontWeight: 600 }}>
+                  Avoir appliqué : − CHF {estimatedCredit.toFixed(2)}
+                </p>
+                <p style={{
+                  margin: 0,
+                  fontSize: '1.3rem',
+                  fontWeight: 700,
+                  background: '#1a1a2e',
+                  color: '#fff',
+                  borderRadius: 10,
+                  padding: '0.35rem 1rem',
+                }}>
+                  Total à payer : CHF {payableTotal.toFixed(2)}
+                </p>
+              </>
             )}
             <p style={{
               margin: 0,
-              fontSize: '1.3rem',
-              fontWeight: 700,
-              background: '#1a1a2e',
-              color: '#fff',
-              borderRadius: 10,
-              padding: '0.35rem 1rem',
+              fontSize: estimatedCredit > 0 ? '0.85rem' : '1.3rem',
+              fontWeight: estimatedCredit > 0 ? 500 : 700,
+              opacity: estimatedCredit > 0 ? 0.55 : 1,
+              ...(estimatedCredit > 0
+                ? {}
+                : {
+                    background: '#1a1a2e',
+                    color: '#fff',
+                    borderRadius: 10,
+                    padding: '0.35rem 1rem',
+                  }),
             }}>
-              Total provisoire : CHF {globalTotal.toFixed(2)}
+              {estimatedCredit > 0 ? `Sous-total : CHF ${globalTotal.toFixed(2)}` : `Total global : CHF ${globalTotal.toFixed(2)}`}
             </p>
           </div>
         </div>
