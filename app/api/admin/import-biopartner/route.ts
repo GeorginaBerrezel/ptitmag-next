@@ -5,7 +5,8 @@ import {
   findBiopartnerCatalogByImportKey,
   LEGACY_BIOPARTNER_NAME,
 } from '@/lib/import/biopartner-catalogs'
-import { parseBiopartnerCsv, rowToProduct } from '@/lib/import/biopartner-csv'
+import { rowToProduct } from '@/lib/import/biopartner-csv'
+import { parseBiopartnerUpload } from '@/lib/import/biopartner-file'
 
 async function getOrCreateSupplier(admin: ReturnType<typeof createAdminClient>, name: string) {
   const { data: existing } = await admin
@@ -50,11 +51,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Aucun fichier fourni.' }, { status: 400 })
   }
 
-  const text = await file.text()
-
   let rows
   try {
-    rows = parseBiopartnerCsv(text).rows
+    rows = (await parseBiopartnerUpload(file)).rows
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 400 })
   }
@@ -113,7 +112,7 @@ export async function POST(request: NextRequest) {
     },
     errors,
     catalog: catalog.name,
-    message: `Import ${catalog.name} terminé : ${totalUpserted} produit(s) actifs. Les articles absents de ce CSV ont été retirés de ce catalogue.`,
+    message: `Import ${catalog.name} terminé : ${totalUpserted} produit(s) actifs. Les articles absents de ce fichier ont été retirés de ce catalogue.`,
   })
 }
 

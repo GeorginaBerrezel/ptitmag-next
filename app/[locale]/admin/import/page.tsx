@@ -26,6 +26,8 @@ type SupplierOption = {
   fileHint: string
   fileInstructions: React.ReactNode
   acceptsXlsx?: boolean
+  /** Biopartner : .xlsx recommandé + .csv secours */
+  acceptsCsv?: boolean
   // 'mercredi' = délai mercredi (Graines d'Avenir, Truffes)
   // 'jeudi'    = délai jeudi (tous les autres locaux + Biopartner)
   // undefined  = pas de groupe fixe (grossistes sans contrainte hebdo)
@@ -131,18 +133,20 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
       label: c.shortLabel,
       type: 'grossiste_bio' as const,
       endpoint: '/api/admin/import-biopartner',
-      fileHint: `Liste de commandes personnelle — ${c.shortLabel} (.csv)`,
+      acceptsXlsx: true,
+      acceptsCsv: true,
+      fileHint: `Liste de commandes personnelle — ${c.shortLabel} (.xlsx)`,
       fileInstructions: (
         <>
           <strong>{c.name}</strong> — {c.description}<br />
-          <strong>1.</strong> Télécharger le CSV sur{' '}
+          <strong>1.</strong> Télécharger la liste sur{' '}
           <a href="https://shop.biopartner.ch" target="_blank" rel="noreferrer"
             style={{ color: '#1e5c35', fontWeight: 600 }}>shop.biopartner.ch</a>
           {' '}(liste de commandes personnelle filtrée par Joel).<br />
-          <strong>2.</strong> Fichier reçu en <strong>.xlsx</strong> ou <strong>.pdf</strong> ? Ouvrir dans Excel ou LibreOffice, puis{' '}
-          <strong>Enregistrer sous → CSV UTF-8</strong> (séparateur <strong>point-virgule ;</strong>). Le PDF seul ne peut pas être importé.<br />
-          <strong>3.</strong> La colonne <strong>TVA</strong> (col. Z) fixe le taux (2,6&nbsp;% ou 8,1&nbsp;%) — réimporter après une mise à jour des prix.<br />
-          <strong>4.</strong> Importer ici — seuls les produits de <em>ce</em> catalogue sont mis à jour.
+          <strong>2.</strong> Déposer le fichier <strong>.xlsx</strong> tel quel — pas besoin de conversion CSV.<br />
+          <strong>3.</strong> La colonne <strong>TVA</strong> (col.&nbsp;Z) fixe le taux (2,6&nbsp;% ou 8,1&nbsp;%) sur les prix HT.<br />
+          <strong>4.</strong> <strong>.csv</strong> accepté en secours ; <strong>.pdf</strong> non importable (ouvrir dans Excel puis enregistrer en .xlsx).<br />
+          <strong>5.</strong> Importer ici — seuls les produits de <em>ce</em> catalogue sont mis à jour.
         </>
       ),
     })),
@@ -602,16 +606,25 @@ export default function ImportPage({
           </p>
         ) : (
           <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'rgba(16,24,40,0.58)' }}>
-            Format {supplier.acceptsXlsx ? 'Excel (.xlsx)' : 'CSV'}
+            Format{' '}
+            {supplier.acceptsXlsx && supplier.acceptsCsv
+              ? 'Excel (.xlsx) ou CSV'
+              : supplier.acceptsXlsx
+                ? 'Excel (.xlsx)'
+                : 'CSV'}
           </p>
         )}
         <input
           id="import-file-input"
           ref={fileRef}
           type="file"
-          accept={supplier.acceptsXlsx
-            ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : '.csv,text/csv'}
+          accept={
+            supplier.acceptsXlsx && supplier.acceptsCsv
+              ? '.xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv'
+              : supplier.acceptsXlsx
+                ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                : '.csv,text/csv'
+          }
           style={{
             position: 'absolute',
             width: 1,
