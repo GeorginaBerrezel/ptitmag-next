@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
-import { addProductToOrder } from '@/lib/orders/add-line'
+import { addProductToOrderComplement } from '@/lib/orders/add-line'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -32,17 +32,27 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { newTotal, productName } = await addProductToOrder(admin, {
-      orderId,
+    const result = await addProductToOrderComplement(admin, {
+      contextOrderId: orderId,
       productId,
       quantity,
       memberIdForPricing: user.id,
     })
 
+    let message = `« ${result.productName} » ajouté — nouveau total provisoire CHF ${result.newTotal.toFixed(2)}.`
+    if (!result.sameSupplierAsContext) {
+      message = `« ${result.productName} » ajouté à votre commande ${result.supplierName} — total provisoire CHF ${result.newTotal.toFixed(2)}.`
+      if (result.createdOrder) {
+        message += ' (nouvelle commande livrée pour ce fournisseur)'
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      newTotal,
-      message: `« ${productName} » ajouté — nouveau total provisoire CHF ${newTotal.toFixed(2)}.`,
+      newTotal: result.newTotal,
+      targetOrderId: result.targetOrderId,
+      supplierName: result.supplierName,
+      message,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue.'

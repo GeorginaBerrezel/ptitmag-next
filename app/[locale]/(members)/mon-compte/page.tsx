@@ -176,7 +176,7 @@ export default async function MonComptePage({
           }}>
             <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
             <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 400, marginTop: '0.25rem', opacity: 0.85 }}>
-              Déduit automatiquement sur votre prochaine commande.
+              Déduit au panier (nouvelle commande) ou à la clôture si pas encore appliqué.
             </span>
             <span style={{ display: 'block', marginTop: '0.35rem', opacity: 0.85, fontSize: '0.88rem' }}>
               Ce montant sera déduit automatiquement sur votre prochaine commande.

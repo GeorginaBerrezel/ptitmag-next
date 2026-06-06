@@ -492,8 +492,8 @@ export default function CatalogueClient({
             color: '#1565c0',
             lineHeight: 1.45,
           }}>
-            <strong>Compléter une commande livrée</strong> — choisissez un produit du même fournisseur, puis cliquez{' '}
-            <strong>Ajouter à ma commande</strong>. Le total provisoire sera recalculé.
+            <strong>Compléter sur place</strong> — parcourez le catalogue et cliquez{' '}
+            <strong>Ajouter à ma commande</strong>. Chaque fournisseur garde sa propre commande livrée.
           </div>
         )}
 

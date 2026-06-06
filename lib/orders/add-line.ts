@@ -3,9 +3,19 @@ import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
 import { applyCielMarkup } from '@/lib/members/profile'
 import { ORDER_STATUS, orderIsModifiable } from '@/lib/orders/lifecycle'
+import { resolveComplementTargetOrder } from '@/lib/orders/resolve-complement-target'
 import { syncOrderGrossTotal } from '@/lib/orders/totals'
 
-export async function addProductToOrder(
+type AddLineResult = {
+  newTotal: number
+  productName: string
+  targetOrderId: string
+  supplierName: string
+  sameSupplierAsContext: boolean
+  createdOrder: boolean
+}
+
+async function insertLineOnDeliveredOrder(
   admin: SupabaseClient,
   params: {
     orderId: string
@@ -13,12 +23,12 @@ export async function addProductToOrder(
     quantity: number
     memberIdForPricing: string
   },
-): Promise<{ newTotal: number; productName: string }> {
+): Promise<{ newTotal: number; productName: string; supplierName: string }> {
   const { orderId, productId, quantity: rawQty, memberIdForPricing } = params
 
   const { data: order, error: orderErr } = await admin
     .from('orders')
-    .select('id, status, supplier_id, member_id')
+    .select('id, status, supplier_id, member_id, supplier:suppliers(name)')
     .eq('id', orderId)
     .single()
 
@@ -90,6 +100,69 @@ export async function addProductToOrder(
   }
 
   const newTotal = await syncOrderGrossTotal(admin, orderId)
+  const supplierName =
+    (order.supplier as unknown as { name: string } | null)?.name ?? 'Fournisseur'
 
-  return { newTotal, productName: product.name as string }
+  return { newTotal, productName: product.name as string, supplierName }
+}
+
+/** Ajout direct sur une commande livrée (même fournisseur — admin). */
+export async function addProductToOrder(
+  admin: SupabaseClient,
+  params: {
+    orderId: string
+    productId: string
+    quantity: number
+    memberIdForPricing: string
+  },
+): Promise<{ newTotal: number; productName: string }> {
+  const result = await insertLineOnDeliveredOrder(admin, params)
+  return { newTotal: result.newTotal, productName: result.productName }
+}
+
+/** Complément membre : peut cibler un autre fournisseur (commande livrée existante ou nouvelle). */
+export async function addProductToOrderComplement(
+  admin: SupabaseClient,
+  params: {
+    contextOrderId: string
+    productId: string
+    quantity: number
+    memberIdForPricing: string
+  },
+): Promise<AddLineResult> {
+  const { contextOrderId, productId, quantity, memberIdForPricing } = params
+
+  const { data: product, error: prodErr } = await admin
+    .from('products')
+    .select('id, supplier_id, active')
+    .eq('id', productId)
+    .single()
+
+  if (prodErr || !product) {
+    throw new Error('Produit introuvable.')
+  }
+
+  if (!product.active) {
+    throw new Error('Ce produit n\'est plus disponible.')
+  }
+
+  const target = await resolveComplementTargetOrder(admin, {
+    contextOrderId,
+    productSupplierId: product.supplier_id as string,
+    memberId: memberIdForPricing,
+  })
+
+  const line = await insertLineOnDeliveredOrder(admin, {
+    orderId: target.orderId,
+    productId,
+    quantity,
+    memberIdForPricing,
+  })
+
+  return {
+    ...line,
+    targetOrderId: target.orderId,
+    sameSupplierAsContext: target.sameSupplierAsContext,
+    createdOrder: target.created,
+  }
 }

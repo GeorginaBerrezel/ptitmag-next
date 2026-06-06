@@ -307,7 +307,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
 
             <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.5, lineHeight: 1.3 }}>
               {extendOrderId
-                ? 'Sera ajouté à votre commande livrée (total provisoire recalculé).'
+                ? 'Ajout à votre commande livrée de ce fournisseur (total provisoire recalculé).'
                 : quantityHintText(qtyRules, product.unit)}
             </p>
           </>

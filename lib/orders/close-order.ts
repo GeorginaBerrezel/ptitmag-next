@@ -59,10 +59,38 @@ export async function closeOrder(
   }
 
   const grossTotal = grossTotalFromItems(active)
-  const creditApplied = roundChf(Number(order.credit_applied) || 0)
+  const memberId = order.member_id as string
+  let creditApplied = roundChf(Number(order.credit_applied) || 0)
+
+  const { data: profile, error: profErr } = await admin
+    .from('profiles')
+    .select('credit_balance, email, full_name, username')
+    .eq('id', memberId)
+    .single()
+
+  if (profErr || !profile) {
+    throw new Error('Profil membre introuvable.')
+  }
+
+  // Avoir déjà déduit au panier → on conserve. Sinon on applique le solde à la clôture.
+  if (creditApplied === 0) {
+    const balance = roundChf(Number(profile.credit_balance) || 0)
+    if (balance > 0 && grossTotal > 0) {
+      creditApplied = roundChf(Math.min(balance, grossTotal))
+      if (creditApplied > 0) {
+        const newBalance = roundChf(balance - creditApplied)
+        const { error: creditErr } = await admin
+          .from('profiles')
+          .update({ credit_balance: newBalance })
+          .eq('id', memberId)
+
+        if (creditErr) throw new Error(`Erreur avoir : ${creditErr.message}`)
+      }
+    }
+  }
+
   const total = roundChf(grossTotal - creditApplied)
   const closedAt = new Date().toISOString()
-  const memberId = order.member_id as string
 
   const { error: updErr } = await admin
     .from('orders')
@@ -83,21 +111,15 @@ export async function closeOrder(
     unitPrice: row.unit_price,
   }))
 
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('email, full_name, username')
-    .eq('id', memberId)
-    .single()
-
-  let memberEmail = (profile?.email as string | null)?.trim() || null
+  let memberEmail = (profile.email as string | null)?.trim() || null
   if (!memberEmail) {
     const { data: authUser } = await admin.auth.admin.getUserById(memberId)
     memberEmail = authUser?.user?.email?.trim() || null
   }
 
   const memberName =
-    (profile?.full_name as string | null) ||
-    (profile?.username as string | null) ||
+    (profile.full_name as string | null) ||
+    (profile.username as string | null) ||
     null
 
   return {

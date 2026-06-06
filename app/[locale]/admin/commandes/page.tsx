@@ -85,7 +85,7 @@ export default function AdminCommandesPage({
   const [error, setError]             = useState<string | null>(null)
   // Mode : 'action' = commandes à traiter (confirmed par défaut)
   //        'history' = tout l'historique avec filtres libres
-  const [mode, setMode]               = useState<'action' | 'toClose' | 'history'>('action')
+  const [mode, setMode]               = useState<'action' | 'toClose' | 'closed' | 'history'>('action')
   const [filterStatus, setFilterStatus]     = useState('')
   const [filterSupplier, setFilterSupplier] = useState('')
   const [filterDate, setFilterDate]         = useState('')
@@ -140,6 +140,7 @@ export default function AdminCommandesPage({
   const filtered = orders.filter(o => {
     if (mode === 'action' && o.status !== 'confirmed') return false
     if (mode === 'toClose' && o.status !== 'delivered') return false
+    if (mode === 'closed' && o.status !== 'closed') return false
     if (mode === 'history') {
       if (filterStatus && o.status !== filterStatus) return false
     }
@@ -163,7 +164,7 @@ export default function AdminCommandesPage({
     [aggregatedSummary],
   )
 
-  function switchMode(next: 'action' | 'toClose' | 'history') {
+  function switchMode(next: 'action' | 'toClose' | 'closed' | 'history') {
     setMode(next)
     setFilterStatus('')
     setFilterSupplier('')
@@ -217,7 +218,7 @@ export default function AdminCommandesPage({
     const order = orders.find(o => o.id === orderId)
     const ok = window.confirm(
       `Clôturer la commande de ${order ? getMemberName(order) : 'ce membre'} ?\n\n` +
-        'Le total final sera recalculé (avoir déjà déduit à la commande) et un email récapitulatif sera envoyé.',
+        'Le total final sera recalculé. L\'avoir sera déduit s\'il ne l\'était pas encore. Un email récapitulatif sera envoyé.',
     )
     if (!ok) return
 
@@ -408,6 +409,7 @@ export default function AdminCommandesPage({
           <h1 style={{ margin: '0 0 0.2rem' }}>
             {mode === 'action' && 'Commandes à traiter'}
             {mode === 'toClose' && 'Commandes à clôturer'}
+            {mode === 'closed' && 'Commandes clôturées'}
             {mode === 'history' && 'Historique des commandes'}
           </h1>
           <p style={{ opacity: 0.55, margin: 0, fontSize: '0.85rem' }}>
@@ -415,6 +417,8 @@ export default function AdminCommandesPage({
               'Confirmées : marquer « Livrée » après distribution, ou « Annulée » si besoin.'}
             {mode === 'toClose' &&
               'Livrées : le membre peut encore ajouter des produits. Quand tout est bon, clique « Clôturer » — le total est figé et le statut passe à Clôturée.'}
+            {mode === 'closed' &&
+              'Commandes finalisées — montant et avoir définitifs. Utilise « Historique » pour les filtres avancés.'}
             {mode === 'history' &&
               'Historique complet — filtre par statut (dont Clôturées) pour retrouver une commande.'}
           </p>
@@ -449,6 +453,8 @@ export default function AdminCommandesPage({
         ] : mode === 'toClose' ? [
           { label: 'À clôturer',  value: stats.toClose,     color: '#1565c0', highlight: true },
           { label: 'Clôturées',   value: stats.closed,      color: '#2e7d32' },
+        ] : mode === 'closed' ? [
+          { label: 'Clôturées',   value: stats.closed,      color: '#2e7d32', highlight: true },
         ] : [
           { label: 'Total',       value: stats.total,       color: '#1a1a2e' },
           { label: 'Confirmées',  value: stats.confirmed,   color: '#DC7F00' },
@@ -586,6 +592,7 @@ export default function AdminCommandesPage({
           {([
             { key: 'action',  label: `⚡ À traiter${stats.confirmed ? ` (${stats.confirmed})` : ''}` },
             { key: 'toClose', label: `✓ À clôturer${stats.toClose ? ` (${stats.toClose})` : ''}` },
+            { key: 'closed',  label: `✅ Clôturées${stats.closed ? ` (${stats.closed})` : ''}` },
             { key: 'history', label: '📋 Historique' },
           ] as const).map(tab => (
             <button
@@ -708,13 +715,14 @@ export default function AdminCommandesPage({
           <p style={{ opacity: 0.5, margin: '0 0 1rem' }}>
             {mode === 'action' && 'Aucune commande confirmée en attente — tout est à jour !'}
             {mode === 'toClose' && 'Aucune commande livrée à clôturer pour le moment.'}
+            {mode === 'closed' && 'Aucune commande clôturée pour le moment.'}
             {mode === 'history' && (
               hasFilters
                 ? 'Aucune commande ne correspond à ces filtres.'
                 : "Aucune commande dans l'historique."
             )}
           </p>
-          {(mode === 'action' || mode === 'toClose') && (
+          {(mode === 'action' || mode === 'toClose' || mode === 'closed') && (
             <button
               onClick={() => switchMode('history')}
               style={{ ...selectStyle, cursor: 'pointer', color: '#1a1a2e', borderColor: '#1a1a2e' }}
