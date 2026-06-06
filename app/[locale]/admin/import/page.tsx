@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useRef, useState } from 'react'
+import { Link } from '@/i18n/navigation'
 import { nextWednesday1830, nextThursday1200, toDatetimeLocalValue } from '@/lib/import/deadline-defaults'
 import { BIOPARTNER_CATALOGS } from '@/lib/import/biopartner-catalogs'
 
@@ -55,7 +56,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
             <strong>Un seul fichier Excel</strong> pour importer tous les producteurs locaux de la semaine.<br />
             Onglets importés : <strong>Bioterroir, Fermette à Didi, Graines d&apos;Avenir, Brasseries d&apos;Ayent, Vins bio et nature, Truffes</strong>.<br />
             <span style={{ opacity: 0.75 }}>Le catalogue n&apos;est plus effacé — produits absents du fichier : masquer dans Fournisseurs.</span><br />
-            <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé via CSV).</span>
+            <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé en .xlsx — section Biopartner).</span>
           </>
         ),
       },
@@ -301,7 +302,7 @@ export default function ImportPage({
 }: {
   params: Promise<{ locale: string }>
 }) {
-  use(params)
+  const { locale } = use(params)
 
   const fileRef = useRef<HTMLInputElement>(null)
   const [selectedKey, setSelectedKey] = useState<string>('feuille_hebdo')
@@ -396,8 +397,14 @@ export default function ImportPage({
       </nav>
 
       <h1 style={{ marginBottom: '0.25rem' }}>Import catalogue</h1>
-      <p style={{ opacity: 0.65, marginBottom: '2rem' }}>
+      <p style={{ opacity: 0.65, marginBottom: '0.75rem' }}>
         Sélectionnez le fournisseur et importez leur fichier pour mettre à jour le catalogue.
+      </p>
+      <p style={{ margin: '0 0 2rem', fontSize: '0.88rem' }}>
+        <Link href="/admin/guide-import" locale={locale} style={{ color: '#1565c0', fontWeight: 600 }}>
+          Guide colonnes &amp; formats →
+        </Link>
+        {' '}— comment le site lit chaque fichier (Biopartner, locaux, CSV).
       </p>
 
       {/* Sélecteur fournisseur — groupes */}
