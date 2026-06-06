@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
 import { createClient } from '@/lib/supabase/client'
 import styles from './account-session.module.css'
 
@@ -59,8 +60,8 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
   }
 
   return (
-    <section className={styles.panel} aria-label="Session et suppression de compte">
-      <div className={styles.sessionBlock}>
+    <div className={styles.stack}>
+      <section className={styles.sessionCard} aria-label="Session">
         <h2 className={styles.sessionTitle}>Session</h2>
         <div className={styles.sessionRow}>
           <p className={styles.sessionHint}>
@@ -77,11 +78,9 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
             {signOutLoading ? 'Déconnexion…' : 'Se déconnecter'}
           </button>
         </div>
-      </div>
+      </section>
 
-      <hr className={styles.divider} />
-
-      <div className={styles.dangerBlock}>
+      <section className={styles.dangerCard} aria-label="Suppression de compte">
         <h2 className={styles.dangerTitle}>Supprimer mon compte</h2>
         <p className={styles.dangerHint}>
           <strong>Rien n&apos;est supprimé en un clic.</strong> Si vous continuez, une confirmation en deux
@@ -140,7 +139,15 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
             </div>
           </div>
         )}
-      </div>
-    </section>
+
+        <p className={styles.contactHint}>
+          Des questions ?{' '}
+          <Link href="/contact" locale={locale as 'fr' | 'en'} className={styles.contactLink}>
+            Contactez-nous
+          </Link>
+          {' '}— l&apos;équipe du magasin peut vous aider avant toute suppression.
+        </p>
+      </section>
+    </div>
   )
 }

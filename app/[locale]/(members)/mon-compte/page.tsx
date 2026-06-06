@@ -35,9 +35,11 @@ export default async function MonComptePage({
     <div className={`container ${styles.page}`}>
 
       <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
-        <span>Accueil</span>
+        <Link href="/" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>
+          Accueil
+        </Link>
         <span aria-hidden>›</span>
-        <span className={styles.breadcrumbCurrent}>Mon compte</span>
+        <span className={styles.breadcrumbCurrent} aria-current="page">Mon compte</span>
       </nav>
 
       <div className={styles.grid}>

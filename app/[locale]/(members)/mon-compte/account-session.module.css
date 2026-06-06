@@ -1,11 +1,19 @@
-.panel {
+.stack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.sessionCard {
   background: #fff;
   border: 1px solid rgba(16, 24, 40, 0.08);
   border-radius: 14px;
-  overflow: hidden;
+  padding: 1.1rem 1.25rem;
 }
 
-.sessionBlock {
+.dangerCard {
+  background: #fffafa;
+  border: 1px solid rgba(185, 28, 28, 0.18);
+  border-radius: 14px;
   padding: 1.1rem 1.25rem;
 }
 
@@ -51,17 +59,6 @@
 .signOutBtn:focus-visible {
   outline: 2px solid #dc7f00;
   outline-offset: 2px;
-}
-
-.divider {
-  margin: 0;
-  border: none;
-  border-top: 1px solid rgba(16, 24, 40, 0.08);
-}
-
-.dangerBlock {
-  padding: 1.1rem 1.25rem;
-  background: #fffafa;
 }
 
 .dangerTitle {
@@ -187,6 +184,36 @@
   margin: 0;
   font-size: 0.83rem;
   color: #c0392b;
+}
+
+.contactHint {
+  margin: 1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(185, 28, 28, 0.12);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: rgba(16, 24, 40, 0.58);
+}
+
+.contactLink {
+  color: #245c2a;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.contactLink:hover {
+  color: #1a4a20;
+}
+
+.contactLink:focus {
+  outline: none;
+}
+
+.contactLink:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 @media (min-width: 560px) {

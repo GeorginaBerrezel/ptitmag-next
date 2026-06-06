@@ -13,6 +13,28 @@
   margin-bottom: 1.5rem;
 }
 
+.breadcrumbLink {
+  color: rgba(16, 24, 40, 0.55);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.breadcrumbLink:hover {
+  color: rgba(16, 24, 40, 0.8);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.breadcrumbLink:focus {
+  outline: none;
+}
+
+.breadcrumbLink:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .breadcrumbCurrent {
   color: rgba(16, 24, 40, 0.8);
   font-weight: 600;
