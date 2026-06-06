@@ -1,4 +1,8 @@
 import type { Product } from '@/lib/supabase/products'
+import {
+  buildBrasseriesAyentImagePath,
+  isBrasseriesAyentSupplier,
+} from '@/lib/catalog/brasseries-ayent-images'
 
 export const PRODUCT_IMAGE_PLACEHOLDER = '/images/product-placeholder.svg'
 export const PRODUCT_IMAGES_BUCKET = 'product-images'
@@ -15,18 +19,29 @@ export function buildBiopartnerImagePublicUrl(supplierRef: string): string | nul
   return `${base}/storage/v1/object/public/${PRODUCT_IMAGES_BUCKET}/${buildBiopartnerImageStoragePath(ref)}`
 }
 
-/**
- * URL d'image produit grossiste (Biopartner).
- * Si pas de photo uploadée, le composant affiche le placeholder via onError.
- */
-export function getProductImageUrl(product: Product): string | null {
-  if (product.supplier?.type !== 'grossiste_bio') return null
+function getBiopartnerProductImageUrl(product: Product): string | null {
   const ref = product.supplier_ref?.trim()
   if (!ref) return PRODUCT_IMAGE_PLACEHOLDER
   return buildBiopartnerImagePublicUrl(ref) ?? PRODUCT_IMAGE_PLACEHOLDER
 }
 
+/**
+ * URL d'image catalogue : Biopartner (Storage) ou Brasseries d'Ayent (assets locaux).
+ */
+export function getProductImageUrl(product: Product): string | null {
+  if (isBrasseriesAyentSupplier(product.supplier?.name)) {
+    return buildBrasseriesAyentImagePath(product.name)
+  }
+  if (product.supplier?.type === 'grossiste_bio') {
+    return getBiopartnerProductImageUrl(product)
+  }
+  return null
+}
+
 export function showProductImage(product: Product): boolean {
+  if (isBrasseriesAyentSupplier(product.supplier?.name)) {
+    return buildBrasseriesAyentImagePath(product.name) != null
+  }
   return product.supplier?.type === 'grossiste_bio'
 }
 
