@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 type Props = {
   children: ReactNode
@@ -13,6 +13,7 @@ export default function HorizontalScrollStrip({
   className = '',
   ariaLabel = 'Filtres',
 }: Props) {
+  const trackId = useId()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
@@ -57,12 +58,14 @@ export default function HorizontalScrollStrip({
         type="button"
         className="catalogue-scroll-strip__arrow catalogue-scroll-strip__arrow--left"
         aria-label="Défiler vers la gauche"
+        aria-controls={trackId}
         disabled={!canScrollLeft}
         onClick={() => scrollByPage(-1)}
       >
-        ‹
+        <span aria-hidden="true">‹</span>
       </button>
       <div
+        id={trackId}
         ref={scrollRef}
         className="catalogue-scroll-strip__track"
         role="region"
@@ -75,10 +78,11 @@ export default function HorizontalScrollStrip({
         type="button"
         className="catalogue-scroll-strip__arrow catalogue-scroll-strip__arrow--right"
         aria-label="Défiler vers la droite"
+        aria-controls={trackId}
         disabled={!canScrollRight}
         onClick={() => scrollByPage(1)}
       >
-        ›
+        <span aria-hidden="true">›</span>
       </button>
     </div>
   )

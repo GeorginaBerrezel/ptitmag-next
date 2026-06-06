@@ -1,14 +1,17 @@
 /**
- * Navigation catégories catalogue :
- * - Beaucoup de catégories → grille seule pour choisir, puis « Changer de catégorie » en vue produits.
- * - Peu de catégories → barre horizontale (scroll + flèches) en vue produits pour changer sans revenir en arrière.
+ * Navigation catégories catalogue (retours Joel) :
+ * - Beaucoup de catégories → bandeau horizontal scroll + flèches pour choisir.
+ * - Vue produits → pas de liste de catégories : bouton « Changer de catégorie » seulement.
  */
-export const COMPACT_CATEGORY_NAV_MAX = 10
 
-export function useCompactCategoryNav(categoryCount: number): boolean {
-  return categoryCount > 1 && categoryCount <= COMPACT_CATEGORY_NAV_MAX
+/** À partir de ce nombre, la grille de cartes est remplacée par un scroll horizontal. */
+export const CATEGORY_SCROLL_NAV_MIN = 9
+
+export function useCategoryScrollNav(categoryCount: number): boolean {
+  return categoryCount >= CATEGORY_SCROLL_NAV_MIN
 }
 
-export function useCategoryGridBackNav(categoryCount: number): boolean {
-  return categoryCount > COMPACT_CATEGORY_NAV_MAX
+/** Bouton retour vers le choix de catégorie (dès qu'il y a plus d'une catégorie). */
+export function useChangeCategoryBackNav(categoryCount: number): boolean {
+  return categoryCount > 1
 }
