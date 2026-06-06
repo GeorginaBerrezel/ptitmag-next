@@ -56,6 +56,7 @@ export async function resolveComplementTargetOrder(
       status: ORDER_STATUS.delivered,
       total: 0,
       credit_applied: 0,
+      created_via_complement: true,
     })
     .select('id')
     .single()

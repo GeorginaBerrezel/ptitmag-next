@@ -236,33 +236,36 @@ export default function MyOrdersSection({
                   return (
                     <details key={order.id} className={styles.order}>
                       <summary className={styles.orderSummary}>
-                        <div style={{ minWidth: 0 }}>
+                        <div className={styles.supplierBlock}>
                           <span className={styles.supplierName}>
                             {order.supplier?.name ?? 'Fournisseur inconnu'}
                           </span>
                           <span className={styles.supplierType}>
                             {SUPPLIER_TYPE[order.supplier?.type ?? ''] ?? ''}
                           </span>
+                          {order.created_via_complement && (
+                            <div className={styles.badgeRow}>
+                              <span className={styles.complementBadge}>Ajout sur place</span>
+                            </div>
+                          )}
                         </div>
                         <div className={styles.orderMeta}>
-                          <span className={styles.date}>{formatDate(order.created_at)}</span>
-                          <span
-                            className={styles.status}
-                            style={{ background: st.bg, color: st.color }}
-                          >
-                            {st.label}
-                          </span>
+                          <div className={styles.orderMetaTop}>
+                            <span className={styles.date}>{formatDate(order.created_at)}</span>
+                            <span
+                              className={styles.status}
+                              style={{ background: st.bg, color: st.color }}
+                            >
+                              {st.label}
+                            </span>
+                          </div>
                           <span className={styles.total}>
-                            {order.status === 'closed'
-                              ? <>CHF {order.total.toFixed(2)}</>
-                              : <>CHF {order.total.toFixed(2)} <span style={{ fontSize: '0.72rem', fontWeight: 500, opacity: 0.55 }}>(provisoire)</span></>}
-                            {(Number(order.credit_applied) || 0) > 0 && (
-                              <span style={{
-                                display: 'block',
-                                fontSize: '0.72rem',
-                                fontWeight: 600,
-                                color: '#2e7d32',
-                              }}>
+                            CHF {order.total.toFixed(2)}
+                            {order.status !== 'closed' && order.status !== 'cancelled' && (
+                              <span className={styles.totalProvisional}> (provisoire)</span>
+                            )}
+                            {(Number(order.credit_applied) || 0) > 0 && order.status === 'closed' && (
+                              <span className={styles.creditHint}>
                                 Avoir −{(Number(order.credit_applied)).toFixed(2)} CHF
                               </span>
                             )}

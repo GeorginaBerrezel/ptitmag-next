@@ -1,9 +1,48 @@
+/* Panneau détail commande membre — bords alignés, lisible mobile */
+
+.orderDetail {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(16, 24, 40, 0.08);
+}
+
+.hintBanner {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border-radius: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(16, 24, 40, 0.06);
+}
+
+.hintBannerDelivered {
+  background: #e8f4fd;
+  border-bottom-color: #bbdefb;
+  color: #0d47a1;
+}
+
+.hintBannerClosed {
+  background: #edf7ee;
+  border-bottom-color: #c8e6c9;
+  color: #1b5e20;
+}
+
+.hintBannerConfirmed {
+  background: #fff8ed;
+  border-bottom-color: #ffe082;
+  color: #92400e;
+}
+
+.orderLines {
+  padding: 0;
+}
+
 .orderLine {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.65rem 0.75rem;
-  align-items: center;
-  padding: 0.75rem 0;
+  gap: 0.5rem 1rem;
+  align-items: start;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid rgba(16, 24, 40, 0.06);
 }
 
@@ -15,46 +54,103 @@
   min-width: 0;
 }
 
+.lineName {
+  font-weight: 600;
+  font-size: 0.92rem;
+  display: block;
+  line-height: 1.35;
+}
+
 .lineMeta {
   text-align: right;
   flex-shrink: 0;
 }
 
-.orderTotalRow {
+.lineQty {
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: block;
+}
+
+.lineUnitPrice {
+  display: block;
+  font-size: 0.76rem;
+  opacity: 0.55;
+  margin-top: 0.1rem;
+}
+
+.lineTotal {
+  display: block;
+  font-weight: 700;
+  margin-top: 0.2rem;
+  font-size: 0.88rem;
+}
+
+.totalsBlock {
+  background: #f6f7f9;
+  border-top: 2px solid rgba(16, 24, 40, 0.08);
+  padding: 0.75rem 1rem;
+}
+
+.totalsRow {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding-top: 0.75rem;
-  margin-top: 0.25rem;
-  border-top: 2px solid rgba(16, 24, 40, 0.1);
+  align-items: baseline;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  font-size: 0.85rem;
+  padding: 0.2rem 0;
 }
 
-.hintBanner {
-  margin: 0 0 0.85rem;
-  padding: 0.55rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  line-height: 1.45;
+.totalsRowMuted {
+  opacity: 0.7;
 }
 
-.hintBannerDelivered {
-  background: #e3f2fd;
-  border: 1px solid #90caf9;
-  color: #1565c0;
-}
-
-.hintBannerClosed {
-  background: #e8f5e9;
-  border: 1px solid #a5d6a7;
+.totalsRowCredit {
   color: #2e7d32;
+  font-weight: 600;
 }
 
-.hintBannerConfirmed {
-  background: #fff8ed;
-  border: 1px solid #ffe082;
-  color: #92400e;
+.totalsRowFinal {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(16, 24, 40, 0.12);
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.orderActions {
+  padding: 0 1rem 1rem;
+  margin: 0;
+  border-top: none;
+}
+
+.complementBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 46px;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #dc7f00;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, transform 0.1s;
+  box-sizing: border-box;
+}
+
+.complementBtn:hover {
+  background: #c47200;
+}
+
+.complementBtn:active {
+  transform: translateY(1px);
 }
 
 .removeBtn {
@@ -85,17 +181,35 @@
   grid-template-columns: 1fr auto auto;
 }
 
-.orderActions {
+.orderTotalRow {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  padding-top: 0.85rem;
-  margin-top: 0.5rem;
-  border-top: 1px solid rgba(16, 24, 40, 0.06);
+  justify-content: space-between;
   align-items: center;
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+  border-top: 2px solid rgba(16, 24, 40, 0.1);
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 640px) {
+  .orderLine {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .lineMeta {
+    text-align: left;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.75rem;
+  }
+
+  .lineTotal {
+    margin-left: auto;
+  }
+
   .orderLineAdmin {
     grid-template-columns: 1fr auto;
     grid-template-areas:
@@ -114,18 +228,5 @@
   .orderLineAdmin .removeBtn {
     grid-area: remove;
     justify-self: end;
-  }
-
-  .lineMeta {
-    text-align: left;
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    width: 100%;
-  }
-
-  .orderLine {
-    grid-template-columns: 1fr;
   }
 }

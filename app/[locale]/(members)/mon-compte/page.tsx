@@ -30,7 +30,6 @@ export default async function MonComptePage({
     profile?.status === 'member' ||
     (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
   const creditBalance = Number(profile?.credit_balance) || 0
-  const showCredit = creditBalance > 0
 
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 700 }}>
@@ -164,7 +163,7 @@ export default async function MonComptePage({
           )}
         </div>
 
-        {showCredit && (
+        {creditBalance > 0 ? (
           <div style={{
             background: '#ecfdf5',
             border: '1px solid #a7f3d0',
@@ -176,10 +175,22 @@ export default async function MonComptePage({
           }}>
             <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
             <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 400, marginTop: '0.25rem', opacity: 0.85 }}>
-              Déduit au panier (nouvelle commande) ou à la clôture si pas encore appliqué.
+              Déduit automatiquement au panier ou à la clôture de votre commande.
             </span>
-            <span style={{ display: 'block', marginTop: '0.35rem', opacity: 0.85, fontSize: '0.88rem' }}>
-              Ce montant sera déduit automatiquement sur votre prochaine commande.
+          </div>
+        ) : (
+          <div style={{
+            background: '#f8f9fa',
+            border: '1px solid rgba(16, 24, 40, 0.1)',
+            borderRadius: 12,
+            padding: '0.85rem 1.15rem',
+            fontSize: '0.85rem',
+            lineHeight: 1.5,
+            color: 'rgba(16, 24, 40, 0.65)',
+          }}>
+            <strong>Pas d&apos;avoir</strong> sur votre compte pour le moment.
+            <span style={{ display: 'block', marginTop: '0.25rem', fontSize: '0.8rem', opacity: 0.85 }}>
+              L&apos;équipe du magasin peut en ajouter un si besoin (remboursement, geste commercial…).
             </span>
           </div>
         )}
