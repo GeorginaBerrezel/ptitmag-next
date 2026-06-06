@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import * as XLSX from 'xlsx'
 import { HEBDO_SHEET_CONFIG, parseLocalSheet } from '@/lib/import/local-suppliers'
+import { isCsvFilename, isExcelFilename } from '@/lib/import/spreadsheet-file'
 import { upsertLocalSupplier } from '@/lib/import/upsert-local'
 import { requireAdminUser } from '@/lib/admin/auth'
 
@@ -16,6 +17,16 @@ export async function POST(request: NextRequest) {
   const dateLimiteJeudi    = (formData.get('date_limite_jeudi')    as string | null)?.trim() || null
 
   if (!file) return NextResponse.json({ error: 'Aucun fichier fourni.' }, { status: 400 })
+
+  if (isCsvFilename(file.name)) {
+    return NextResponse.json({
+      error: 'La feuille hebdo regroupe plusieurs producteurs (onglets Excel). Utilisez un fichier .xlsx, ou importez chaque fournisseur séparément en .xlsx ou .csv.',
+    }, { status: 400 })
+  }
+
+  if (!isExcelFilename(file.name)) {
+    return NextResponse.json({ error: 'Format non reconnu. La feuille hebdo nécessite un fichier .xlsx.' }, { status: 400 })
+  }
 
   const buffer = Buffer.from(await file.arrayBuffer())
   let workbook: XLSX.WorkBook

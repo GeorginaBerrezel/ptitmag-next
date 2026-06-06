@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { parseGenericCatalogCsv } from '@/lib/import/generic-catalog-csv'
+import { readUploadAsGrid } from '@/lib/import/spreadsheet-file'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
 
@@ -22,39 +23,6 @@ type SupplierConfig = {
   name: string
   type: 'local' | 'grossiste_bio' | 'autre'
   parse: (rows: string[][], allText: string) => ParsedProduct[]
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// RFC 4180 CSV parser — gère les champs entre guillemets et les sauts de ligne
-// ─────────────────────────────────────────────────────────────────────────────
-
-function parseCSV(text: string, sep = ';'): string[][] {
-  const rows: string[][] = []
-  let row: string[] = []
-  let field = ''
-  let inQuotes = false
-  let i = 0
-
-  const flush = () => { row.push(field); field = '' }
-  const newRow = () => { rows.push(row); row = [] }
-
-  while (i < text.length) {
-    const ch = text[i]
-    if (inQuotes) {
-      if (ch === '"' && text[i + 1] === '"') { field += '"'; i += 2 }
-      else if (ch === '"') { inQuotes = false; i++ }
-      else { field += ch; i++ }
-    } else {
-      if (ch === '"') { inQuotes = true; i++ }
-      else if (ch === sep) { flush(); i++ }
-      else if (ch === '\r' && text[i + 1] === '\n') { flush(); newRow(); i += 2 }
-      else if (ch === '\n') { flush(); newRow(); i++ }
-      else { field += ch; i++ }
-    }
-  }
-  if (field || row.length) { flush(); newRow() }
-
-  return rows.filter(r => r.some(c => c.trim()))
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -397,12 +365,11 @@ export async function POST(request: NextRequest) {
   }
 
   const config = SUPPLIER_CONFIGS[supplierKey]
-  const text = await file.text()
-  const rows = parseCSV(text)
+  const rows = await readUploadAsGrid(file)
 
   let parsed: ParsedProduct[]
   try {
-    parsed = config.parse(rows, text)
+    parsed = config.parse(rows, '')
   } catch (err) {
     return NextResponse.json({ error: `Erreur de parsing : ${err}` }, { status: 400 })
   }
