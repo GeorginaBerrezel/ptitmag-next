@@ -152,7 +152,7 @@ export default function MyOrdersSection({
                 textDecoration: 'none',
               }}
             >
-              Voir le catalogue →
+              Commander →
             </Link>
           ) : (
             <p style={{ margin: 0, fontSize: '0.9rem' }}>
@@ -193,6 +193,8 @@ export default function MyOrdersSection({
         <button
           type="button"
           role="tab"
+          id="tab-confirmed"
+          aria-controls="panel-orders"
           aria-selected={tab === 'confirmed'}
           className={tabActiveClass('confirmed', tab)}
           onClick={() => switchTab('confirmed')}
@@ -203,6 +205,8 @@ export default function MyOrdersSection({
         <button
           type="button"
           role="tab"
+          id="tab-delivered"
+          aria-controls="panel-orders"
           aria-selected={tab === 'delivered'}
           className={tabActiveClass('delivered', tab)}
           onClick={() => switchTab('delivered')}
@@ -213,6 +217,8 @@ export default function MyOrdersSection({
         <button
           type="button"
           role="tab"
+          id="tab-closed"
+          aria-controls="panel-orders"
           aria-selected={tab === 'closed'}
           className={tabActiveClass('closed', tab)}
           onClick={() => switchTab('closed')}
@@ -223,6 +229,8 @@ export default function MyOrdersSection({
         <button
           type="button"
           role="tab"
+          id="tab-cancelled"
+          aria-controls="panel-orders"
           aria-selected={tab === 'cancelled'}
           className={tabActiveClass('cancelled', tab)}
           onClick={() => switchTab('cancelled')}
@@ -232,6 +240,11 @@ export default function MyOrdersSection({
         </button>
       </div>
 
+      <div
+        id="panel-orders"
+        role="tabpanel"
+        aria-labelledby={`tab-${tab}`}
+      >
       {tabOrders.length === 0 ? (
         <div className={styles.empty}>
           {tab === 'confirmed' && 'Aucune commande confirmée en attente.'}
@@ -327,6 +340,7 @@ export default function MyOrdersSection({
           )}
         </>
       )}
+      </div>
     </div>
   )
 }

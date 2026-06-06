@@ -157,8 +157,8 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
         </div>
       )}
 
-      {error && <p className={styles.error}>{error}</p>}
-      {success && <p className={styles.success}>✓ Profil mis à jour !</p>}
+      {error && <p role="alert" className={styles.error}>{error}</p>}
+      {success && <p role="status" className={styles.success}>✓ Profil mis à jour !</p>}
 
       <p className={styles.hint}>
         Cliquez sur l&apos;avatar pour changer la photo — rien n&apos;est envoyé tant que vous n&apos;avez pas

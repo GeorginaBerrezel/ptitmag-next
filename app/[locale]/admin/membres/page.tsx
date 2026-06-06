@@ -421,8 +421,9 @@ export default function AdminMembresPage({
         border: '1px solid #e8e8e8', alignItems: 'center',
       }}>
         <input
-          type="text"
+          type="search"
           placeholder="Rechercher nom, email, téléphone, commune…"
+          aria-label="Rechercher un membre par nom, e-mail, téléphone ou commune"
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ ...controlStyle, flexGrow: 1, minWidth: 200 }}

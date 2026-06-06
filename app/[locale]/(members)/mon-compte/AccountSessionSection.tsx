@@ -93,7 +93,7 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
             type="button"
             className={styles.deleteTriggerBtn}
             onClick={() => setDeleteOpen(true)}
-            aria-expanded="false"
+            aria-expanded={deleteOpen}
           >
             Commencer la suppression du compte…
           </button>

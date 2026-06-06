@@ -9,7 +9,6 @@ import { useTranslations } from 'next-intl'
 type Props = {
   locale: 'fr' | 'en'
   onNavigate?: () => void
-  /** mobile : lien pleine largeur dans le menu burger */
   variant?: 'desktop' | 'mobile'
 }
 
@@ -59,15 +58,10 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
       locale={locale}
       onClick={onNavigate}
       aria-current={isActive ? 'page' : undefined}
-      title={locale === 'fr' ? 'Catalogue réservé aux membres actifs' : 'Catalog for active members'}
     >
-      {t('catalogue')}
+      {t('commander')}
     </Link>
   )
-
-  if (variant === 'mobile') {
-    return <li>{link}</li>
-  }
 
   return <li>{link}</li>
 }

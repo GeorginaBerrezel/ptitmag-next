@@ -4,7 +4,7 @@
   --muted: #c7c7c7;
   --brand: #cda867;
   --accent: #245c2a;
-  --focus: #F6FEDE;
+  --focus: #dc7f00;
 
   --header-bg: #0E1726;
   --header-fg: #FFFFFF;
@@ -107,6 +107,19 @@ main {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
+}
+
+/* Texte visible uniquement pour lecteurs d'écran */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* focus visibles */
@@ -225,6 +238,9 @@ main {
   display: none;
   border: 0;
   background: transparent;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.65rem;
   cursor: pointer;
   padding: 0.25rem;
   color: var(--header-fg);
@@ -889,6 +905,7 @@ time {
 .header-account{
   display: flex;
   align-items: center;
+  gap: 0.5rem;
   flex-shrink: 0;
   padding-left: 0.85rem;
   margin-left: 0.5rem;

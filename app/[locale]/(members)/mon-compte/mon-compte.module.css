@@ -4,6 +4,13 @@
   max-width: 700px;
 }
 
+.pageTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -86,7 +93,7 @@
 
 .meta {
   font-size: 0.83rem;
-  opacity: 0.55;
+  color: rgba(16, 24, 40, 0.62);
   overflow: hidden;
   text-overflow: ellipsis;
 }

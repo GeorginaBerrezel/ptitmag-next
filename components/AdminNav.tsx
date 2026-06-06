@@ -99,6 +99,7 @@ export default function AdminNav({
             key={link.href}
             href={link.href}
             locale={locale}
+            aria-current={isActive ? 'page' : undefined}
             title={hasBadge && link.badgeTitle ? link.badgeTitle : undefined}
             onMouseEnter={() => setHovered(link.href)}
             onMouseLeave={() => setHovered(null)}

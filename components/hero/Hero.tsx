@@ -34,6 +34,7 @@ export function Hero({ locale, t, stepsDetail, trialContent }: HeroProps) {
 
         <div className={styles.right}>
           <p className={styles.subtitle}>{t('home.subtitle')}</p>
+          <p className={styles.subtitleHint}>{t('home.subtitle_hint')}</p>
           <p className={styles.objective}>{t('home.objective')}</p>
         </div>
       </div>
@@ -85,7 +86,7 @@ export function Hero({ locale, t, stepsDetail, trialContent }: HeroProps) {
                 <div className={styles.stepNumber}>{i + 1}</div>
                 <span className={styles.stepEmoji}>{STEP_EMOJIS[i] ?? '→'}</span>
               </div>
-              <p className={styles.stepTitle}>{step.title}</p>
+              <h3 className={styles.stepTitle}>{step.title}</h3>
               <p className={styles.stepDesc}>{step.desc}</p>
             </div>
           ))}

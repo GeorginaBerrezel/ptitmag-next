@@ -590,18 +590,22 @@ export default function AdminCommandesPage({
         border: '1px solid #e8e8e8', alignItems: 'center',
       }}>
         {/* Onglets À traiter / Historique */}
-        <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
+        <div role="tablist" aria-label="Filtrer les commandes admin" style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
           {([
-            { key: 'action',  label: `⚡ À traiter${stats.confirmed ? ` (${stats.confirmed})` : ''}` },
-            { key: 'toClose', label: `✓ À clôturer${stats.toClose ? ` (${stats.toClose})` : ''}` },
-            { key: 'closed',  label: `✅ Clôturées${stats.closed ? ` (${stats.closed})` : ''}` },
-            { key: 'history', label: '📋 Historique' },
+            { key: 'action',  label: `À traiter${stats.confirmed ? ` (${stats.confirmed})` : ''}` },
+            { key: 'toClose', label: `À clôturer${stats.toClose ? ` (${stats.toClose})` : ''}` },
+            { key: 'closed',  label: `Clôturées${stats.closed ? ` (${stats.closed})` : ''}` },
+            { key: 'history', label: 'Historique' },
           ] as const).map(tab => (
             <button
               key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={mode === tab.key}
               onClick={() => switchMode(tab.key)}
               style={{
-                padding: '0.38rem 0.9rem',
+                padding: '0.55rem 0.9rem',
+                minHeight: 44,
                 border: 'none',
                 background: mode === tab.key ? '#1a1a2e' : '#fff',
                 color: mode === tab.key ? '#fff' : '#555',
@@ -622,6 +626,7 @@ export default function AdminCommandesPage({
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
+              aria-label="Filtrer par statut de commande"
               style={selectStyle}
             >
               <option value="">Tous les statuts</option>
@@ -1128,13 +1133,16 @@ function AggregatedSummaryPanel({
 
       <div style={{ padding: '0.75rem 1.25rem 1rem', overflowX: 'auto', background: '#fff' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', minWidth: 480 }}>
+          <caption style={{ captionSide: 'top', textAlign: 'left', padding: '0 0 0.65rem', fontWeight: 700, fontSize: '0.85rem' }}>
+            Récapitulatif des articles à commander par fournisseur
+          </caption>
           <thead>
-            <tr style={{ opacity: 0.55, fontSize: '0.78rem' }}>
-              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>N° article</th>
-              <th style={{ ...thStyle, paddingBottom: '0.5rem' }}>Désignation</th>
-              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Qté totale</th>
-              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>P.U.</th>
-              <th style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Total</th>
+            <tr style={{ color: 'rgba(16,24,40,0.62)', fontSize: '0.78rem' }}>
+              <th scope="col" style={{ ...thStyle, paddingBottom: '0.5rem' }}>N° article</th>
+              <th scope="col" style={{ ...thStyle, paddingBottom: '0.5rem' }}>Désignation</th>
+              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Qté totale</th>
+              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>P.U.</th>
+              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Total</th>
             </tr>
           </thead>
           <tbody>

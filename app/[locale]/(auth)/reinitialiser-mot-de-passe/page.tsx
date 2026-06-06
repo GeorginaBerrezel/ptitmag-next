@@ -60,15 +60,15 @@ export default function ReinitialiserMotDePassePage({
 
   if (checkingSession) {
     return (
-      <main className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
+      <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
         <p style={{ opacity: 0.7 }}>Vérification du lien…</p>
-      </main>
+      </div>
     )
   }
 
   if (!hasSession) {
     return (
-      <main className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
+      <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Lien invalide ou expiré</h1>
         <p style={{ opacity: 0.7 }}>
           Ce lien de réinitialisation n&apos;est plus valide. Demandez-en un nouveau.
@@ -78,12 +78,12 @@ export default function ReinitialiserMotDePassePage({
             Mot de passe oublié
           </Link>
         </p>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
+    <div className="container" style={{ maxWidth: 440, paddingTop: '3rem', paddingBottom: '3rem' }}>
       <h1 style={{ marginBottom: '0.25rem' }}>Nouveau mot de passe</h1>
       <p style={{ marginBottom: '2rem', opacity: 0.7 }}>
         Choisissez un mot de passe d&apos;au moins 8 caractères.
@@ -128,6 +128,6 @@ export default function ReinitialiserMotDePassePage({
           </button>
         </form>
       )}
-    </main>
+    </div>
   )
 }

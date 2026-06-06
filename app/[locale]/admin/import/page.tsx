@@ -415,6 +415,8 @@ export default function ImportPage({
                 return (
                   <button
                     key={s.key}
+                    type="button"
+                    aria-pressed={active}
                     onClick={() => handleSupplierChange(s.key)}
                     style={{
                       padding: '0.55rem 0.5rem',
@@ -576,9 +578,10 @@ export default function ImportPage({
       )}
 
       {/* Zone de dépôt */}
-      <div
-        onClick={() => fileRef.current?.click()}
+      <label
+        htmlFor="import-file-input"
         style={{
+          display: 'block',
           border: `2px dashed ${file ? '#2e7d32' : 'rgba(16,24,40,0.2)'}`,
           borderRadius: 12,
           padding: '2rem',
@@ -589,33 +592,44 @@ export default function ImportPage({
           marginBottom: '1.25rem',
         }}
       >
-        <p style={{ margin: '0 0 0.35rem', fontSize: '1.4rem' }}>{file ? '✓' : '📄'}</p>
+        <p style={{ margin: '0 0 0.35rem', fontSize: '1.4rem' }} aria-hidden="true">{file ? '✓' : '📄'}</p>
         <p style={{ margin: 0, fontWeight: 600, fontSize: '0.92rem' }}>
-          {file ? file.name : `Déposer le fichier ${supplier.fileHint}`}
+          {file ? file.name : `Choisir le fichier ${supplier.fileHint}`}
         </p>
         {file ? (
-          <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', opacity: 0.55 }}>
+          <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', color: 'rgba(16,24,40,0.62)' }}>
             {(file.size / 1024).toFixed(1)} Ko · Cliquer pour changer
           </p>
         ) : (
-          <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', opacity: 0.45 }}>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'rgba(16,24,40,0.58)' }}>
             Format {supplier.acceptsXlsx ? 'Excel (.xlsx)' : 'CSV'}
           </p>
         )}
         <input
+          id="import-file-input"
           ref={fileRef}
           type="file"
           accept={supplier.acceptsXlsx
             ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             : '.csv,text/csv'}
-          style={{ display: 'none' }}
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0,0,0,0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
           onChange={e => {
             setFile(e.target.files?.[0] ?? null)
             setResult(null)
             setError(null)
           }}
         />
-      </div>
+      </label>
 
       {/* Bouton */}
       <button

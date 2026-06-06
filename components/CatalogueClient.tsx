@@ -498,15 +498,20 @@ export default function CatalogueClient({
         )}
 
         <div className="catalogue-search" style={{ position: 'relative', marginBottom: '1.25rem' }}>
+          <label htmlFor="catalogue-search-input" className="sr-only">
+            {searchPlaceholder}
+          </label>
           <span style={{
             position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
             fontSize: '1rem', opacity: 0.4, pointerEvents: 'none',
-          }}>🔍</span>
+          }} aria-hidden="true">🔍</span>
           <input
-            type="text"
+            id="catalogue-search-input"
+            type="search"
             placeholder={searchPlaceholder}
             value={search}
             onChange={e => setSearch(e.target.value)}
+            aria-label={searchPlaceholder}
             style={{
               width: '100%',
               padding: '0.65rem 1rem 0.65rem 2.5rem',
@@ -514,7 +519,6 @@ export default function CatalogueClient({
               border: '1.5px solid rgba(16,24,40,0.15)',
               borderRadius: 10,
               fontSize: '0.95rem',
-              outline: 'none',
               boxSizing: 'border-box',
             }}
           />
@@ -536,12 +540,13 @@ export default function CatalogueClient({
           <HorizontalScrollStrip className="catalogue-type-filters-wrap" ariaLabel="Types de fournisseurs">
             <div className="catalogue-type-filters">
               {hasFeatured && (
-                <button type="button" onClick={handleEphemereClick} style={{
+                <button type="button" onClick={handleEphemereClick} aria-pressed={ephemereOnly} style={{
                   padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
                   borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
                   background: ephemereOnly ? '#DC7F00' : '#fff',
                   color: ephemereOnly ? '#fff' : '#1a1a2e',
                   fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                  minHeight: 44,
                 }}>
                   ⏳ Éphémères
                 </button>
@@ -551,12 +556,13 @@ export default function CatalogueClient({
                 if (count === 0) return null
                 const active = selectedType === type
                 return (
-                  <button key={type} type="button" onClick={() => handleTypeClick(type)} style={{
+                  <button key={type} type="button" onClick={() => handleTypeClick(type)} aria-pressed={active} style={{
                     padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
                     borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
                     background: active ? '#1a1a2e' : '#fff',
                     color: active ? '#fff' : '#1a1a2e',
                     fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                    minHeight: 44,
                   }}>
                     {TYPE_LABELS[type] ?? type}
                     <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>

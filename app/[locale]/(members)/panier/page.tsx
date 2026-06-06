@@ -159,9 +159,9 @@ export default function PanierPage({
     return (
       <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
         <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
-          <span>Accueil</span>
+          <Link href="/" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Accueil</Link>
           <span aria-hidden>›</span>
-          <span>Catalogue</span>
+          <Link href="/commandes" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Commander</Link>
           <span aria-hidden>›</span>
           <span style={crumbActiveStyle}>Panier</span>
         </nav>
@@ -181,7 +181,7 @@ export default function PanierPage({
             textDecoration: 'none',
           }}
         >
-          Voir le catalogue
+          Commander
         </Link>
       </div>
     )
@@ -191,9 +191,9 @@ export default function PanierPage({
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 720 }}>
       {/* Fil d'ariane */}
       <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
-        <span>Accueil</span>
+        <Link href="/" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Accueil</Link>
         <span aria-hidden>›</span>
-        <span>Catalogue</span>
+        <Link href="/commandes" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Commander</Link>
         <span aria-hidden>›</span>
         <span style={crumbActiveStyle}>Panier</span>
       </nav>
@@ -361,7 +361,7 @@ export default function PanierPage({
                           disabled={item.quantity <= minAllowed}
                           aria-label="Diminuer"
                           style={{
-                            width: 28, height: 28,
+                            width: 44, height: 44, minWidth: 44, minHeight: 44,
                             border: '1px solid rgba(16,24,40,0.15)',
                             borderRadius: 6,
                             background: item.quantity <= minAllowed ? '#f5f5f5' : '#fff',
@@ -379,7 +379,7 @@ export default function PanierPage({
                           onClick={() => updateQuantity(item.productId, incrementQuantity(item.quantity, qtyRules))}
                           aria-label="Augmenter"
                           style={{
-                            width: 28, height: 28,
+                            width: 44, height: 44, minWidth: 44, minHeight: 44,
                             border: '1px solid rgba(16,24,40,0.15)',
                             borderRadius: 6, background: '#fff', color: '#1a1a2e',
                             cursor: 'pointer', fontSize: '1rem', fontWeight: 700,
@@ -485,6 +485,11 @@ const breadcrumbStyle: CSSProperties = {
   fontSize: '0.8rem',
   color: 'rgba(16,24,40,0.4)',
   marginBottom: '1.5rem',
+}
+
+const crumbLinkStyle: CSSProperties = {
+  color: 'rgba(16,24,40,0.55)',
+  textDecoration: 'none',
 }
 
 const crumbActiveStyle: CSSProperties = {

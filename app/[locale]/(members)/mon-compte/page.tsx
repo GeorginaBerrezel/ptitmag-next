@@ -34,6 +34,8 @@ export default async function MonComptePage({
   return (
     <div className={`container ${styles.page}`}>
 
+      <h1 className={styles.pageTitle}>Mon compte</h1>
+
       <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
         <Link href="/" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>
           Accueil
