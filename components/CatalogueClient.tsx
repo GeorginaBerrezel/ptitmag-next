@@ -10,15 +10,10 @@ import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
-import {
-  CATEGORY_SCROLL_NAV_MAX_WIDTH_PX,
-  useCategoryScrollNav,
-  useChangeCategoryBackNav,
-} from '@/lib/catalog/category-nav'
+import { useChangeCategoryBackNav } from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import CategoryCard from './catalogue/CategoryCard'
-import CategoryPillButton from './catalogue/CategoryPillButton'
 import HorizontalScrollStrip from './catalogue/HorizontalScrollStrip'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
@@ -68,16 +63,6 @@ export default function CatalogueClient({
 
   const [globalSearchResults, setGlobalSearchResults] = useState<Product[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
-  const [isMobileViewport, setIsMobileViewport] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${CATEGORY_SCROLL_NAV_MAX_WIDTH_PX}px)`)
-    const update = () => setIsMobileViewport(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-
   useEffect(() => {
     const bump = () => setCatalogNow(Date.now())
     bump()
@@ -134,7 +119,6 @@ export default function CatalogueClient({
   const showSupplierSidebar = activeSupplierId != null && openSuppliersCount >= 2
 
   const categoryCount = activeCategories.length
-  const categoryScrollNav = useCategoryScrollNav(categoryCount, isMobileViewport)
   const changeCategoryBackNav = useChangeCategoryBackNav(categoryCount)
 
   const view: 'suppliers' | 'categories' | 'products' =
@@ -378,29 +362,6 @@ export default function CatalogueClient({
   ) {
     if (!activeSummary) return null
 
-    if (categoryScrollNav) {
-      return (
-        <HorizontalScrollStrip
-          className="catalogue-sticky-categories-wrap"
-          ariaLabel="Catégories du catalogue"
-        >
-          <div className="catalogue-sticky-categories">
-            {categories.map(({ name }) => {
-              const count = activeSummary.categories.find(c => c.name === name)?.count ?? 0
-              return (
-                <CategoryPillButton
-                  key={name}
-                  name={name}
-                  count={count}
-                  onClick={() => openCategory(name)}
-                />
-              )
-            })}
-          </div>
-        </HorizontalScrollStrip>
-      )
-    }
-
     return (
       <div className="catalogue-category-grid">
         {categories.map(({ name }) => {
@@ -528,11 +489,7 @@ export default function CatalogueClient({
             </h1>
             <p className="catalogue-page-sub" style={{ margin: 0, opacity: 0.7 }}>
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
-              {view === 'categories' && (
-                categoryScrollNav
-                  ? 'Faites défiler les catégories ou utilisez la recherche.'
-                  : 'Choisissez une catégorie pour afficher les produits.'
-              )}
+              {view === 'categories' && 'Choisissez une catégorie pour afficher les produits.'}
               {view === 'products' && activeProducts && !isSearching && (
                 `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeSummary?.supplier.name}`
               )}
@@ -749,7 +706,7 @@ export default function CatalogueClient({
               <>
                 <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem' }}>
                   {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''}
-                  {categoryScrollNav ? ' — faites défiler ou cliquez' : ' — cliquez pour voir les produits'}
+                  {' — cliquez pour voir les produits'}
                 </p>
                 {renderCategoryPicker(filteredCategories, (name, count) => {
                   if (activeProducts && activeSummary) {
