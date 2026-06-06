@@ -111,7 +111,7 @@ export default async function MonComptePage({
           <div className={styles.creditPositive}>
             <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
             <span className={styles.creditSub}>
-              Déduit automatiquement au panier ou à la clôture de votre commande.
+              Utilisable à la confirmation de commande ou à la clôture — pas de paiement en ligne.
             </span>
           </div>
         ) : (

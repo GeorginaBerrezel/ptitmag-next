@@ -181,16 +181,16 @@ export default function PanierPage({
             textDecoration: 'none',
           }}
         >
-          Voir le catalogue
+          Commander
         </Link>
       </div>
     )
   }
 
   const creditRemaining = roundChf(creditBalance - estimatedCredit)
-  const confirmLabel = payableTotal <= 0
-    ? `Confirmer ${supplierCount > 1 ? `les ${supplierCount} commandes` : 'la commande'} — rien à payer`
-    : `Confirmer ${supplierCount > 1 ? `les ${supplierCount} commandes` : 'la commande'} — CHF ${payableTotal.toFixed(2)}`
+  const confirmLabel = supplierCount > 1
+    ? `Confirmer mes ${supplierCount} commandes`
+    : 'Confirmer ma commande'
 
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 720 }}>
@@ -211,40 +211,39 @@ export default function PanierPage({
 
       <section className={styles.recapCard} aria-label="Récapitulatif du panier">
         <h2 className={styles.recapTitle}>Récapitulatif</h2>
-        <div className={styles.recapRow}>
-          <span className={styles.recapLabel}>Sous-total des produits</span>
-          <span>CHF {globalTotal.toFixed(2)}</span>
+        <div className={styles.recapTotalRow}>
+          <span className={styles.recapTotalLabel}>Valeur de la commande</span>
+          <span className={styles.recapTotalAmount}>CHF {globalTotal.toFixed(2)}</span>
         </div>
+
         {estimatedCredit > 0 && (
-          <div className={styles.recapRow}>
-            <span className={styles.recapLabel}>Avoir déduit</span>
-            <span className={styles.recapCredit}>− CHF {estimatedCredit.toFixed(2)}</span>
+          <div className={styles.recapPreview}>
+            <div className={styles.recapRow}>
+              <span className={styles.recapLabel}>Prévision — pris sur votre avoir</span>
+              <span className={styles.recapCredit}>CHF {estimatedCredit.toFixed(2)}</span>
+            </div>
+            {creditRemaining > 0 && (
+              <div className={styles.recapRow}>
+                <span className={styles.recapLabel}>Solde avoir après confirmation</span>
+                <span>CHF {creditRemaining.toFixed(2)}</span>
+              </div>
+            )}
           </div>
         )}
-        <hr className={styles.recapDivider} />
-        <div className={styles.recapTotalRow}>
-          <span className={styles.recapTotalLabel}>Total à payer</span>
-          <span className={`${styles.recapTotalAmount} ${payableTotal <= 0 ? styles.recapTotalAmountZero : ''}`}>
-            CHF {payableTotal.toFixed(2)}
-          </span>
-        </div>
-        {estimatedCredit > 0 && (
-          <p className={`${styles.recapHint} ${payableTotal > 0 ? styles.recapHintPartial : ''}`}>
-            {payableTotal <= 0 ? (
-              <>
-                <strong>Votre avoir couvre entièrement cette commande.</strong> Rien à régler à la confirmation
-                — le montant des produits (CHF {globalTotal.toFixed(2)}) sera déduit de votre avoir.
-              </>
-            ) : (
-              <>
-                Une partie de votre avoir (CHF {estimatedCredit.toFixed(2)}) sera déduite à la confirmation.
-                {creditRemaining > 0 && (
-                  <> Il vous restera CHF {creditRemaining.toFixed(2)} d&apos;avoir sur votre compte.</>
-                )}
-              </>
-            )}
-          </p>
+
+        {payableTotal > 0 && (
+          <div className={styles.recapRow}>
+            <span className={styles.recapLabel}>Complément estimé au retrait</span>
+            <span className={styles.recapComplement}>CHF {payableTotal.toFixed(2)}</span>
+          </div>
         )}
+
+        <p className={styles.recapNote}>
+          Pas de paiement en ligne — la confirmation enregistre votre commande au magasin.
+          {estimatedCredit > 0 && payableTotal <= 0 && (
+            <> L&apos;avoir sera déduit <strong>à la confirmation</strong>, pas avant.</>
+          )}
+        </p>
       </section>
 
       <p className={styles.supplierNote}>
