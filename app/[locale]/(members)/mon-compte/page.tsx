@@ -1,4 +1,4 @@
-import { getProfile, getMyOrders, getUser } from '@/lib/supabase/auth'
+import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import { Suspense } from 'react'
 import ProfileHeader from './ProfileHeader'
@@ -9,7 +9,6 @@ import MyOrdersSection from './MyOrdersSection'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
 import { formatCotisation, applyCielMarkup, canAccessCatalog, getMemberStatusDisplay, hasTerrePricing } from '@/lib/members/profile'
 import { formatCreditChf } from '@/lib/members/credit'
-import { isAdminEmail } from '@/lib/admin/access'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -19,7 +18,7 @@ export default async function MonComptePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const [profile, orders, user] = await Promise.all([getProfile(), getMyOrders(), getUser()])
+  const [profile, orders] = await Promise.all([getProfile(), getMyOrders()])
 
   const memberStatus = getMemberStatusDisplay(profile?.status)
   const hasCatalogAccess = profile ? canAccessCatalog(profile) : false
@@ -31,7 +30,6 @@ export default async function MonComptePage({
     profile?.status === 'member' ||
     (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
   const creditBalance = Number(profile?.credit_balance) || 0
-  const showAdminLink = isAdminEmail(profile?.email ?? user?.email)
 
   return (
     <div className={`container ${styles.page}`}>
@@ -108,17 +106,6 @@ export default async function MonComptePage({
             </Link>
           )}
         </div>
-
-        {showAdminLink && (
-          <div className="admin-account-card">
-            <p className="admin-account-card__text">
-              <strong>Espace admin</strong> — commandes, membres, import catalogue.
-            </p>
-            <Link href="/admin" locale={locale as 'fr' | 'en'} className="admin-account-card__btn">
-              Admin
-            </Link>
-          </div>
-        )}
 
         {creditBalance > 0 ? (
           <div className={styles.creditPositive}>
