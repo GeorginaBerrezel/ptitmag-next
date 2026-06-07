@@ -160,12 +160,12 @@ export default function PanierPage({
   if (items.length === 0) {
     return (
       <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
-        <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
-          <Link href="/" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Accueil</Link>
+        <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
+          <Link href="/" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>Accueil</Link>
           <span aria-hidden>›</span>
-          <Link href="/commandes" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Catalogue</Link>
+          <Link href="/commandes" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>Catalogue</Link>
           <span aria-hidden>›</span>
-          <span style={crumbActiveStyle}>Panier</span>
+          <span className={styles.breadcrumbCurrent} aria-current="page">Panier</span>
         </nav>
         <h1 style={{ marginBottom: '0.5rem' }}>Mon panier</h1>
         <p style={{ opacity: 0.6 }}>Votre panier est vide.</p>
@@ -196,12 +196,12 @@ export default function PanierPage({
 
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 720 }}>
-      <nav aria-label="Fil d'ariane" style={breadcrumbStyle}>
-        <Link href="/" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Accueil</Link>
+      <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
+        <Link href="/" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>Accueil</Link>
         <span aria-hidden>›</span>
-        <Link href="/commandes" locale={locale as 'fr' | 'en'} style={crumbLinkStyle}>Catalogue</Link>
+        <Link href="/commandes" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>Catalogue</Link>
         <span aria-hidden>›</span>
-        <span style={crumbActiveStyle}>Panier</span>
+        <span className={styles.breadcrumbCurrent} aria-current="page">Panier</span>
       </nav>
 
       <div className={styles.pageHead}>
@@ -449,25 +449,4 @@ export default function PanierPage({
       )}
     </div>
   )
-}
-
-import type { CSSProperties } from 'react'
-
-const breadcrumbStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.4rem',
-  fontSize: '0.8rem',
-  color: 'rgba(16,24,40,0.4)',
-  marginBottom: '1.5rem',
-}
-
-const crumbLinkStyle: CSSProperties = {
-  color: 'rgba(16,24,40,0.55)',
-  textDecoration: 'none',
-}
-
-const crumbActiveStyle: CSSProperties = {
-  color: 'rgba(16,24,40,0.75)',
-  fontWeight: 600,
 }

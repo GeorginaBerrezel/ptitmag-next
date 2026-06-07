@@ -21,6 +21,11 @@
 }
 
 .breadcrumbLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.35rem 0.2rem;
+  margin: -0.35rem -0.2rem;
   color: rgba(16, 24, 40, 0.55);
   text-decoration: none;
   font-weight: 500;
@@ -43,6 +48,9 @@
 }
 
 .breadcrumbCurrent {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: rgba(16, 24, 40, 0.8);
   font-weight: 600;
 }

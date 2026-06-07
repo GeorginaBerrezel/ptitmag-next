@@ -425,19 +425,11 @@ export default function CatalogueClient({
         <nav
           aria-label="Fil d'ariane"
           className={view === 'products' ? 'catalogue-breadcrumb catalogue-breadcrumb--mobile-hidden' : 'catalogue-breadcrumb'}
-          style={{
-          display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap',
-          fontSize: '0.8rem', color: 'rgba(16,24,40,0.4)', marginBottom: '1.25rem',
-        }}>
+        >
           <button
             type="button"
             onClick={() => { setActiveSupplierId(null); setActiveCategory(null); setSearch('') }}
-            style={{
-              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              color: activeSupplierId ? '#DC7F00' : 'rgba(16,24,40,0.75)',
-              fontWeight: activeSupplierId ? 500 : 600,
-              fontSize: 'inherit',
-            }}
+            className={`catalogue-breadcrumb-link${activeSupplierId ? ' catalogue-breadcrumb-link--ancestor' : ''}`}
           >
             Catalogue
           </button>
@@ -447,12 +439,7 @@ export default function CatalogueClient({
               <button
                 type="button"
                 onClick={() => { setActiveCategory(null); setSearch('') }}
-                style={{
-                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                  color: activeCategory ? '#DC7F00' : 'rgba(16,24,40,0.75)',
-                  fontWeight: activeCategory ? 500 : 600,
-                  fontSize: 'inherit',
-                }}
+                className={`catalogue-breadcrumb-link${activeCategory ? ' catalogue-breadcrumb-link--ancestor' : ''}`}
               >
                 {activeSummary.supplier.name}
               </button>
@@ -461,34 +448,29 @@ export default function CatalogueClient({
           {activeCategory && (
             <>
               <span aria-hidden>›</span>
-              <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>{activeCategory}</span>
+              <span className="catalogue-breadcrumb-current">{activeCategory}</span>
             </>
           )}
         </nav>
 
-        <div className={`catalogue-page-head${view === 'products' ? ' catalogue-page-head--compact' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div className={`catalogue-page-head${view === 'products' ? ' catalogue-page-head--compact' : ''}`}>
           {view !== 'suppliers' && (
             <button
               type="button"
               onClick={goBack}
               aria-label="Retour"
-              style={{
-                flexShrink: 0, marginTop: '0.15rem', width: 40, height: 40,
-                border: '1.5px solid rgba(16,24,40,0.12)', borderRadius: 10,
-                background: '#fff', cursor: 'pointer', fontSize: '1.2rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
+              className="catalogue-page-back"
             >
               ←
             </button>
           )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ marginBottom: '0.25rem' }}>
+          <div className="catalogue-page-head__text">
+            <h1>
               {view === 'suppliers' && 'Catalogue de commande'}
               {view === 'categories' && activeSummary?.supplier.name}
               {view === 'products' && activeCategory}
             </h1>
-            <p className="catalogue-page-sub" style={{ margin: 0, opacity: 0.7 }}>
+            <p className="catalogue-page-sub">
               {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
               {view === 'categories' && 'Choisissez une catégorie pour afficher les produits.'}
               {view === 'products' && activeProducts && !isSearching && (

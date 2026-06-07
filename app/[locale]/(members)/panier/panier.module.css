@@ -47,6 +47,41 @@
   border-radius: 8px;
 }
 
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: rgba(16, 24, 40, 0.4);
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumbLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.35rem 0.2rem;
+  margin: -0.35rem -0.2rem;
+  color: rgba(16, 24, 40, 0.55);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.breadcrumbLink:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.breadcrumbCurrent {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: rgba(16, 24, 40, 0.75);
+  font-weight: 600;
+}
+
 .pageHead {
   display: flex;
   justify-content: space-between;

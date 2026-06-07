@@ -930,6 +930,11 @@ time {
 
 /* Typo/lang alignée */
 .lang-switch a{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   color: var(--header-fg-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
