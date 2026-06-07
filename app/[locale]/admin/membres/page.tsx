@@ -7,6 +7,8 @@ import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
+import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
+import { orderGrossFromStored } from '@/lib/orders/order-totals-display'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,6 +16,7 @@ type RecentOrder = {
   id: string
   status: string
   total: number
+  credit_applied?: number
   created_at: string
   supplierName: string
 }
@@ -506,49 +509,53 @@ export default function AdminMembresPage({
               >
                 {/* ── Résumé cliquable ── */}
                 <summary
-                  className={accordionStyles.cardSummary}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '44px 1fr auto auto',
-                    gap: '0.5rem 0.9rem',
-                    alignItems: 'center',
-                  }}
+                  className={`${accordionStyles.cardSummary} admin-member-summary`}
                   aria-label={`Membre ${name}, afficher le détail`}
                 >
 
-                  {/* Avatar */}
-                  <div style={{
-                    width: 44, height: 44, borderRadius: '50%',
-                    background: '#e8e8e8', overflow: 'hidden', flexShrink: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.1rem', fontWeight: 700, color: '#888',
-                  }}>
+                  <div className="admin-member-summary__avatar">
                     {member.avatar_url
-                      ? <img src={member.avatar_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ? <img src={member.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : getInitial(member)
                     }
                   </div>
 
-                  {/* Info principale */}
-                  <div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'baseline', marginBottom: '0.15rem' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
+                  <div className="admin-member-summary__body">
+                    <div className="admin-member-summary__name">
+                      {name}
                       {member.username && member.full_name && (
-                        <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>@{member.username}</span>
+                        <span className="admin-member-summary__username">@{member.username}</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.78rem', opacity: 0.5, display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                      {member.email && <span>✉ {member.email}</span>}
-                      {member.phone && <span>📞 {member.phone}</span>}
-                      {location && <span>📍 {location}</span>}
+                    <div className="admin-member-contact">
+                      {member.email && (
+                        <div className="admin-member-contact__row">
+                          <span className="admin-member-contact__icon" aria-hidden>✉</span>
+                          <span>{member.email}</span>
+                        </div>
+                      )}
+                      {member.phone && (
+                        <div className="admin-member-contact__row">
+                          <span className="admin-member-contact__icon" aria-hidden>📞</span>
+                          <span>{member.phone}</span>
+                        </div>
+                      )}
+                      {location && (
+                        <div className="admin-member-contact__row">
+                          <span className="admin-member-contact__icon" aria-hidden>📍</span>
+                          <span>{location}</span>
+                        </div>
+                      )}
                       {member.created_at && (
-                        <span>Inscrit·e le {formatDate(member.created_at)}</span>
+                        <div className="admin-member-contact__row">
+                          <span className="admin-member-contact__icon" aria-hidden>📅</span>
+                          <span>Inscrit·e le {formatDate(member.created_at)}</span>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Statut + compteur commandes */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
+                  <div className="admin-member-summary__meta">
                     <span style={{
                       background: st.bg, color: st.color,
                       border: `1px solid ${st.border}33`,
@@ -557,11 +564,11 @@ export default function AdminMembresPage({
                     }}>
                       {st.label}
                     </span>
-                    <span style={{ fontSize: '0.78rem', opacity: 0.45, whiteSpace: 'nowrap' }}>
+                    <span className="admin-member-summary__stat">
                       {formatCotisation(member.cotisation_amount)}
                       {member.cotisation_active ? ' · actif' : member.cotisation_amount ? ' · inactif' : ''}
                     </span>
-                    <span style={{ fontSize: '0.78rem', opacity: 0.45, whiteSpace: 'nowrap' }}>
+                    <span className="admin-member-summary__stat">
                       {member.orderCount > 0
                         ? `${member.orderCount} cmd · CHF ${member.orderTotal.toFixed(2)}`
                         : 'Aucune commande'}
@@ -575,7 +582,9 @@ export default function AdminMembresPage({
                       </span>
                     )}
                   </div>
-                  <AccordionChevron />
+                  <span className="admin-member-summary__chevron">
+                    <AccordionChevron />
+                  </span>
                 </summary>
 
                 {/* ── Contenu déplié ── */}
@@ -748,9 +757,16 @@ export default function AdminMembresPage({
                               <span style={{ color: oSt.color, fontWeight: 600, fontSize: '0.78rem' }}>
                                 {oSt.label}
                               </span>
-                              <span style={{ fontWeight: 700, marginLeft: 'auto' }}>
-                                CHF {order.total.toFixed(2)}
-                              </span>
+                              <AdminOrderTotals
+                                total={order.total}
+                                creditApplied={order.credit_applied}
+                                grossTotal={orderGrossFromStored(order.total, order.credit_applied)}
+                                compact
+                                provisionalLabel={
+                                  order.status === 'closed' ? 'Total final' : 'Total provisoire'
+                                }
+                                finalLabel="Total final"
+                              />
                             </div>
                           )
                         })}

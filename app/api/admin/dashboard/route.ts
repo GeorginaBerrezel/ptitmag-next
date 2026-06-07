@@ -27,7 +27,7 @@ export async function GET() {
       .order('created_at', { ascending: false }),
     admin
       .from('orders')
-      .select('id, member_id, status, total, created_at, supplier:suppliers(name)')
+      .select('id, member_id, status, total, credit_applied, created_at, supplier:suppliers(name)')
       .is('archived_at', null)
       .order('created_at', { ascending: false }),
   ])
@@ -116,6 +116,7 @@ export async function GET() {
     id:           o.id,
     status:       o.status,
     total:        o.total,
+    credit_applied: o.credit_applied ?? 0,
     created_at:   o.created_at,
     memberName:   profilesMap[o.member_id as string] ?? 'Membre',
     supplierName: (o.supplier as unknown as { name: string } | null)?.name ?? 'Fournisseur',

@@ -1,6 +1,7 @@
-/** Quatre catalogues Biopartner (noms validés Joel). */
+/** Cinq catalogues Biopartner (noms validés Joel). */
 
 export type BiopartnerCatalogKey =
+  | 'fruits_legumes'
   | 'general'
   | 'emballages'
   | 'surgeles'
@@ -17,11 +18,18 @@ export type BiopartnerCatalog = {
 
 export const BIOPARTNER_CATALOGS: BiopartnerCatalog[] = [
   {
+    key: 'fruits_legumes',
+    importKey: 'biopartner_fruits_legumes',
+    name: 'Biopartner – Fruits & légumes',
+    shortLabel: 'Fruits & légumes',
+    description: 'Fruits et légumes frais — liste mise à jour chaque semaine.',
+  },
+  {
     key: 'general',
     importKey: 'biopartner_general',
     name: 'Biopartner – Général',
     shortLabel: 'Général',
-    description: 'Fruits, légumes, épicerie et assortiment principal.',
+    description: 'Épicerie et assortiment principal (hors fruits & légumes hebdo).',
   },
   {
     key: 'emballages',

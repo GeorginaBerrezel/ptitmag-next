@@ -3,6 +3,7 @@
 import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   collectExportRows,
+  collectOrderFinancialSummaries,
   computeAggregatedSummary,
   type AggregatedExportLine,
   type OrderExportInput,
@@ -14,6 +15,7 @@ import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
+import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -96,6 +98,7 @@ export default function AdminCommandesPage({
   const [updating, setUpdating]       = useState<string | null>(null)
   const [exporting, setExporting]     = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
+  const [removingAggregateKey, setRemovingAggregateKey] = useState<string | null>(null)
   const [closingOrderId, setClosingOrderId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivableCount, setArchivableCount] = useState(0)
@@ -167,6 +170,8 @@ export default function AdminCommandesPage({
     () => aggregatedSummary?.reduce((s, l) => s + l.totalAmount, 0) ?? 0,
     [aggregatedSummary],
   )
+
+  const canRemoveFromRecap = mode === 'action' || mode === 'toClose'
 
   function switchMode(next: 'action' | 'toClose' | 'closed' | 'history') {
     setMode(next)
@@ -296,16 +301,52 @@ export default function AdminCommandesPage({
     }
   }
 
+  async function cancelAggregatedLine(line: AggregatedExportLine) {
+    const refLabel = line.articleRef || line.product
+    const ok = window.confirm(
+      `Retirer « ${line.product} »${line.articleRef ? ` (réf. ${line.articleRef})` : ''} ` +
+        `de ${line.orderItemIds.length} ligne${line.orderItemIds.length > 1 ? 's' : ''} ` +
+        `dans ${line.orderItemIds.length} commande(s) ?\n\n` +
+        'Les membres concernés recevront un email avec le nouveau total.',
+    )
+    if (!ok) return
+
+    const aggregateKey = line.articleRef || line.product
+    setRemovingAggregateKey(aggregateKey)
+    try {
+      for (const orderItemId of line.orderItemIds) {
+        const res = await fetch('/api/admin/orders/cancel-item', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderItemId }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error ?? 'Erreur lors du retrait.')
+      }
+      await fetchOrders(showArchived)
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setRemovingAggregateKey(null)
+    }
+  }
+
   async function exportExcel() {
     const rows = collectExportRows(filtered as OrderExportInput[], getMemberName, formatDate)
     if (rows.length === 0) return
 
     setExporting(true)
     try {
+      const financialSummaries = collectOrderFinancialSummaries(
+        filtered as OrderExportInput[],
+        getMemberName,
+        formatDate,
+      )
       const buffer = await buildOrdersExcelBuffer({
         rows,
         supplierTypeLabels: SUPPLIER_TYPE_LABELS,
         singleSupplier: filterSupplier || undefined,
+        financialSummaries,
       })
 
       const slug = filterSupplier
@@ -692,6 +733,9 @@ export default function AdminCommandesPage({
           lines={aggregatedSummary}
           orderCount={filtered.length}
           totalAmount={aggregatedTotal}
+          canRemove={canRemoveFromRecap}
+          removingKey={removingAggregateKey}
+          onRemoveLine={line => void cancelAggregatedLine(line)}
         />
       )}
 
@@ -762,9 +806,16 @@ export default function AdminCommandesPage({
                     }}>
                       {st.label}
                     </span>
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                      CHF {order.total.toFixed(2)}
-                    </span>
+                    <AdminOrderTotals
+                      items={order.order_items}
+                      total={order.total}
+                      creditApplied={order.credit_applied}
+                      compact
+                      provisionalLabel={
+                        order.status === 'closed' ? 'Total final' : 'Total provisoire'
+                      }
+                      finalLabel="Total final"
+                    />
                   </div>
                   <AccordionChevron />
                 </summary>
@@ -846,26 +897,19 @@ export default function AdminCommandesPage({
                     })}
 
                     <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
                       paddingTop: '0.75rem',
                       marginTop: '0.25rem',
                       borderTop: '2px solid rgba(16,24,40,0.1)',
-                      gap: '0.75rem',
-                      flexWrap: 'wrap',
                     }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                        {order.status === 'closed' ? 'Total final' : 'Total provisoire'}
-                      </span>
-                      <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>
-                        CHF {order.total.toFixed(2)}
-                        {(Number(order.credit_applied) || 0) > 0 && (
-                          <span style={{ display: 'block', fontSize: '0.75rem', color: '#2e7d32', fontWeight: 600 }}>
-                            Avoir −{Number(order.credit_applied).toFixed(2)}
-                          </span>
-                        )}
-                      </span>
+                      <AdminOrderTotals
+                        items={order.order_items}
+                        total={order.total}
+                        creditApplied={order.credit_applied}
+                        provisionalLabel={
+                          order.status === 'closed' ? 'Total final' : 'Total provisoire'
+                        }
+                        finalLabel="Total final"
+                      />
                     </div>
                   </div>
 
@@ -1006,110 +1050,102 @@ export default function AdminCommandesPage({
   )
 }
 
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  fontWeight: 500,
-  paddingBottom: '0.4rem',
-}
-
-const tdStyle: React.CSSProperties = {
-  padding: '0.35rem 0',
-}
-
 function AggregatedSummaryPanel({
   supplierName,
   lines,
   orderCount,
   totalAmount,
+  canRemove,
+  removingKey,
+  onRemoveLine,
 }: {
   supplierName: string
   lines: AggregatedExportLine[]
   orderCount: number
   totalAmount: number
+  canRemove: boolean
+  removingKey: string | null
+  onRemoveLine: (line: AggregatedExportLine) => void
 }) {
   return (
-    <section style={{
-      marginBottom: '1.5rem',
-      background: '#f0f9f4',
-      border: '1.5px solid #a5d6a7',
-      borderRadius: 14,
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        padding: '1rem 1.25rem',
-        background: '#e8f5e9',
-        borderBottom: '1px solid #c3e6cb',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
+    <section className="admin-recap-panel">
+      <div className="admin-recap-panel__head">
         <div>
-          <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#2e7d32' }}>
-            Récapitulatif groupé
-          </p>
-          <h2 style={{ margin: '0.2rem 0 0', fontSize: '1.05rem', fontWeight: 700 }}>
-            {supplierName}
-          </h2>
-          <p style={{ margin: '0.25rem 0 0', fontSize: '0.82rem', opacity: 0.65 }}>
-            {orderCount} commande{orderCount > 1 ? 's' : ''} · {lines.length} produit{lines.length > 1 ? 's' : ''} — quantités additionnées
+          <p className="admin-recap-panel__kicker">Récapitulatif groupé</p>
+          <h2 className="admin-recap-panel__title">{supplierName}</h2>
+          <p className="admin-recap-panel__meta">
+            {orderCount} commande{orderCount > 1 ? 's' : ''} · {lines.length} article{lines.length > 1 ? 's' : ''} — quantités additionnées par n° d&apos;article
           </p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p className="admin-subtle" style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Total à commander
-          </p>
-          <p style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700, color: '#1a1a2e' }}>
-            CHF {totalAmount.toFixed(2)}
-          </p>
+        <div className="admin-recap-panel__total">
+          <p className="admin-subtle admin-recap-panel__total-label">Total produits</p>
+          <p className="admin-recap-panel__total-amount">CHF {totalAmount.toFixed(2)}</p>
         </div>
       </div>
 
-      <div style={{ padding: '0.75rem 1.25rem 1rem', overflowX: 'auto', background: '#fff' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', minWidth: 480 }}>
-          <caption style={{ captionSide: 'top', textAlign: 'left', padding: '0 0 0.65rem', fontWeight: 700, fontSize: '0.85rem' }}>
-            Récapitulatif des articles à commander par fournisseur
+      <div className="admin-recap-panel__body">
+        <table className="admin-recap-table">
+          <caption className="admin-recap-table__caption">
+            Récapitulatif des articles à commander — prêt à copier-coller
           </caption>
           <thead>
-            <tr style={{ color: 'rgba(16,24,40,0.62)', fontSize: '0.78rem' }}>
-              <th scope="col" style={{ ...thStyle, paddingBottom: '0.5rem' }}>N° article</th>
-              <th scope="col" style={{ ...thStyle, paddingBottom: '0.5rem' }}>Désignation</th>
-              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Qté totale</th>
-              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>P.U.</th>
-              <th scope="col" style={{ ...thStyle, textAlign: 'right', paddingBottom: '0.5rem' }}>Total</th>
+            <tr>
+              <th scope="col">N° article</th>
+              <th scope="col">Désignation</th>
+              <th scope="col" className="admin-recap-table__num">Qté totale</th>
+              <th scope="col" className="admin-recap-table__num">P.U.</th>
+              <th scope="col" className="admin-recap-table__num">Total</th>
+              {canRemove && <th scope="col" className="admin-recap-table__action">Retrait</th>}
             </tr>
           </thead>
           <tbody>
-            {lines.map(line => (
-              <tr key={`${line.articleRef}-${line.product}-${line.unitPrice}`} style={{ borderTop: '1px solid rgba(16,24,40,0.06)' }}>
-                <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.82rem', opacity: line.articleRef ? 1 : 0.35 }}>
-                  {line.articleRef || '—'}
-                </td>
-                <td style={tdStyle}>{line.product}</td>
-                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>
-                  {line.totalQty} {line.unit}
-                </td>
-                <td style={{ ...tdStyle, textAlign: 'right', opacity: 0.65 }}>
-                  CHF {line.unitPrice.toFixed(2)}
-                </td>
-                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>
-                  CHF {line.totalAmount.toFixed(2)}
-                </td>
-              </tr>
-            ))}
+            {lines.map(line => {
+              const lineKey = line.articleRef || line.product
+              const isRemoving = removingKey === lineKey
+              return (
+                <tr key={`${line.articleRef}-${line.product}`}>
+                  <td className="admin-recap-table__ref">{line.articleRef || '—'}</td>
+                  <td>{line.product}</td>
+                  <td className="admin-recap-table__num admin-recap-table__qty">
+                    {line.totalQty} {line.unit}
+                  </td>
+                  <td className="admin-recap-table__num admin-recap-table__muted">
+                    CHF {line.unitPrice.toFixed(2)}
+                  </td>
+                  <td className="admin-recap-table__num admin-recap-table__amount">
+                    CHF {line.totalAmount.toFixed(2)}
+                  </td>
+                  {canRemove && (
+                    <td className="admin-recap-table__action">
+                      <button
+                        type="button"
+                        className="admin-recap-remove"
+                        disabled={isRemoving || line.orderItemIds.length === 0}
+                        onClick={() => onRemoveLine(line)}
+                        aria-label={`Retirer ${line.product} de toutes les commandes`}
+                      >
+                        {isRemoving ? '…' : '✕ Retirer'}
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              )
+            })}
           </tbody>
           <tfoot>
-            <tr style={{ borderTop: '2px solid rgba(16,24,40,0.12)' }}>
-              <td colSpan={4} style={{ paddingTop: '0.6rem', fontWeight: 700 }}>Total fournisseur</td>
-              <td style={{ textAlign: 'right', paddingTop: '0.6rem', fontWeight: 700, fontSize: '1rem' }}>
+            <tr>
+              <td colSpan={canRemove ? 4 : 4}>Total fournisseur</td>
+              <td className="admin-recap-table__num admin-recap-table__amount">
                 CHF {totalAmount.toFixed(2)}
               </td>
+              {canRemove && <td />}
             </tr>
           </tfoot>
         </table>
-        <p style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.5 }}>
-          Même liste dans l&apos;export Excel (feuille « Commandes », bloc récap en tête). Le détail par membre reste en dessous sur cette page.
+        <p className="admin-recap-panel__hint">
+          {canRemove
+            ? 'Retirer une ligne met à jour toutes les commandes concernées (email au membre). Disponible en « À traiter » et « À clôturer » uniquement.'
+            : 'Même liste dans l\'export Excel. Retrait possible en « À traiter » ou « À clôturer ».'}
         </p>
       </div>
     </section>

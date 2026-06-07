@@ -44,28 +44,6 @@ type SupplierGroup = {
 
 const SUPPLIER_GROUPS: SupplierGroup[] = [
   {
-    label: 'Feuille hebdomadaire complète',
-    suppliers: [
-      {
-        key: 'feuille_hebdo',
-        label: 'Tous les locaux (1 fichier)',
-        type: 'local',
-        endpoint: '/api/admin/import-hebdo',
-        fileHint: 'Feuille hebdomadaire (.xlsx uniquement — plusieurs onglets)',
-        acceptsXlsx: true,
-        fileInstructions: (
-          <>
-            <strong>Un seul fichier Excel (.xlsx)</strong> pour importer tous les producteurs locaux de la semaine
-            (plusieurs onglets — le .csv ne convient pas ici).<br />
-            Onglets importés : <strong>Bioterroir, Fermette à Didi, Graines d&apos;Avenir, Brasseries d&apos;Ayent, Vins bio et nature, Truffes</strong>.<br />
-            <span style={{ opacity: 0.75 }}>Le catalogue n&apos;est plus effacé — produits absents du fichier : masquer dans Fournisseurs.</span><br />
-            <span style={{ opacity: 0.75 }}>L&apos;onglet Biopartner est ignoré (import séparé en .xlsx — section Biopartner).</span>
-          </>
-        ),
-      },
-    ],
-  },
-  {
     label: 'Fournisseurs locaux — fichier par fichier',
     suppliers: [
       {
@@ -137,7 +115,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
     ],
   },
   {
-    label: 'Biopartner — 4 catalogues',
+    label: 'Biopartner — 5 catalogues',
     suppliers: BIOPARTNER_CATALOGS.map(c => ({
       key: c.importKey,
       label: c.shortLabel,
@@ -279,25 +257,14 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
 const SUPPLIERS: SupplierOption[] = SUPPLIER_GROUPS.flatMap(g => g.suppliers)
 
 /** Prochains créneaux mercredi 18h30 / jeudi 12h00 — Joel peut modifier dans les champs. */
-function deadlineDefaultsForSelection(key: string): {
-  dateLimite: string
-  dateLimiteMercredi: string
-  dateLimiteJeudi: string
-} {
+function deadlineDefaultForSelection(key: string): string {
   const mer = toDatetimeLocalValue(nextWednesday1830())
   const jeu = toDatetimeLocalValue(nextThursday1200())
-  if (key === 'feuille_hebdo') {
-    return { dateLimite: '', dateLimiteMercredi: mer, dateLimiteJeudi: jeu }
-  }
   const s = SUPPLIERS.find(x => x.key === key)
-  if (!s) return { dateLimite: '', dateLimiteMercredi: '', dateLimiteJeudi: '' }
-  if (s.deadlineGroup === 'mercredi') {
-    return { dateLimite: mer, dateLimiteMercredi: '', dateLimiteJeudi: '' }
-  }
-  if (s.deadlineGroup === 'jeudi') {
-    return { dateLimite: jeu, dateLimiteMercredi: '', dateLimiteJeudi: '' }
-  }
-  return { dateLimite: '', dateLimiteMercredi: '', dateLimiteJeudi: '' }
+  if (!s) return ''
+  if (s.deadlineGroup === 'mercredi') return mer
+  if (s.deadlineGroup === 'jeudi') return jeu
+  return ''
 }
 
 const TYPE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
@@ -313,18 +280,14 @@ export default function ImportPage({
   const { locale } = use(params)
 
   const fileRef = useRef<HTMLInputElement>(null)
-  const [selectedKey, setSelectedKey] = useState<string>('feuille_hebdo')
+  const [selectedKey, setSelectedKey] = useState<string>('biopartner_fruits_legumes')
   const [file, setFile] = useState<File | null>(null)
-  const initDeadlines = deadlineDefaultsForSelection('feuille_hebdo')
-  const [dateLimite, setDateLimite] = useState(initDeadlines.dateLimite)
-  const [dateLimiteMercredi, setDateLimiteMercredi] = useState(initDeadlines.dateLimiteMercredi)
-  const [dateLimiteJeudi, setDateLimiteJeudi] = useState(initDeadlines.dateLimiteJeudi)
+  const [dateLimite, setDateLimite] = useState(() => deadlineDefaultForSelection('biopartner_fruits_legumes'))
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const supplier = SUPPLIERS.find(s => s.key === selectedKey)!
-  const isHebdo = selectedKey === 'feuille_hebdo'
   const isBiopartnerImport = supplier?.endpoint === '/api/admin/import-biopartner'
 
   function handleSupplierChange(key: string) {
@@ -332,18 +295,13 @@ export default function ImportPage({
     setFile(null)
     setResult(null)
     setError(null)
-    const d = deadlineDefaultsForSelection(key)
-    setDateLimite(d.dateLimite)
-    setDateLimiteMercredi(d.dateLimiteMercredi)
-    setDateLimiteJeudi(d.dateLimiteJeudi)
+    const d = deadlineDefaultForSelection(key)
+    setDateLimite(d)
     if (fileRef.current) fileRef.current.value = ''
   }
 
   function resetDeadlineFields() {
-    const d = deadlineDefaultsForSelection(selectedKey)
-    setDateLimite(d.dateLimite)
-    setDateLimiteMercredi(d.dateLimiteMercredi)
-    setDateLimiteJeudi(d.dateLimiteJeudi)
+    setDateLimite(deadlineDefaultForSelection(selectedKey))
   }
 
   async function handleImport() {
@@ -355,13 +313,7 @@ export default function ImportPage({
     const formData = new FormData()
     formData.append('file', file)
 
-    if (isHebdo) {
-      // Feuille hebdo : deux délais distincts selon le fournisseur
-      if (dateLimiteMercredi) formData.append('date_limite_mercredi', dateLimiteMercredi)
-      if (dateLimiteJeudi) formData.append('date_limite_jeudi', dateLimiteJeudi)
-    } else {
-      if (dateLimite) formData.append('date_limite_commande', dateLimite)
-    }
+    if (dateLimite) formData.append('date_limite_commande', dateLimite)
 
     // Pour les routes qui ont besoin de la clé fournisseur
     const needsSupplierKey = supplier.endpoint === '/api/admin/import-supplier'
@@ -484,7 +436,7 @@ export default function ImportPage({
       {/* Dates limites — pas pour Biopartner (délai géré dans Fournisseurs, Phase 2) */}
       {!isBiopartnerImport && (
       <div style={{ marginBottom: '1.25rem' }}>
-        {(isHebdo || supplier.deadlineGroup) && (
+        {(supplier.deadlineGroup) && (
           <p style={{ margin: '0 0 0.65rem', fontSize: '0.78rem', opacity: 0.62, lineHeight: 1.5 }}>
             Les dates sont <strong>pré-remplies</strong> selon la règle habituelle (mercredi 18h30 / jeudi 12h00 — prochain créneau à venir).
             Joel peut les modifier à tout moment.
@@ -502,59 +454,6 @@ export default function ImportPage({
             </button>
           </p>
         )}
-      {isHebdo ? (
-        /* Feuille hebdo : deux délais distincts */
-        <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{
-            background: '#fff8e6', border: '1px solid #ffe082',
-            borderRadius: 10, padding: '0.75rem 1rem',
-            fontSize: '0.82rem', color: '#7a5500', lineHeight: 1.6,
-          }}>
-            <strong>Deux délais différents</strong> selon le fournisseur :<br />
-            <span style={{ opacity: 0.8 }}>• Mercredi → Graines d&apos;Avenir + Truffes</span><br />
-            <span style={{ opacity: 0.8 }}>• Jeudi → Bioterroir, Fermette à Didi, Brasseries d&apos;Ayent, Vins</span>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '0.4rem' }}>
-              Délai mercredi <span style={{ opacity: 0.55, fontWeight: 400 }}>(Graines d&apos;Avenir + Truffes)</span>
-            </label>
-            <input
-              type="datetime-local"
-              value={dateLimiteMercredi}
-              onChange={e => setDateLimiteMercredi(e.target.value)}
-              style={{
-                width: '100%', padding: '0.65rem 0.9rem',
-                border: '1.5px solid rgba(16,24,40,0.15)', borderRadius: 8,
-                fontSize: '0.95rem', fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
-            />
-            <p style={{ margin: '0.25rem 0 0', fontSize: '0.73rem', opacity: 0.45 }}>
-              Ex : mercredi 20 mai 18h30 → <code>2026-05-20T18:30</code>
-            </p>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '0.4rem' }}>
-              Délai jeudi <span style={{ opacity: 0.55, fontWeight: 400 }}>(tous les autres fournisseurs)</span>
-            </label>
-            <input
-              type="datetime-local"
-              value={dateLimiteJeudi}
-              onChange={e => setDateLimiteJeudi(e.target.value)}
-              style={{
-                width: '100%', padding: '0.65rem 0.9rem',
-                border: '1.5px solid rgba(16,24,40,0.15)', borderRadius: 8,
-                fontSize: '0.95rem', fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
-            />
-            <p style={{ margin: '0.25rem 0 0', fontSize: '0.73rem', opacity: 0.45 }}>
-              Ex : jeudi 21 mai 12h00 → <code>2026-05-21T12:00</code>
-            </p>
-          </div>
-        </div>
-      ) : (
-        /* Fournisseur unique : un seul délai */
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
             Date limite de commande
@@ -573,7 +472,6 @@ export default function ImportPage({
             Exemple : jeudi 21 mai 12h00 → <code>2026-05-21T12:00</code>
           </p>
         </div>
-      )}
       </div>
       )}
 

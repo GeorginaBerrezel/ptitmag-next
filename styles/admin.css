@@ -586,3 +586,292 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+/* ─── Récap groupé commandes ─── */
+.admin-recap-panel {
+  margin-bottom: 1.5rem;
+  background: #f0f9f4;
+  border: 1.5px solid #a5d6a7;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.admin-recap-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: #e8f5e9;
+  border-bottom: 1px solid #c3e6cb;
+}
+
+.admin-recap-panel__kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2e7d32;
+}
+
+.admin-recap-panel__title {
+  margin: 0.2rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.admin-recap-panel__meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-recap-panel__total {
+  text-align: right;
+}
+
+.admin-recap-panel__total-label {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-recap-panel__total-amount {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.admin-recap-panel__body {
+  padding: 0.75rem 1.25rem 1rem;
+  overflow-x: auto;
+  background: #fff;
+}
+
+.admin-recap-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.admin-recap-table__caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0 0 0.65rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.admin-recap-table th,
+.admin-recap-table td {
+  padding: 0.45rem 0.35rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-recap-table thead th {
+  color: var(--admin-text-subtle);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.admin-recap-table tbody tr {
+  border-top: 1px solid rgba(16, 24, 40, 0.06);
+}
+
+.admin-recap-table__num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.admin-recap-table__ref {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+}
+
+.admin-recap-table__qty {
+  font-weight: 600;
+}
+
+.admin-recap-table__muted {
+  color: var(--admin-text-muted);
+}
+
+.admin-recap-table__amount {
+  font-weight: 700;
+}
+
+.admin-recap-table__action {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.admin-recap-table tfoot td {
+  border-top: 2px solid rgba(16, 24, 40, 0.12);
+  padding-top: 0.6rem;
+  font-weight: 700;
+}
+
+.admin-recap-remove {
+  min-height: 44px;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(192, 57, 43, 0.35);
+  border-radius: 8px;
+  background: #fff;
+  color: #c0392b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-recap-remove:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-recap-remove:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.admin-recap-panel__hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  line-height: 1.5;
+}
+
+/* ─── Totaux commande (admin) ─── */
+.admin-order-totals--compact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  text-align: right;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.admin-order-totals__gross {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--admin-text);
+}
+
+.admin-order-totals__credit {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.admin-order-totals__final {
+  color: var(--admin-text-muted);
+  font-weight: 600;
+}
+
+/* ─── Cartes membres (admin) ─── */
+.admin-member-summary {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  gap: 0.5rem 0.85rem;
+  align-items: center;
+}
+
+.admin-member-summary__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.admin-member-summary__body {
+  min-width: 0;
+}
+
+.admin-member-summary__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.admin-member-summary__username {
+  font-size: 0.8rem;
+  color: var(--admin-text-subtle);
+  margin-left: 0.35rem;
+  font-weight: 500;
+}
+
+.admin-member-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.admin-member-contact__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  line-height: 1.4;
+}
+
+.admin-member-contact__icon {
+  flex-shrink: 0;
+  width: 1.1rem;
+  text-align: center;
+}
+
+.admin-member-summary__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.admin-member-summary__stat {
+  font-size: 0.78rem;
+  color: var(--admin-text-subtle);
+  text-align: right;
+  line-height: 1.35;
+}
+
+@media (max-width: 720px) {
+  .admin-member-summary {
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-areas:
+      'avatar meta'
+      'body body';
+    align-items: start;
+  }
+
+  .admin-member-summary__avatar {
+    grid-area: avatar;
+  }
+
+  .admin-member-summary__body {
+    grid-area: body;
+  }
+
+  .admin-member-summary__meta {
+    grid-area: meta;
+    align-self: start;
+  }
+
+  .admin-member-summary__chevron {
+    display: none;
+  }
+}

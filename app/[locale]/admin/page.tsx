@@ -5,6 +5,8 @@ import { Link } from '@/i18n/navigation'
 import { MEMBER_STATUS_LABELS } from '@/lib/members/profile'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
+import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
+import { orderGrossFromStored } from '@/lib/orders/order-totals-display'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +27,7 @@ type RecentOrder = {
   id: string
   status: string
   total: number
+  credit_applied?: number
   created_at: string
   memberName: string
   supplierName: string
@@ -392,9 +395,19 @@ export default function AdminDashboardPage({
                           }}>
                             {st.label}
                           </span>
-                          <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>
-                            CHF {(order.total as number).toFixed(2)}
-                          </span>
+                          <AdminOrderTotals
+                            total={order.total as number}
+                            creditApplied={order.credit_applied}
+                            grossTotal={orderGrossFromStored(
+                              order.total as number,
+                              order.credit_applied,
+                            )}
+                            compact
+                            provisionalLabel={
+                              order.status === 'closed' ? 'Total final' : 'Total provisoire'
+                            }
+                            finalLabel="Total final"
+                          />
                         </div>
                       </div>
                     )

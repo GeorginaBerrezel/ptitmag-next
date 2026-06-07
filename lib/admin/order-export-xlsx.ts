@@ -7,6 +7,7 @@ import {
   sortSupplierNames,
   supplierTypeLabel,
   type OrderExportRow,
+  type OrderFinancialSummary,
 } from '@/lib/admin/order-export'
 
 const COL_COUNT = EXPORT_HEADERS.length
@@ -41,8 +42,9 @@ export async function buildOrdersExcelBuffer(options: {
   rows: OrderExportRow[]
   supplierTypeLabels: Record<string, string>
   singleSupplier?: string
+  financialSummaries?: OrderFinancialSummary[]
 }): Promise<ArrayBuffer> {
-  const { rows, supplierTypeLabels, singleSupplier } = options
+  const { rows, supplierTypeLabels, singleSupplier, financialSummaries = [] } = options
   const bySupplier = groupRowsBySupplier(rows)
   const supplierNames = singleSupplier
     ? [singleSupplier]
@@ -161,6 +163,36 @@ export async function buildOrdersExcelBuffer(options: {
     setMoneyFormat(detailTotalRow, [5])
     applyRowStyle(detailTotalRow, STYLE.totalFont, STYLE.totalFill)
     rowIdx += 1
+
+    const supplierFinancials = financialSummaries.filter(s => s.supplier === supplierName)
+    const hasCredit = supplierFinancials.some(s => s.creditApplied > 0)
+
+    if (hasCredit && supplierFinancials.length > 0) {
+      rowIdx += 1
+      sheet.mergeCells(rowIdx, 1, rowIdx, COL_COUNT)
+      const finTitleRow = sheet.getRow(rowIdx)
+      finTitleRow.getCell(1).value = 'Montants par commande (sous-total → avoir → total final)'
+      applyRowStyle(finTitleRow, STYLE.subtitleFont, STYLE.subtitleFill)
+      rowIdx += 1
+
+      const finHeaderRow = sheet.getRow(rowIdx)
+      const finHeaders = ['Membre', 'Date', 'Statut', 'Sous-total (CHF)', 'Avoir déduit (CHF)', 'Total final (CHF)']
+      finHeaders.forEach((h, i) => { finHeaderRow.getCell(i + 1).value = h })
+      applyRowStyle(finHeaderRow, STYLE.headerFont, STYLE.headerFill)
+      rowIdx += 1
+
+      for (const fin of supplierFinancials) {
+        const r = sheet.getRow(rowIdx)
+        r.getCell(1).value = fin.member
+        r.getCell(2).value = fin.dateLabel
+        r.getCell(3).value = fin.status
+        r.getCell(4).value = fin.grossTotal
+        r.getCell(5).value = fin.creditApplied
+        r.getCell(6).value = fin.finalTotal
+        setMoneyFormat(r, [4, 5, 6])
+        rowIdx += 1
+      }
+    }
   }
 
   if (rowIdx === 1) {

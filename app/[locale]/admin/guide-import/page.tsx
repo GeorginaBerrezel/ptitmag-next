@@ -55,16 +55,15 @@ export default async function GuideImportPage({
             </tbody>
           </table>
         </div>
-        <p className={styles.warn}>
-          <strong>Exception :</strong> la <em>feuille hebdo complète</em> (tous les locaux en un fichier) nécessite un
-          <strong> .xlsx avec plusieurs onglets</strong>. Pour le .csv, importer chaque fournisseur séparément.
+        <p className={styles.note}>
+          Chaque fournisseur local s&apos;importe avec son propre fichier en <strong>.xlsx</strong> ou <strong>.csv</strong>.
         </p>
       </section>
 
       {/* TYPE COMPLEXE */}
       <section className={styles.section}>
         <span className={`${styles.badge} ${styles.badgeBio}`}>Type complexe — Biopartner uniquement</span>
-        <h2 className={styles.sectionTitle}>Biopartner (Général, Emballages, Surgelés, Viandes)</h2>
+        <h2 className={styles.sectionTitle}>Biopartner (Fruits & légumes, Général, Emballages, Surgelés, Viandes)</h2>
         <p className={styles.sectionSub}>
           Fichier officiel Biopartner avec des dizaines de colonnes. Le site repère la ligne <code>Article</code> en
           colonne A, puis importe chaque produit. Utilisable en <strong>.xlsx</strong> ou <strong>.csv</strong>.
@@ -104,7 +103,7 @@ export default async function GuideImportPage({
       {/* TYPE SIMPLE A */}
       <section className={styles.section}>
         <span className={`${styles.badge} ${styles.badgeLocal}`}>Type simple A — format Joel (locaux)</span>
-        <h2 className={styles.sectionTitle}>Producteurs locaux &amp; feuille hebdo</h2>
+        <h2 className={styles.sectionTitle}>Producteurs locaux</h2>
         <p className={styles.sectionSub}>
           Le fichier que Joel prépare déjà : une ligne d&apos;en-tête avec <code>Produit</code>, puis nom, prix et unité.
           Fonctionne en <strong>.xlsx</strong> ou <strong>.csv</strong>.
@@ -192,9 +191,8 @@ Fromage frais;6.80;Produits laitiers;pièce;`}</pre>
               </tr>
             </thead>
             <tbody>
-              <tr><td>Biopartner (×4)</td><td><strong>Complexe</strong></td><td>✅ ✅</td></tr>
+              <tr><td>Biopartner (×5)</td><td><strong>Complexe</strong></td><td>✅ ✅</td></tr>
               <tr><td>Bioterroir, Didi, Graines d&apos;Avenir…</td><td><strong>Simple A</strong> (ou B)</td><td>✅ ✅</td></tr>
-              <tr><td>Feuille hebdo (tous locaux)</td><td>Simple A — plusieurs onglets</td><td>✅ .xlsx seul</td></tr>
               <tr><td>Cave à levain, Novoma, Dailles…</td><td>Fichier fournisseur ou <strong>Simple B</strong></td><td>✅ ✅</td></tr>
               <tr><td>Saldac, Gebana, nouveaux…</td><td><strong>Simple B</strong></td><td>✅ ✅</td></tr>
             </tbody>

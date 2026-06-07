@@ -1,18 +1,25 @@
 /** Export CSV commandes admin — tri, agrégation, format Joel / Biopartner. */
 
+import { roundChf } from '@/lib/members/credit'
+
 export type OrderExportInput = {
   status: string
   created_at: string
+  total?: number
+  credit_applied?: number | null
   member: { full_name: string | null; email: string | null; username: string | null } | null
   supplier: { name: string; type: string } | null
   order_items: Array<{
+    id?: string
     quantity: number
     unit_price: number
+    cancelled_at?: string | null
     product: { name: string; unit: string; supplier_ref: string | null } | null
   }>
 }
 
 export type OrderExportRow = {
+  orderItemId: string
   articleRef: string
   product: string
   qty: number
@@ -34,6 +41,18 @@ export type AggregatedExportLine = {
   unitPrice: number
   totalQty: number
   totalAmount: number
+  orderItemIds: string[]
+}
+
+export type OrderFinancialSummary = {
+  supplier: string
+  member: string
+  email: string
+  dateLabel: string
+  status: string
+  grossTotal: number
+  creditApplied: number
+  finalTotal: number
 }
 
 const BIOPARTNER_SUFFIX_ORDER = [
@@ -123,7 +142,12 @@ export function collectExportRows(
     const supplierType = order.supplier?.type ?? ''
 
     for (const item of order.order_items) {
+      if (item.cancelled_at) continue
+      const orderItemId = item.id?.trim()
+      if (!orderItemId) continue
+
       rows.push({
+        orderItemId,
         articleRef: item.product?.supplier_ref?.trim() ?? '',
         product: item.product?.name ?? '—',
         qty: item.quantity,
@@ -160,19 +184,28 @@ export function aggregateExportRows(rows: OrderExportRow[]): AggregatedExportLin
   const map = new Map<string, AggregatedExportLine>()
 
   for (const row of rows) {
-    const key = `${row.articleRef}\0${row.product}\0${row.unitPrice}\0${row.unit}`
+    const ref = row.articleRef.trim()
+    const key = ref ? `ref:${ref}` : `name:${row.product}\0${row.unit}`
     const existing = map.get(key)
     if (existing) {
       existing.totalQty += row.qty
-      existing.totalAmount += row.lineTotal
+      existing.totalAmount = roundChf(existing.totalAmount + row.lineTotal)
+      existing.orderItemIds.push(row.orderItemId)
+      if (existing.totalQty > 0) {
+        existing.unitPrice = roundChf(existing.totalAmount / existing.totalQty)
+      }
+      if (!existing.product && row.product) existing.product = row.product
+      if (!existing.unit && row.unit) existing.unit = row.unit
+      if (!existing.articleRef && ref) existing.articleRef = ref
     } else {
       map.set(key, {
-        articleRef: row.articleRef,
+        articleRef: ref,
         product: row.product,
         unit: row.unit,
         unitPrice: row.unitPrice,
         totalQty: row.qty,
         totalAmount: row.lineTotal,
+        orderItemIds: [row.orderItemId],
       })
     }
   }
@@ -281,4 +314,32 @@ export function computeAggregatedSummary(
 ): AggregatedExportLine[] {
   const rows = collectExportRows(orders, getMemberName, formatDate)
   return aggregateExportRows(rows)
+}
+
+export function collectOrderFinancialSummaries(
+  orders: OrderExportInput[],
+  getMemberName: (order: OrderExportInput) => string,
+  formatDate: (iso: string) => string,
+): OrderFinancialSummary[] {
+  return orders
+    .filter(o => o.status !== 'cancelled')
+    .map(order => {
+      const activeItems = order.order_items.filter(i => !i.cancelled_at)
+      const grossTotal = roundChf(
+        activeItems.reduce((s, i) => s + i.quantity * i.unit_price, 0),
+      )
+      const creditApplied = roundChf(Number(order.credit_applied) || 0)
+      const finalTotal = roundChf(Number(order.total) ?? grossTotal - creditApplied)
+
+      return {
+        supplier: order.supplier?.name ?? 'Inconnu',
+        member: getMemberName(order),
+        email: order.member?.email ?? '',
+        dateLabel: formatDate(order.created_at),
+        status: order.status,
+        grossTotal,
+        creditApplied,
+        finalTotal,
+      }
+    })
 }

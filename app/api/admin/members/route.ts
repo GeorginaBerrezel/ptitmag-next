@@ -41,7 +41,7 @@ export async function GET() {
     admin.from('profiles').select(PROFILE_SELECT).order('created_at', { ascending: false }),
     admin
       .from('orders')
-      .select('id, member_id, status, total, created_at, supplier:suppliers(name)')
+      .select('id, member_id, status, total, credit_applied, created_at, supplier:suppliers(name)')
       .order('created_at', { ascending: false }),
   ])
 
@@ -54,6 +54,7 @@ export async function GET() {
     id: string
     status: string
     total: number
+    credit_applied: number
     created_at: string
     supplierName: string
   }
@@ -83,6 +84,7 @@ export async function GET() {
         id: order.id as string,
         status: order.status as string,
         total: order.total as number,
+        credit_applied: Number(order.credit_applied) || 0,
         created_at: date,
         supplierName: (order.supplier as unknown as { name: string } | null)?.name ?? 'Fournisseur inconnu',
       })
