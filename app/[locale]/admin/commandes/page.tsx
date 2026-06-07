@@ -390,18 +390,14 @@ export default function AdminCommandesPage({
   // ── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem', maxWidth: 920 }}>
+    <div className="admin-page admin-page--medium">
 
       <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Commandes' }]} />
 
       {/* En-tête */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between',
-        alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap',
-        marginBottom: '0.35rem',
-      }}>
-        <div>
-          <h1 style={{ margin: '0 0 0.2rem' }}>
+      <div className="admin-head">
+        <div className="admin-head__main">
+          <h1>
             {mode === 'action' && 'Commandes à traiter'}
             {mode === 'toClose' && 'Commandes à clôturer'}
             {mode === 'closed' && 'Commandes clôturées'}
@@ -419,17 +415,10 @@ export default function AdminCommandesPage({
           </p>
         </div>
         <button
+          type="button"
           onClick={exportExcel}
           disabled={filtered.length === 0 || loading || exporting}
-          style={{
-            padding: '0.6rem 1.25rem',
-            background: filtered.length === 0 || loading || exporting ? '#e0e0e0' : '#1a1a2e',
-            color: filtered.length === 0 || loading || exporting ? '#999' : '#fff',
-            border: 'none', borderRadius: 8,
-            fontWeight: 600, fontSize: '0.88rem',
-            cursor: filtered.length === 0 || loading || exporting ? 'not-allowed' : 'pointer',
-            whiteSpace: 'nowrap', transition: 'background 0.2s',
-          }}
+          className="admin-btn admin-btn--primary"
         >
           {exporting ? 'Export…' : `↓ Exporter Excel${filtered.length > 0 ? ` (${filtered.length})` : ''}`}
         </button>
@@ -514,15 +503,8 @@ export default function AdminCommandesPage({
             type="button"
             onClick={() => void archiveEligibleOrders()}
             disabled={archiving || loading}
-            style={{
-              ...selectStyle,
-              cursor: archiving || loading ? 'not-allowed' : 'pointer',
-              background: '#4338ca',
-              color: '#fff',
-              borderColor: '#4338ca',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-            }}
+            className="admin-btn admin-btn--primary"
+            style={{ background: '#4338ca' }}
           >
             {archiving ? 'Archivage…' : `Archiver (${archivableCount})`}
           </button>
@@ -552,7 +534,8 @@ export default function AdminCommandesPage({
           <select
             value={reportYear}
             onChange={e => setReportYear(Number(e.target.value))}
-            style={{ ...selectStyle, minWidth: '7rem' }}
+            className="admin-field"
+            style={{ minWidth: '7rem' }}
           >
             {reportYears.map(y => (
               <option key={y} value={y}>{y}</option>
@@ -562,28 +545,15 @@ export default function AdminCommandesPage({
             type="button"
             onClick={() => void downloadAnnualReport()}
             disabled={downloadingReport}
-            style={{
-              ...selectStyle,
-              cursor: downloadingReport ? 'not-allowed' : 'pointer',
-              background: '#1a1a2e',
-              color: '#fff',
-              borderColor: '#1a1a2e',
-              fontWeight: 700,
-            }}
+            className="admin-btn admin-btn--primary"
           >
             {downloadingReport ? 'Génération…' : '↓ Bilan Excel'}
           </button>
         </div>
       )}
 
-      <div style={{
-        display: 'flex', gap: '0.6rem', flexWrap: 'wrap',
-        background: '#f8f9fa', borderRadius: 10,
-        padding: '0.65rem 1rem', marginBottom: '1.25rem',
-        border: '1px solid #e8e8e8', alignItems: 'center',
-      }}>
-        {/* Onglets À traiter / Historique */}
-        <div role="tablist" aria-label="Filtrer les commandes admin" style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
+      <div className="admin-toolbar">
+        <div className="admin-tabs" role="tablist" aria-label="Filtrer les commandes admin">
           {([
             { key: 'action',  label: `À traiter${stats.confirmed ? ` (${stats.confirmed})` : ''}` },
             { key: 'toClose', label: `À clôturer${stats.toClose ? ` (${stats.toClose})` : ''}` },
@@ -596,17 +566,7 @@ export default function AdminCommandesPage({
               role="tab"
               aria-selected={mode === tab.key}
               onClick={() => switchMode(tab.key)}
-              style={{
-                padding: '0.55rem 0.9rem',
-                minHeight: 44,
-                border: 'none',
-                background: mode === tab.key ? '#1a1a2e' : '#fff',
-                color: mode === tab.key ? '#fff' : '#555',
-                fontWeight: mode === tab.key ? 700 : 400,
-                fontSize: '0.82rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
+              className={`admin-tabs__btn${mode === tab.key ? ' admin-tabs__btn--active' : ''}`}
             >
               {tab.label}
             </button>
@@ -620,7 +580,7 @@ export default function AdminCommandesPage({
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
               aria-label="Filtrer par statut de commande"
-              style={selectStyle}
+              className="admin-field"
             >
               <option value="">Tous les statuts</option>
               <option value="confirmed">Confirmées</option>
@@ -633,17 +593,10 @@ export default function AdminCommandesPage({
               type="date"
               value={filterDate}
               onChange={e => setFilterDate(e.target.value)}
-              style={{ ...selectStyle, fontFamily: 'inherit' }}
+              className="admin-field"
             />
 
-            <label style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}>
+            <label className="admin-check">
               <input
                 type="checkbox"
                 checked={showArchived}
@@ -658,11 +611,11 @@ export default function AdminCommandesPage({
         <select
           value={filterSupplier}
           onChange={e => setFilterSupplier(e.target.value)}
+          className="admin-field"
           style={{
-            ...selectStyle,
             fontWeight: filterSupplier ? 700 : 400,
-            borderColor: filterSupplier ? '#2e7d32' : '#ddd',
-            background: filterSupplier ? '#f0f9f4' : '#fff',
+            borderColor: filterSupplier ? '#2e7d32' : undefined,
+            background: filterSupplier ? '#f0f9f4' : undefined,
             minWidth: '12rem',
           }}
         >
@@ -673,8 +626,9 @@ export default function AdminCommandesPage({
         {/* Bouton réinitialiser filtres */}
         {hasFilters && mode === 'history' && (
           <button
+            type="button"
             onClick={() => { setFilterStatus(''); setFilterSupplier(''); setFilterDate('') }}
-            style={{ ...selectStyle, background: '#fff', color: '#c0392b', border: '1px solid #ddd', cursor: 'pointer' }}
+            className="admin-btn admin-btn--danger-outline"
           >
             ✕ Réinitialiser
           </button>
@@ -722,8 +676,9 @@ export default function AdminCommandesPage({
           </p>
           {(mode === 'action' || mode === 'toClose' || mode === 'closed') && (
             <button
+              type="button"
               onClick={() => switchMode('history')}
-              style={{ ...selectStyle, cursor: 'pointer', color: '#1a1a2e', borderColor: '#1a1a2e' }}
+              className="admin-btn admin-btn--primary"
             >
               Voir l&apos;historique complet
             </button>
@@ -1049,17 +1004,6 @@ export default function AdminCommandesPage({
       )}
     </div>
   )
-}
-
-// ─── Styles réutilisables ────────────────────────────────────────────────────
-
-const selectStyle: React.CSSProperties = {
-  padding: '0.45rem 0.75rem',
-  borderRadius: 8,
-  border: '1px solid #ddd',
-  fontSize: '0.875rem',
-  background: '#fff',
-  cursor: 'pointer',
 }
 
 const thStyle: React.CSSProperties = {

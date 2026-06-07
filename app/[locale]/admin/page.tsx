@@ -182,7 +182,7 @@ export default function AdminDashboardPage({
   }, [])
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem', maxWidth: 960 }}>
+    <div className="admin-page">
 
       <AdminBreadcrumb items={[{ label: 'Tableau de bord' }]} />
 
@@ -197,7 +197,7 @@ export default function AdminDashboardPage({
       )}
 
       {error && (
-        <div style={{ background: '#fdecea', border: '1px solid #f5c6c6', borderRadius: 10, padding: '1rem', color: '#c0392b' }}>
+        <div className="admin-alert admin-alert--error">
           {error}
         </div>
       )}

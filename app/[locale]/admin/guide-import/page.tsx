@@ -10,7 +10,7 @@ export default async function GuideImportPage({
   const { locale } = await params
 
   return (
-    <div className={`container ${styles.page}`}>
+    <div className={`admin-page ${styles.page}`}>
       <AdminBreadcrumb items={[
         { label: 'Admin', href: '/admin' },
         { label: 'Import catalogue', href: '/admin/import' },

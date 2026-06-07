@@ -46,20 +46,8 @@ export default async function AdminLayout({
   const pendingCount = (pendingNonMembre ?? 0) + (pendingTrial ?? 0)
 
   return (
-    // Le margin-top négatif annule le padding-top: 1rem de la règle globale "main",
-    // pour que la barre admin soit collée au header fixe sans espace parasite.
-    <div style={{ marginTop: 'calc(-1 * 1rem)', maxWidth: '100%', overflowX: 'clip' }}>
-      {/* Barre de navigation admin — sticky juste sous le header du site */}
-      <div style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 80,
-        background: '#0f1729',
-        color: '#fff',
-        height: 44,
-        display: 'flex',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-      }}>
+    <div className="admin-shell" style={{ marginTop: 'calc(-1 * 1rem)', maxWidth: '100%', overflowX: 'clip' }}>
+      <div className="admin-bar">
         <AdminNav locale={locale} confirmedCount={confirmedCount ?? 0} pendingCount={pendingCount ?? 0} />
       </div>
 

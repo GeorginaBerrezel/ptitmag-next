@@ -382,7 +382,7 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
   const inactiveCount = suppliers.filter(s => !s.active).length
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 780 }}>
+    <div className="admin-page admin-page--narrow">
 
       <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Fournisseurs' }]} />
 

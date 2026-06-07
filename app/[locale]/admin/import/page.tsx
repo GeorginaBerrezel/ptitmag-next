@@ -391,7 +391,7 @@ export default function ImportPage({
   const badge = TYPE_BADGE[supplier.type]
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 660 }}>
+    <div className="admin-page admin-page--compact">
 
       <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Import catalogue' }]} />
 

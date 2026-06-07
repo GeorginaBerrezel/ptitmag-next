@@ -301,7 +301,7 @@ export default function AdminMembresPage({
   // ── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem', maxWidth: 960 }}>
+    <div className="admin-page">
 
       <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Membres' }]} />
 

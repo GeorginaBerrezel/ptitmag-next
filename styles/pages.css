@@ -581,23 +581,6 @@
   }
 }
 
-/* Admin : nav horizontale scrollable sur mobile (évite le scroll de toute la page) */
-@media (max-width: 900px) {
-  .admin-nav {
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.35) transparent;
-    padding-bottom: 2px;
-  }
-
-  .admin-nav::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 .contact-hours-time {
   color: rgba(16, 24, 40, 0.62);
   font-size: 0.85rem;
