@@ -768,10 +768,19 @@
   font-weight: 600;
 }
 
+.admin-order-totals__provisional {
+  font-size: 0.68rem;
+  color: var(--admin-text-subtle);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .admin-order-totals__final {
   color: var(--admin-text-muted);
   font-weight: 600;
 }
+
 
 /* ─── Cartes membres (admin) ─── */
 .admin-member-summary {

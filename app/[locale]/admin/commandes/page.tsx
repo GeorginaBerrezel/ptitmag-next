@@ -810,11 +810,8 @@ export default function AdminCommandesPage({
                       items={order.order_items}
                       total={order.total}
                       creditApplied={order.credit_applied}
+                      status={order.status}
                       compact
-                      provisionalLabel={
-                        order.status === 'closed' ? 'Total final' : 'Total provisoire'
-                      }
-                      finalLabel="Total final"
                     />
                   </div>
                   <AccordionChevron />
@@ -905,10 +902,7 @@ export default function AdminCommandesPage({
                         items={order.order_items}
                         total={order.total}
                         creditApplied={order.credit_applied}
-                        provisionalLabel={
-                          order.status === 'closed' ? 'Total final' : 'Total provisoire'
-                        }
-                        finalLabel="Total final"
+                        status={order.status}
                       />
                     </div>
                   </div>

@@ -6,6 +6,7 @@ import type { OrderWithItems } from '@/lib/supabase/auth'
 import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import { InlineStatus } from '@/components/ui/InlineStatus'
+import { orderDisplayAmount } from '@/lib/orders/order-gross'
 import styles from './my-orders.module.css'
 
 const PAGE_SIZE = 15
@@ -67,9 +68,11 @@ function tabActiveClass(tab: TabId, current: TabId): string {
 export default function MyOrdersSection({
   orders,
   hasCatalogAccess,
+  creditBalance = 0,
 }: {
   orders: OrderWithItems[]
   hasCatalogAccess: boolean
+  creditBalance?: number
 }) {
   const [tab, setTab] = useState<TabId>('confirmed')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
@@ -104,7 +107,10 @@ export default function MyOrdersSection({
   const currentMonthKey = monthKey(new Date().toISOString())
   const confirmedCount = confirmedOrders.length
   const deliveredCount = deliveredOrders.length
-  const activeTotal = [...confirmedOrders, ...deliveredOrders].reduce((s, o) => s + o.total, 0)
+  const activeTotal = [...confirmedOrders, ...deliveredOrders].reduce(
+    (s, o) => s + orderDisplayAmount(o.status, o.total, o.order_items),
+    0,
+  )
 
   function switchTab(next: TabId) {
     setTab(next)
@@ -274,7 +280,13 @@ export default function MyOrdersSection({
                 </span>
                 <span className={styles.monthMeta}>
                   {monthOrders.length} commande{monthOrders.length !== 1 ? 's' : ''}
-                  {' · '}CHF {monthOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}
+                  {' · '}CHF {monthOrders.reduce(
+                    (s, o) => s + orderDisplayAmount(o.status, o.total, o.order_items),
+                    0,
+                  ).toFixed(2)}
+                  {(tab === 'confirmed' || tab === 'delivered') && (
+                    <span className={styles.totalProvisional}> (produits)</span>
+                  )}
                 </span>
               </summary>
 
@@ -282,6 +294,8 @@ export default function MyOrdersSection({
                 {monthOrders.map(order => {
                   const st = ORDER_STATUS[order.status] ?? ORDER_STATUS.draft
                   const supplierName = order.supplier?.name ?? 'Fournisseur inconnu'
+                  const displayAmount = orderDisplayAmount(order.status, order.total, order.order_items)
+                  const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
                   return (
                     <details key={order.id} className={styles.order}>
                       <summary
@@ -310,14 +324,9 @@ export default function MyOrdersSection({
                             </span>
                           </div>
                           <span className={styles.total}>
-                            CHF {order.total.toFixed(2)}
-                            {order.status !== 'closed' && order.status !== 'cancelled' && (
-                              <span className={styles.totalProvisional}> (provisoire)</span>
-                            )}
-                            {(Number(order.credit_applied) || 0) > 0 && order.status === 'closed' && (
-                              <span className={styles.creditHint}>
-                                Avoir −{(Number(order.credit_applied)).toFixed(2)} CHF
-                              </span>
+                            CHF {displayAmount.toFixed(2)}
+                            {isProvisional && (
+                              <span className={styles.totalProvisional}> (produits)</span>
                             )}
                           </span>
                         </div>
@@ -327,6 +336,7 @@ export default function MyOrdersSection({
                       <MemberOrderDetail
                         order={order}
                         hasCatalogAccess={hasCatalogAccess}
+                        creditBalance={creditBalance}
                       />
                     </details>
                   )

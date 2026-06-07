@@ -12,8 +12,9 @@ type Props = {
   total: number
   creditApplied?: number | null
   grossTotal?: number
+  /** confirmed | delivered → produits seuls ; closed → avoir déduit */
+  status?: string
   compact?: boolean
-  provisionalLabel?: string
   finalLabel?: string
 }
 
@@ -22,14 +23,37 @@ export default function AdminOrderTotals({
   total,
   creditApplied,
   grossTotal,
+  status,
   compact = false,
-  provisionalLabel = 'Total provisoire',
   finalLabel = 'Total final',
 }: Props) {
   const gross = grossTotal ?? orderGrossTotal(items)
+  const isClosed = status === 'closed'
   const credit = orderCreditApplied(creditApplied)
-  const showBreakdown = credit > 0
-  const isProvisional = provisionalLabel.includes('provisoire')
+  const showBreakdown = isClosed && credit > 0
+
+  if (!isClosed) {
+    if (compact) {
+      return (
+        <div className="admin-order-totals admin-order-totals--compact">
+          <span className="admin-order-totals__gross">CHF {gross.toFixed(2)}</span>
+          <span className="admin-order-totals__provisional">produits</span>
+        </div>
+      )
+    }
+    return (
+      <div className={lineStyles.totalsBlock}>
+        <p className={lineStyles.totalsLabel}>Récapitulatif</p>
+        <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
+          <span className={lineStyles.totalsFinalLabel}>Total produits</span>
+          <span className={lineStyles.totalsFinalAmount}>CHF {gross.toFixed(2)}</span>
+        </div>
+        <p className={lineStyles.totalsHint}>
+          Avoir déduit à la <strong>clôture</strong> uniquement.
+        </p>
+      </div>
+    )
+  }
 
   if (compact && showBreakdown) {
     return (
@@ -57,13 +81,11 @@ export default function AdminOrderTotals({
         <span>CHF {gross.toFixed(2)}</span>
       </div>
       <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowCredit}`}>
-        <span>{isProvisional ? 'Avoir déduit' : 'Déduction avoir'}</span>
+        <span>Déduction avoir</span>
         <span>− CHF {credit.toFixed(2)}</span>
       </div>
       <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
-        <span className={lineStyles.totalsFinalLabel}>
-          {isProvisional ? provisionalLabel : finalLabel}
-        </span>
+        <span className={lineStyles.totalsFinalLabel}>{finalLabel}</span>
         <span className={lineStyles.totalsFinalAmount}>CHF {total.toFixed(2)}</span>
       </div>
     </div>

@@ -60,7 +60,7 @@ export async function closeOrder(
 
   const grossTotal = grossTotalFromItems(active)
   const memberId = order.member_id as string
-  let creditApplied = roundChf(Number(order.credit_applied) || 0)
+  const storedCredit = roundChf(Number(order.credit_applied) || 0)
 
   const { data: profile, error: profErr } = await admin
     .from('profiles')
@@ -72,20 +72,30 @@ export async function closeOrder(
     throw new Error('Profil membre introuvable.')
   }
 
-  // Avoir déjà déduit au panier → on conserve. Sinon on applique le solde à la clôture.
-  if (creditApplied === 0) {
-    const balance = roundChf(Number(profile.credit_balance) || 0)
-    if (balance > 0 && grossTotal > 0) {
-      creditApplied = roundChf(Math.min(balance, grossTotal))
-      if (creditApplied > 0) {
-        const newBalance = roundChf(balance - creditApplied)
-        const { error: creditErr } = await admin
-          .from('profiles')
-          .update({ credit_balance: newBalance })
-          .eq('id', memberId)
+  let balance = roundChf(Number(profile.credit_balance) || 0)
+  let creditApplied: number
 
-        if (creditErr) throw new Error(`Erreur avoir : ${creditErr.message}`)
-      }
+  if (storedCredit > 0) {
+    // Anciennes commandes : avoir déjà déduit à la confirmation — ajuster si le panier a diminué
+    creditApplied = roundChf(Math.min(storedCredit, grossTotal))
+    const excess = roundChf(storedCredit - creditApplied)
+    if (excess > 0) {
+      balance = roundChf(balance + excess)
+      const { error: creditErr } = await admin
+        .from('profiles')
+        .update({ credit_balance: balance })
+        .eq('id', memberId)
+      if (creditErr) throw new Error(`Erreur avoir : ${creditErr.message}`)
+    }
+  } else {
+    creditApplied = roundChf(Math.min(balance, grossTotal))
+    if (creditApplied > 0) {
+      balance = roundChf(balance - creditApplied)
+      const { error: creditErr } = await admin
+        .from('profiles')
+        .update({ credit_balance: balance })
+        .eq('id', memberId)
+      if (creditErr) throw new Error(`Erreur avoir : ${creditErr.message}`)
     }
   }
 

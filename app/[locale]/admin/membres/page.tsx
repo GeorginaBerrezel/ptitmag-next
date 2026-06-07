@@ -761,11 +761,8 @@ export default function AdminMembresPage({
                                 total={order.total}
                                 creditApplied={order.credit_applied}
                                 grossTotal={orderGrossFromStored(order.total, order.credit_applied)}
+                                status={order.status}
                                 compact
-                                provisionalLabel={
-                                  order.status === 'closed' ? 'Total final' : 'Total provisoire'
-                                }
-                                finalLabel="Total final"
                               />
                             </div>
                           )

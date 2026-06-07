@@ -2,6 +2,8 @@
 
 import { Link } from '@/i18n/navigation'
 import type { OrderWithItems } from '@/lib/supabase/auth'
+import { previewCreditAtClose } from '@/lib/members/credit'
+import { grossTotalFromOrderItems } from '@/lib/orders/order-gross'
 import lineStyles from './order-lines.module.css'
 
 const STATUS_HINT: Record<string, { className: string; text: string } | null> = {
@@ -23,21 +25,22 @@ const STATUS_HINT: Record<string, { className: string; text: string } | null> = 
 type Props = {
   order: OrderWithItems
   hasCatalogAccess: boolean
+  creditBalance?: number
 }
 
 function activeItems(order: OrderWithItems) {
   return order.order_items.filter(i => !i.cancelled_at)
 }
 
-export default function MemberOrderDetail({ order, hasCatalogAccess }: Props) {
+export default function MemberOrderDetail({ order, hasCatalogAccess, creditBalance = 0 }: Props) {
   const hint = STATUS_HINT[order.status]
   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
   const credit = Number(order.credit_applied) || 0
   const items = activeItems(order)
-  const grossTotal = Math.round(
-    items.reduce((s, i) => s + i.quantity * i.unit_price, 0) * 100,
-  ) / 100
-  const showCreditBreakdown = credit > 0
+  const grossTotal = grossTotalFromOrderItems(items)
+  const preview = isProvisional && creditBalance > 0
+    ? previewCreditAtClose(grossTotal, creditBalance)
+    : null
 
   return (
     <div className={lineStyles.orderDetail}>
@@ -74,33 +77,53 @@ export default function MemberOrderDetail({ order, hasCatalogAccess }: Props) {
       <div className={lineStyles.detailFooter}>
         <div className={lineStyles.totalsBlock}>
           <p className={lineStyles.totalsLabel}>Récapitulatif</p>
-          {showCreditBreakdown ? (
+          {isProvisional ? (
+            <>
+              <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
+                <span className={lineStyles.totalsFinalLabel}>Total produits</span>
+                <span className={lineStyles.totalsFinalAmount}>CHF {grossTotal.toFixed(2)}</span>
+              </div>
+              {preview && preview.applied > 0 && (
+                <>
+                  <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowMuted}`}>
+                    <span>Avoir sur votre compte</span>
+                    <span>CHF {creditBalance.toFixed(2)}</span>
+                  </div>
+                  <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowCredit}`}>
+                    <span>Avoir restant après clôture (estimation)</span>
+                    <span>CHF {preview.remaining.toFixed(2)}</span>
+                  </div>
+                  {preview.payable > 0 && (
+                    <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowMuted}`}>
+                      <span>À payer au retrait (estimation)</span>
+                      <span>CHF {preview.payable.toFixed(2)}</span>
+                    </div>
+                  )}
+                </>
+              )}
+              <p className={lineStyles.totalsHint}>
+                Votre avoir sera déduit du solde <strong>à la clôture</strong> de la commande
+                (montant définitif après livraison, retraits ou ajouts sur place).
+              </p>
+            </>
+          ) : credit > 0 ? (
             <>
               <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowMuted}`}>
                 <span>Sous-total produits</span>
                 <span>CHF {grossTotal.toFixed(2)}</span>
               </div>
               <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowCredit}`}>
-                <span>{isProvisional ? 'Avoir prévu' : 'Avoir déduit'}</span>
+                <span>Avoir déduit</span>
                 <span>− CHF {credit.toFixed(2)}</span>
               </div>
               <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
-                <span className={lineStyles.totalsFinalLabel}>
-                  {isProvisional ? 'Total provisoire' : 'Total à payer'}
-                </span>
+                <span className={lineStyles.totalsFinalLabel}>Total à payer</span>
                 <span className={lineStyles.totalsFinalAmount}>CHF {order.total.toFixed(2)}</span>
               </div>
-              {isProvisional && (
-                <p className={lineStyles.totalsHint}>
-                  Le montant définitif sera recalculé à la clôture (ajouts sur place, retraits éventuels).
-                </p>
-              )}
             </>
           ) : (
             <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
-              <span className={lineStyles.totalsFinalLabel}>
-                {isProvisional ? 'Total provisoire' : 'Total final'}
-              </span>
+              <span className={lineStyles.totalsFinalLabel}>Total final</span>
               <span className={lineStyles.totalsFinalAmount}>
                 CHF {order.total.toFixed(2)}
               </span>

@@ -1,4 +1,4 @@
-/** Avoir membre (CHF) — solde admin, déduction à la commande. */
+/** Avoir membre (CHF) — solde admin, déduction à la clôture de commande. */
 
 export function roundChf(amount: number): number {
   return Math.round(amount * 100) / 100
@@ -28,4 +28,12 @@ export function allocateCreditAcrossTotals(
 
 export function formatCreditChf(amount: number): string {
   return `CHF ${roundChf(amount).toFixed(2)}`
+}
+
+/** Estimation avant clôture : combien d'avoir sera utilisé et ce qu'il restera. */
+export function previewCreditAtClose(grossTotal: number, creditBalance: number) {
+  const applied = roundChf(Math.min(Math.max(0, grossTotal), Math.max(0, creditBalance)))
+  const remaining = roundChf(Math.max(0, creditBalance - applied))
+  const payable = roundChf(Math.max(0, grossTotal - applied))
+  return { applied, remaining, payable }
 }

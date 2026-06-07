@@ -5,7 +5,7 @@ import type { CartItem } from '@/lib/cart/CartContext'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 import { applyCielMarkup, canAccessCatalog } from '@/lib/members/profile'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
-import { allocateCreditAcrossTotals, roundChf } from '@/lib/members/credit'
+import { roundChf } from '@/lib/members/credit'
 import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
 import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
 
@@ -101,21 +101,13 @@ export async function POST(request: NextRequest) {
     prepared.push({ supplierId, supplierItems, normalizedItems, grossTotal })
   }
 
-  const creditAllocations = allocateCreditAcrossTotals(
-    prepared.map(p => p.grossTotal),
-    creditAvailable,
-  )
-  const totalCreditUsed = roundChf(creditAllocations.reduce((s, c) => s + c, 0))
-
   const admin = createAdminClient()
   const createdOrders: string[] = []
   const emailGroups: OrderEmailGroup[] = []
 
   try {
-    for (let i = 0; i < prepared.length; i++) {
-      const { supplierId, supplierItems, normalizedItems, grossTotal } = prepared[i]
-      const creditApplied = creditAllocations[i] ?? 0
-      const total = roundChf(grossTotal - creditApplied)
+    for (const { supplierId, supplierItems, normalizedItems, grossTotal } of prepared) {
+      const total = grossTotal
 
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -124,7 +116,7 @@ export async function POST(request: NextRequest) {
           supplier_id: supplierId,
           status: 'confirmed',
           total,
-          credit_applied: creditApplied,
+          credit_applied: 0,
         })
         .select('id')
         .single()
@@ -160,22 +152,9 @@ export async function POST(request: NextRequest) {
           unit: item.unit,
           unitPrice: item.unitPrice,
         })),
-        total,
-        creditApplied: creditApplied > 0 ? creditApplied : undefined,
-        grossTotal: creditApplied > 0 ? grossTotal : undefined,
+        total: grossTotal,
+        grossTotal,
       })
-    }
-
-    if (totalCreditUsed > 0) {
-      const newBalance = roundChf(creditAvailable - totalCreditUsed)
-      const { error: creditErr } = await admin
-        .from('profiles')
-        .update({ credit_balance: newBalance })
-        .eq('id', user.id)
-
-      if (creditErr) {
-        throw new Error(`Erreur lors de la mise à jour de l'avoir : ${creditErr.message}`)
-      }
     }
   } catch (err) {
     if (createdOrders.length > 0) {
@@ -194,7 +173,7 @@ export async function POST(request: NextRequest) {
       memberName,
       orders: emailGroups,
       globalTotal,
-      creditUsed: totalCreditUsed > 0 ? totalCreditUsed : undefined,
+      creditPending: creditAvailable > 0,
     })
   } catch (err) {
     console.error('[email] Échec envoi confirmation commande :', err)
@@ -203,9 +182,8 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     orders: createdOrders,
-    creditUsed: totalCreditUsed,
     message: `${createdOrders.length} commande${createdOrders.length > 1 ? 's' : ''} créée${createdOrders.length > 1 ? 's' : ''} avec succès.${
-      totalCreditUsed > 0 ? ` Avoir appliqué : CHF ${totalCreditUsed.toFixed(2)}.` : ''
+      creditAvailable > 0 ? ' Votre avoir sera déduit à la clôture de chaque commande.' : ''
     }`,
   })
 }

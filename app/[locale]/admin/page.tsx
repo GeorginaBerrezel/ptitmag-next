@@ -402,11 +402,8 @@ export default function AdminDashboardPage({
                               order.total as number,
                               order.credit_applied,
                             )}
+                            status={order.status as string}
                             compact
-                            provisionalLabel={
-                              order.status === 'closed' ? 'Total final' : 'Total provisoire'
-                            }
-                            finalLabel="Total final"
                           />
                         </div>
                       </div>

@@ -124,7 +124,7 @@ export default async function MonComptePage({
           <div className={styles.creditPositive}>
             <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
             <span className={styles.creditSub}>
-              Utilisable à la confirmation de commande ou à la clôture — pas de paiement en ligne.
+              Déduit à la <strong>clôture</strong> de chaque commande — pas de paiement en ligne.
             </span>
           </div>
         ) : (
@@ -137,7 +137,11 @@ export default async function MonComptePage({
         )}
 
         {/* ── Mes commandes ── */}
-        <MyOrdersSection orders={orders} hasCatalogAccess={hasCatalogAccess} />
+        <MyOrdersSection
+          orders={orders}
+          hasCatalogAccess={hasCatalogAccess}
+          creditBalance={creditBalance}
+        />
 
         <AccountSessionSection locale={locale} />
 

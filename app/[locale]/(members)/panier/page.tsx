@@ -9,7 +9,7 @@ import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import CielPriceHint from '@/components/catalog/CielPriceHint'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
-import { allocateCreditAcrossTotals, roundChf } from '@/lib/members/credit'
+import { previewCreditAtClose, roundChf } from '@/lib/members/credit'
 import {
   decrementQuantity,
   getMinAllowedQuantity,
@@ -88,18 +88,10 @@ export default function PanierPage({
 
   const supplierCount = Object.keys(bySupplier).length
 
-  const supplierSubtotals = Object.values(bySupplier).map(supplierItems =>
-    roundChf(
-      supplierItems.reduce(
-        (sum, i) => sum + i.quantity * getEffectiveUnitPrice(i, { applyCielMarkup }),
-        0,
-      ),
-    ),
-  )
-  const estimatedCredit = roundChf(
-    allocateCreditAcrossTotals(supplierSubtotals, creditBalance).reduce((s, c) => s + c, 0),
-  )
-  const payableTotal = roundChf(globalTotal - estimatedCredit)
+  const creditPreview = previewCreditAtClose(globalTotal, creditBalance)
+  const estimatedCredit = creditPreview.applied
+  const creditRemaining = creditPreview.remaining
+  const payableTotal = creditPreview.payable
 
   async function handleConfirm() {
     setLoading(true)
@@ -189,7 +181,6 @@ export default function PanierPage({
     )
   }
 
-  const creditRemaining = roundChf(creditBalance - estimatedCredit)
   const confirmLabel = supplierCount > 1
     ? `Confirmer mes ${supplierCount} commandes`
     : 'Confirmer ma commande'
@@ -218,39 +209,32 @@ export default function PanierPage({
           <span className={styles.recapTotalAmount}>CHF {globalTotal.toFixed(2)}</span>
         </div>
 
-        {estimatedCredit > 0 && (
+        {creditBalance > 0 && (
           <div className={styles.recapPreview}>
             <div className={styles.recapRow}>
-              <span className={styles.recapLabel}>Avoir prévu sur cette commande</span>
-              <span className={styles.recapCredit}>− CHF {estimatedCredit.toFixed(2)}</span>
+              <span className={styles.recapLabel}>Avoir sur votre compte</span>
+              <span>CHF {creditBalance.toFixed(2)}</span>
             </div>
-            {creditRemaining > 0 && (
+            {estimatedCredit > 0 && (
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Solde avoir restant après confirmation</span>
-                <span>CHF {creditRemaining.toFixed(2)}</span>
+                <span className={styles.recapLabel}>Avoir restant après clôture (estimation)</span>
+                <span className={styles.recapCredit}>CHF {creditRemaining.toFixed(2)}</span>
               </div>
             )}
           </div>
         )}
 
-        {estimatedCredit > 0 && (
+        {payableTotal > 0 && (
           <div className={`${styles.recapRow} ${styles.recapRowFinal}`}>
-            <span className={styles.recapLabel}>Total après avoir (estimation)</span>
-            <span className={styles.recapComplement}>CHF {Math.max(0, payableTotal).toFixed(2)}</span>
-          </div>
-        )}
-
-        {estimatedCredit <= 0 && payableTotal > 0 && (
-          <div className={styles.recapRow}>
-            <span className={styles.recapLabel}>Total à payer au retrait</span>
+            <span className={styles.recapLabel}>À payer au retrait (estimation)</span>
             <span className={styles.recapComplement}>CHF {payableTotal.toFixed(2)}</span>
           </div>
         )}
 
         <p className={styles.recapNote}>
           Pas de paiement en ligne — la confirmation enregistre votre commande au magasin.
-          {estimatedCredit > 0 && (
-            <> L&apos;avoir est déduit <strong>à la confirmation</strong> ; le montant définitif est fixé à la clôture de la commande.</>
+          {creditBalance > 0 && (
+            <> Votre avoir sera déduit du solde <strong>à la clôture</strong> de chaque commande (montant définitif après livraison).</>
           )}
         </p>
       </section>
