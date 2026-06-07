@@ -26,6 +26,38 @@
   outline-offset: 3px;
 }
 
+.avatarPickerDisabled {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.actionDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+  cursor: wait;
+}
+
+.savingStatus {
+  color: #b35c00;
+}
+
+.cancelBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .editPhotoBadge {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .avatarPicker:hover .editPhotoBadge,
+  .avatarPicker:focus-within .editPhotoBadge {
+    opacity: 1;
+  }
+}
+
 .hiddenFileInput {
   position: absolute;
   width: 1px;
@@ -54,6 +86,67 @@
   justify-content: center;
   font-weight: 700;
   pointer-events: none;
+  z-index: 1;
+}
+
+.photoActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+}
+
+.changePhotoLink {
+  color: #b35c00;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.changePhotoLink:hover {
+  color: #dc7f00;
+}
+
+.changePhotoLink:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.photoActionsSep {
+  color: rgba(16, 24, 40, 0.35);
+}
+
+.removePhotoBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #c0392b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.removePhotoBtn:hover {
+  color: #96281b;
+}
+
+.removePhotoBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.removePending {
+  margin: 0;
+  width: 100%;
+  font-size: 0.78rem;
+  color: #b35c00;
 }
 
 .displayName {

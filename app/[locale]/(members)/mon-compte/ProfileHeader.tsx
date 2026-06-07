@@ -3,6 +3,12 @@
 import { useRef, useState } from 'react'
 import Avatar from '@/components/Avatar'
 import type { Profile } from '@/lib/supabase/auth'
+import {
+  AVATAR_MAX_MB,
+  avatarTooLargeMessage,
+  isAvatarFileTooLarge,
+} from '@/lib/profile/avatar-upload'
+import { InlineStatus, LoadingOverlay } from '@/components/ui/InlineStatus'
 import styles from './profile-header.module.css'
 
 export default function ProfileHeader({ profile }: { profile: Profile | null }) {
@@ -15,17 +21,46 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
   const fileRef = useRef<HTMLInputElement>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [removeAvatar, setRemoveAvatar] = useState(false)
 
   const displayName = profile?.username ?? profile?.full_name?.split(' ')[0] ?? 'Adhérent·e'
-  const shownAvatar = previewUrl ?? avatarUrl
+  const shownAvatar = removeAvatar ? null : (previewUrl ?? avatarUrl)
+  const hasPhoto = Boolean(avatarUrl || previewUrl)
+  const hasPendingChanges =
+    removeAvatar ||
+    pendingFile != null ||
+    username.trim() !== (profile?.username ?? '')
+
+  const savingMessage = (() => {
+    if (removeAvatar) return 'Suppression de la photo…'
+    if (pendingFile) return 'Envoi de la photo…'
+    return 'Enregistrement…'
+  })()
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (isAvatarFileTooLarge(file.size)) {
+      setError(avatarTooLargeMessage(file.size))
+      if (fileRef.current) fileRef.current.value = ''
+      return
+    }
+
     setPendingFile(file)
     setPreviewUrl(URL.createObjectURL(file))
+    setRemoveAvatar(false)
     setEditing(true)
     setError(null)
+  }
+
+  function handleRemovePhoto() {
+    setPendingFile(null)
+    setPreviewUrl(null)
+    setRemoveAvatar(true)
+    setEditing(true)
+    setError(null)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   async function handleSave() {
@@ -37,11 +72,13 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
     if (username.trim() !== (profile?.username ?? '')) {
       formData.append('username', username.trim())
     }
-    if (pendingFile) {
+    if (removeAvatar) {
+      formData.append('remove_avatar', 'true')
+    } else if (pendingFile) {
       formData.append('avatar', pendingFile)
     }
 
-    if (!formData.has('username') && !formData.has('avatar')) {
+    if (!formData.has('username') && !formData.has('avatar') && !formData.has('remove_avatar')) {
       setEditing(false)
       setSaving(false)
       return
@@ -56,9 +93,15 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
       return
     }
 
-    if (data.updates?.avatar_url) setAvatarUrl(data.updates.avatar_url)
+    if (removeAvatar || data.updates?.avatar_url === null) {
+      setAvatarUrl(null)
+    } else if (data.updates?.avatar_url) {
+      setAvatarUrl(data.updates.avatar_url)
+    }
+
     setPendingFile(null)
     setPreviewUrl(null)
+    setRemoveAvatar(false)
     setEditing(false)
     setSuccess(true)
     if (fileRef.current) fileRef.current.value = ''
@@ -69,28 +112,41 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
     setUsername(profile?.username ?? '')
     setPendingFile(null)
     setPreviewUrl(null)
+    setRemoveAvatar(false)
     setEditing(false)
     setError(null)
     if (fileRef.current) fileRef.current.value = ''
   }
 
   return (
-    <section className={styles.card} aria-label="Profil">
+    <section
+      className={styles.card}
+      aria-label="Profil"
+      aria-busy={saving}
+    >
       <div className={styles.avatarWrap}>
-        {/* Label natif = fiable sur mobile (Safari bloque souvent input.click() depuis un bouton) */}
-        <label htmlFor="profile-avatar-input" className={styles.avatarPicker}>
+        <label
+          htmlFor="profile-avatar-input"
+          className={`${styles.avatarPicker} ${saving ? styles.avatarPickerDisabled : ''}`}
+        >
           <Avatar
             src={shownAvatar}
             name={profile?.full_name ?? profile?.username}
             email={profile?.email}
             userId={profile?.id}
             size={80}
-            editable
+            editable={!saving}
+            editLabel="Changer"
           />
-          <span className={styles.editPhotoBadge} aria-hidden>
-            ✎
+          {!saving && (
+            <span className={styles.editPhotoBadge} aria-hidden>
+              ✎
+            </span>
+          )}
+          {saving && <LoadingOverlay message={savingMessage} live="assertive" />}
+          <span className="sr-only">
+            Choisir une photo de profil — JPEG, PNG ou WebP, maximum {AVATAR_MAX_MB} Mo
           </span>
-          <span className="sr-only">Choisir une photo de profil (JPEG, PNG ou WebP, max. 2 Mo)</span>
         </label>
         <input
           ref={fileRef}
@@ -99,7 +155,36 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
           accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
           className={styles.hiddenFileInput}
           onChange={handleFileChange}
+          disabled={saving}
         />
+      </div>
+
+      <div className={styles.photoActions}>
+        <label
+          htmlFor="profile-avatar-input"
+          className={`${styles.changePhotoLink} ${saving ? styles.actionDisabled : ''}`}
+          aria-disabled={saving}
+        >
+          Changer la photo
+        </label>
+        {hasPhoto && !removeAvatar && (
+          <>
+            <span className={styles.photoActionsSep} aria-hidden>·</span>
+            <button
+              type="button"
+              onClick={handleRemovePhoto}
+              className={styles.removePhotoBtn}
+              disabled={saving}
+            >
+              Supprimer la photo
+            </button>
+          </>
+        )}
+        {removeAvatar && (
+          <p className={styles.removePending} role="status">
+            Photo retirée — cliquez sur Enregistrer pour confirmer.
+          </p>
+        )}
       </div>
 
       {editing ? (
@@ -109,9 +194,10 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
           onChange={e => setUsername(e.target.value)}
           placeholder="Votre pseudo…"
           maxLength={30}
-          autoFocus
+          autoFocus={!pendingFile && !removeAvatar}
           className={styles.usernameInput}
           aria-label="Pseudo affiché sur le site"
+          disabled={saving}
         />
       ) : (
         <div className={styles.nameRow}>
@@ -121,6 +207,7 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
             onClick={() => setEditing(true)}
             className={styles.editNameBtn}
             aria-label="Modifier mon pseudo"
+            disabled={saving}
           >
             ✎
           </button>
@@ -131,28 +218,40 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
         <p className={styles.fullName}>{profile.full_name}</p>
       )}
 
-      {editing && (
+      {(editing || hasPendingChanges) && (
         <div className={styles.actions}>
           <button
             type="button"
             onClick={() => void handleSave()}
-            disabled={saving}
+            disabled={saving || !hasPendingChanges}
             className={styles.saveBtn}
+            aria-busy={saving}
           >
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
+            {saving ? savingMessage : 'Enregistrer'}
           </button>
-          <button type="button" onClick={handleCancel} className={styles.cancelBtn}>
+          <button
+            type="button"
+            onClick={handleCancel}
+            className={styles.cancelBtn}
+            disabled={saving}
+          >
             Annuler
           </button>
         </div>
       )}
 
-      {error && <p role="alert" className={styles.error}>{error}</p>}
+      {saving && (
+        <InlineStatus message={savingMessage} live="assertive" className={styles.savingStatus} />
+      )}
+
+      {error && !saving && <p role="alert" className={styles.error}>{error}</p>}
       {success && <p role="status" className={styles.success}>✓ Profil mis à jour !</p>}
 
       <p className={styles.hint}>
-        Cliquez sur l&apos;avatar pour changer la photo — rien n&apos;est envoyé tant que vous n&apos;avez pas
-        cliqué sur Enregistrer.
+        Formats acceptés : JPEG, PNG, WebP — taille max. {AVATAR_MAX_MB} Mo.
+        {hasPhoto
+          ? ' Rien n\'est modifié tant que vous n\'avez pas cliqué sur Enregistrer.'
+          : ' Cliquez sur l\'avatar ou « Changer la photo » pour en ajouter une.'}
       </p>
     </section>
   )

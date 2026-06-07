@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { AVATAR_MAX_BYTES, avatarTooLargeMessage } from '@/lib/profile/avatar-upload'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -13,8 +14,9 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData()
   const username = formData.get('username') as string | null
   const avatarFile = formData.get('avatar') as File | null
+  const removeAvatar = formData.get('remove_avatar') === 'true'
 
-  const updates: Record<string, string> = {}
+  const updates: Record<string, string | null> = {}
 
   if (username !== null) {
     const clean = username.trim().slice(0, 30)
@@ -24,19 +26,30 @@ export async function POST(request: NextRequest) {
     updates.username = clean
   }
 
-  // Upload de la photo de profil
+  const adminClient = createAdminClient()
+
+  if (removeAvatar) {
+    updates.avatar_url = null
+
+    const { data: existingFiles } = await adminClient.storage
+      .from('avatars')
+      .list(user.id)
+
+    if (existingFiles?.length) {
+      const paths = existingFiles.map(f => `${user.id}/${f.name}`)
+      await adminClient.storage.from('avatars').remove(paths)
+    }
+  }
+
   if (avatarFile && avatarFile.size > 0) {
-    if (avatarFile.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: 'La photo ne doit pas dépasser 2 Mo.' }, { status: 400 })
+    if (avatarFile.size > AVATAR_MAX_BYTES) {
+      return NextResponse.json({ error: avatarTooLargeMessage(avatarFile.size) }, { status: 400 })
     }
 
     const ext = avatarFile.name.split('.').pop()?.toLowerCase() ?? 'jpg'
     const path = `${user.id}/avatar.${ext}`
     const arrayBuffer = await avatarFile.arrayBuffer()
 
-    const adminClient = createAdminClient()
-
-    // Créer le bucket s'il n'existe pas encore
     const { data: buckets } = await adminClient.storage.listBuckets()
     const bucketExists = buckets?.some(b => b.name === 'avatars')
     if (!bucketExists) {
@@ -46,10 +59,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const contentType = avatarFile.type || 'image/jpeg'
     const { error: uploadError } = await adminClient.storage
       .from('avatars')
       .upload(path, arrayBuffer, {
-        contentType: avatarFile.type,
+        contentType,
         upsert: true,
       })
 
@@ -58,7 +72,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: urlData } = adminClient.storage.from('avatars').getPublicUrl(path)
-    // Cache buster pour forcer le rechargement de l'image
     updates.avatar_url = `${urlData.publicUrl}?v=${Date.now()}`
   }
 
@@ -66,8 +79,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Aucune donnée à mettre à jour.' }, { status: 400 })
   }
 
-  // Utiliser le client admin pour bypasser les éventuelles policies RLS restrictives
-  const adminClient = createAdminClient()
   const { error } = await adminClient
     .from('profiles')
     .update(updates)

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import styles from './Avatar.module.css'
 
-// Palette de couleurs chaleureuses — une couleur unique par utilisateur
 const AVATAR_COLORS = [
   '#DC7F00', '#2e7d32', '#1565c0', '#6a1b9a',
   '#c62828', '#00838f', '#ad1457', '#4e342e',
@@ -33,7 +33,9 @@ type AvatarProps = {
   userId?: string | null
   size?: number
   onClick?: () => void
+  /** Survol : overlay « modifier » (sans tooltip nom parasite). */
   editable?: boolean
+  editLabel?: string
 }
 
 export default function Avatar({
@@ -44,75 +46,41 @@ export default function Avatar({
   size = 40,
   onClick,
   editable = false,
+  editLabel = 'Changer',
 }: AvatarProps) {
   const [imgError, setImgError] = useState(false)
 
   const initials = getInitials(name, email)
   const bg = getColor(userId ?? email ?? name ?? '?')
   const fontSize = Math.round(size * 0.38)
+  const overlayFontSize = Math.max(10, Math.round(size * 0.18))
   const showImage = src && !imgError
+  const title = editable ? undefined : (name ?? email ?? undefined)
 
   return (
     <div
       onClick={onClick}
-      title={name ?? email ?? undefined}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        flexShrink: 0,
-        position: 'relative',
-        cursor: onClick ? 'pointer' : 'default',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        userSelect: 'none',
-        background: bg,
-      }}
+      title={title}
+      className={`${styles.wrap} ${onClick ? styles.clickable : ''}`}
+      style={{ width: size, height: size, background: bg }}
     >
       {showImage ? (
         <img
           src={src}
-          alt={name ?? 'avatar'}
+          alt={name ? `Photo de ${name}` : 'Photo de profil'}
           onError={() => setImgError(true)}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          className={styles.image}
         />
       ) : (
-        <span style={{
-          color: '#fff',
-          fontSize,
-          fontWeight: 700,
-          letterSpacing: '0.02em',
-          lineHeight: 1,
-        }}>
+        <span className={styles.initials} style={{ fontSize }}>
           {initials}
         </span>
       )}
 
-      {/* Overlay "modifier" au survol */}
       {editable && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'rgba(0,0,0,0.45)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          fontSize: Math.round(size * 0.22),
-          fontWeight: 600,
-          opacity: 0,
-          transition: 'opacity 0.2s',
-          borderRadius: '50%',
-        }}
-          className="avatar-overlay"
-        >
-          ✎
-        </div>
-      )}
-      {editable && (
-        <style>{`.avatar-overlay { opacity: 0 } div:hover > .avatar-overlay { opacity: 1 }`}</style>
+        <span className={styles.overlay} style={{ fontSize: overlayFontSize }}>
+          {editLabel}
+        </span>
       )}
     </div>
   )
