@@ -322,6 +322,88 @@
   opacity: 0.65;
 }
 
+/* Catalogue — recherche : une seule croix (pas le bouton natif du navigateur en double) */
+.catalogue-search {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.catalogue-search-input {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.5rem;
+  border: 1.5px solid rgba(16, 24, 40, 0.15);
+  border-radius: 10px;
+  /* 16px min — Safari iOS zoome si < 16px au focus */
+  font-size: 16px;
+  box-sizing: border-box;
+  background: #fff;
+  color: #1a1a2e;
+}
+
+.catalogue-search-input--has-value {
+  padding-right: 2.85rem;
+}
+
+.catalogue-search-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-color: rgba(220, 127, 0, 0.45);
+}
+
+.catalogue-search-input::-webkit-search-cancel-button,
+.catalogue-search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.catalogue-search-input::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.catalogue-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.catalogue-search-clear {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(16, 24, 40, 0.5);
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1;
+  padding: 0;
+}
+
+.catalogue-search-clear:hover {
+  background: rgba(16, 24, 40, 0.06);
+  color: #1a1a2e;
+}
+
+.catalogue-search-clear:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
 /* Catalogue mobile : en-tête compact */
 @media (max-width: 640px) {
   .catalogue-type-filters-wrap,
@@ -355,10 +437,14 @@
     margin-bottom: 0.65rem;
   }
 
-  .catalogue-search input {
+  .catalogue-search {
+    margin-bottom: 0.65rem;
+  }
+
+  .catalogue-search-input {
     padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
-    font-size: 0.9rem !important;
+    font-size: 16px !important;
   }
 
   nav[aria-label="Fil d'ariane"] {

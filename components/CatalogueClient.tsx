@@ -514,42 +514,31 @@ export default function CatalogueClient({
           </div>
         )}
 
-        <div className="catalogue-search" style={{ position: 'relative', marginBottom: '1.25rem' }}>
+        <div className="catalogue-search">
           <label htmlFor="catalogue-search-input" className="sr-only">
             {searchPlaceholder}
           </label>
-          <span style={{
-            position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-            fontSize: '1rem', opacity: 0.4, pointerEvents: 'none',
-          }} aria-hidden="true">🔍</span>
+          <span className="catalogue-search-icon" aria-hidden="true">
+            🔍
+          </span>
           <input
             id="catalogue-search-input"
             type="search"
+            enterKeyHint="search"
             placeholder={searchPlaceholder}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            aria-label={searchPlaceholder}
-            style={{
-              width: '100%',
-              padding: '0.65rem 1rem 0.65rem 2.5rem',
-              paddingRight: search ? '2.5rem' : '1rem',
-              border: '1.5px solid rgba(16,24,40,0.15)',
-              borderRadius: 10,
-              fontSize: '0.95rem',
-              boxSizing: 'border-box',
-            }}
+            className={`catalogue-search-input${search ? ' catalogue-search-input--has-value' : ''}`}
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              style={{
-                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: '1.1rem', opacity: 0.4, padding: '0.2rem',
-              }}
+              className="catalogue-search-clear"
               aria-label="Effacer la recherche"
-            >×</button>
+            >
+              ×
+            </button>
           )}
         </div>
 
