@@ -9,6 +9,7 @@ import MyOrdersSection from './MyOrdersSection'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
 import { formatCotisation, applyCielMarkup, canAccessCatalog, getMemberStatusDisplay, hasTerrePricing } from '@/lib/members/profile'
 import { formatCreditChf } from '@/lib/members/credit'
+import { isAdminEmail } from '@/lib/admin/access'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -30,6 +31,7 @@ export default async function MonComptePage({
     profile?.status === 'member' ||
     (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
   const creditBalance = Number(profile?.credit_balance) || 0
+  const showAdminLink = isAdminEmail(profile?.email)
 
   return (
     <div className={`container ${styles.page}`}>
@@ -106,6 +108,17 @@ export default async function MonComptePage({
             </Link>
           )}
         </div>
+
+        {showAdminLink && (
+          <div className="admin-account-card">
+            <p className="admin-account-card__text">
+              <strong>Administration du magasin</strong> — commandes, membres, import catalogue.
+            </p>
+            <Link href="/admin" locale={locale as 'fr' | 'en'} className="admin-account-card__btn">
+              Ouvrir l&apos;admin
+            </Link>
+          </div>
+        )}
 
         {creditBalance > 0 ? (
           <div className={styles.creditPositive}>

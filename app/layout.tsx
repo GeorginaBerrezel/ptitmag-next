@@ -1,6 +1,7 @@
 import '../styles/globals.css';
 import '../styles/ui.css';
 import '../styles/pages.css';
+import '../styles/admin.css';
 import '../styles/theme.css';
 import '../styles/menus.css';
 import {cookies} from 'next/headers';

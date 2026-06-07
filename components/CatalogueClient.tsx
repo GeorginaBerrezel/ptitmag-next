@@ -765,7 +765,7 @@ function SearchResultsSection({
   return (
     <section style={{ marginBottom: '2rem' }}>
       <h2 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 700 }}>{title}</h2>
-      <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', opacity: 0.6 }}>{subtitle}</p>
+      <p className="catalogue-search-results-sub">{subtitle}</p>
       {children}
     </section>
   )

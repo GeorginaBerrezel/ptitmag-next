@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import { nextWednesday1830, nextThursday1200, toDatetimeLocalValue } from '@/lib/import/deadline-defaults'
 import { BIOPARTNER_CATALOGS } from '@/lib/import/biopartner-catalogs'
 import { InlineStatus } from '@/components/ui/InlineStatus'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 type ImportResult = {
   success: boolean
@@ -392,19 +393,10 @@ export default function ImportPage({
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 660 }}>
 
-      {/* Fil d'ariane */}
-      <nav aria-label="Fil d'ariane" style={{
-        display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', marginBottom: '1.5rem',
-        color: 'rgba(16,24,40,0.4)',
-      }}>
-        <span>Admin</span>
-        <span aria-hidden>›</span>
-        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Import catalogue</span>
-      </nav>
+      <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Import catalogue' }]} />
 
       <h1 style={{ marginBottom: '0.25rem' }}>Import catalogue</h1>
-      <p style={{ opacity: 0.65, marginBottom: '0.75rem' }}>
+      <p className="admin-lead" style={{ marginBottom: '0.75rem' }}>
         Sélectionnez le fournisseur et importez leur fichier pour mettre à jour le catalogue.
       </p>
       <p style={{ margin: '0 0 2rem', fontSize: '0.88rem' }}>

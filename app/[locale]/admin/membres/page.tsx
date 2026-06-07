@@ -6,6 +6,7 @@ import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/s
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -302,20 +303,11 @@ export default function AdminMembresPage({
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem', maxWidth: 960 }}>
 
-      {/* Fil d'ariane */}
-      <nav aria-label="Fil d'ariane" style={{
-        display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', marginBottom: '1.5rem',
-        color: 'rgba(16,24,40,0.4)',
-      }}>
-        <span>Admin</span>
-        <span aria-hidden>›</span>
-        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Membres</span>
-      </nav>
+      <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Membres' }]} />
 
       {/* En-tête */}
       <h1 style={{ margin: '0 0 0.2rem' }}>Gestion des membres</h1>
-      <p style={{ opacity: 0.55, margin: '0 0 1rem', fontSize: '0.85rem' }}>
+      <p className="admin-lead">
         Consulte les profils, gère les cotisations et suis l&apos;activité.
       </p>
 
@@ -361,7 +353,7 @@ export default function AdminMembresPage({
             <p style={{ margin: '0 0 0.2rem', fontSize: '1.4rem', fontWeight: 700, color: s.color }}>
               {s.value}
             </p>
-            <p style={{ margin: 0, fontSize: '0.73rem', opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <p className="admin-subtle" style={{ margin: 0, fontSize: '0.73rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               {s.label}
             </p>
           </div>
@@ -459,7 +451,7 @@ export default function AdminMembresPage({
             ✕ Réinitialiser
           </button>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: '0.83rem', opacity: 0.5, whiteSpace: 'nowrap' }}>
+        <span className="admin-subtle" style={{ marginLeft: 'auto', fontSize: '0.83rem', whiteSpace: 'nowrap' }}>
           {loading ? 'Chargement…' : `${filtered.length} membre${filtered.length !== 1 ? 's' : ''}`}
         </span>
       </div>

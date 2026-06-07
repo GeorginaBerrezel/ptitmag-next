@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { MEMBER_STATUS_LABELS } from '@/lib/members/profile'
 import { InlineStatus } from '@/components/ui/InlineStatus'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -183,17 +184,10 @@ export default function AdminDashboardPage({
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem', maxWidth: 960 }}>
 
-      {/* Fil d'ariane */}
-      <nav aria-label="Fil d'ariane" style={{
-        display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', marginBottom: '1.5rem',
-        color: 'rgba(16,24,40,0.4)',
-      }}>
-        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Tableau de bord</span>
-      </nav>
+      <AdminBreadcrumb items={[{ label: 'Tableau de bord' }]} />
 
       <h1 style={{ margin: '0 0 0.2rem' }}>Tableau de bord</h1>
-      <p style={{ opacity: 0.55, margin: '0 0 1.75rem', fontSize: '0.85rem' }}>
+      <p className="admin-lead" style={{ margin: '0 0 1.75rem' }}>
         Vue d&apos;ensemble de l&apos;activité du p&apos;tit mag.
       </p>
 
@@ -282,7 +276,7 @@ export default function AdminDashboardPage({
                 <p style={{ margin: '0 0 0.2rem', fontSize: '1.5rem', fontWeight: 800, color: kpi.color }}>
                   {kpi.value}
                 </p>
-                <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.3 }}>
+                <p className="admin-subtle" style={{ margin: 0, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.3 }}>
                   {kpi.label}
                 </p>
                 {kpi.href && (
@@ -362,7 +356,8 @@ export default function AdminDashboardPage({
                 <Link
                   href="/admin/commandes"
                   locale={locale}
-                  style={{ fontSize: '0.78rem', color: '#DC7F00', textDecoration: 'none', fontWeight: 600 }}
+                  className="admin-link-accent"
+                  style={{ fontSize: '0.78rem' }}
                 >
                   Voir tout →
                 </Link>

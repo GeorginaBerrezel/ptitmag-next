@@ -13,6 +13,7 @@ import lineStyles from '@/components/orders/order-lines.module.css'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -391,16 +392,7 @@ export default function AdminCommandesPage({
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '5rem', maxWidth: 920 }}>
 
-      {/* Fil d'ariane */}
-      <nav aria-label="Fil d'ariane" style={{
-        display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', marginBottom: '1.5rem',
-        color: 'rgba(16,24,40,0.4)',
-      }}>
-        <span>Admin</span>
-        <span aria-hidden>›</span>
-        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Commandes</span>
-      </nav>
+      <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Commandes' }]} />
 
       {/* En-tête */}
       <div style={{
@@ -415,7 +407,7 @@ export default function AdminCommandesPage({
             {mode === 'closed' && 'Commandes clôturées'}
             {mode === 'history' && 'Historique des commandes'}
           </h1>
-          <p style={{ opacity: 0.55, margin: 0, fontSize: '0.85rem' }}>
+          <p className="admin-lead" style={{ margin: 0 }}>
             {mode === 'action' &&
               'Confirmées : marquer « Livrée » après distribution, ou « Annulée » si besoin.'}
             {mode === 'toClose' &&
@@ -476,7 +468,7 @@ export default function AdminCommandesPage({
             <p style={{ margin: '0 0 0.2rem', fontSize: '1.4rem', fontWeight: 700, color: s.color }}>
               {s.value}
             </p>
-            <p style={{ margin: 0, fontSize: '0.73rem', opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <p className="admin-subtle" style={{ margin: 0, fontSize: '0.73rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               {s.label}
             </p>
           </div>
@@ -688,7 +680,7 @@ export default function AdminCommandesPage({
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: '0.83rem', opacity: 0.5, whiteSpace: 'nowrap' }}>
+        <span className="admin-subtle" style={{ marginLeft: 'auto', fontSize: '0.83rem', whiteSpace: 'nowrap' }}>
           {loading ? 'Chargement…' : `${filtered.length} commande${filtered.length !== 1 ? 's' : ''}`}
         </span>
       </div>
@@ -1121,7 +1113,7 @@ function AggregatedSummaryPanel({
           </p>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <p className="admin-subtle" style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Total à commander
           </p>
           <p style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700, color: '#1a1a2e' }}>

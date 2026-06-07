@@ -280,7 +280,13 @@
 
 .catalogue-page-sub {
   margin: 0;
-  color: rgba(16, 24, 40, 0.7);
+  color: rgba(16, 24, 40, 0.72);
+}
+
+.catalogue-search-results-sub {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: rgba(16, 24, 40, 0.72);
 }
 
 .catalogue-page-back {

@@ -1,5 +1,6 @@
 import { Link } from '@/i18n/navigation'
 import styles from './guide-import.module.css'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 export default async function GuideImportPage({
   params,
@@ -10,6 +11,11 @@ export default async function GuideImportPage({
 
   return (
     <div className={`container ${styles.page}`}>
+      <AdminBreadcrumb items={[
+        { label: 'Admin', href: '/admin' },
+        { label: 'Import catalogue', href: '/admin/import' },
+        { label: 'Guide import' },
+      ]} />
       <h1 style={{ marginBottom: '0.35rem' }}>Guide import — formats &amp; colonnes</h1>
       <p className={styles.intro}>
         Deux façons de structurer un fichier, et deux extensions possibles (<strong>.xlsx</strong> ou <strong>.csv</strong>)

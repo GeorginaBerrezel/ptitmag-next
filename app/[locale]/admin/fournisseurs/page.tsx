@@ -5,6 +5,7 @@ import { nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import { formatSupplierOrderDeadline } from '@/lib/catalog/supplier-orders'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 import { InlineStatus } from '@/components/ui/InlineStatus'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -383,20 +384,13 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
   return (
     <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem', maxWidth: 780 }}>
 
-      {/* Fil d'ariane */}
-      <nav aria-label="Fil d'ariane" style={{
-        display: 'flex', alignItems: 'center', gap: '0.4rem',
-        fontSize: '0.8rem', marginBottom: '1.5rem', color: 'rgba(16,24,40,0.4)',
-      }}>
-        <span>Admin</span><span aria-hidden>›</span>
-        <span style={{ color: 'rgba(16,24,40,0.75)', fontWeight: 600 }}>Fournisseurs</span>
-      </nav>
+      <AdminBreadcrumb items={[{ label: 'Admin', href: '/admin' }, { label: 'Fournisseurs' }]} />
 
       {/* En-tête */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1 style={{ marginBottom: '0.25rem' }}>Fournisseurs</h1>
-          <p style={{ opacity: 0.55, fontSize: '0.9rem', margin: 0 }}>
+          <p className="admin-lead" style={{ margin: 0 }}>
             Visibilité catalogue et ouverture manuelle des commandes par fournisseur.
           </p>
         </div>

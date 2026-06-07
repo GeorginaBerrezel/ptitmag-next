@@ -9,7 +9,7 @@ import CatalogueNavLink from '@/components/CatalogueNavLink';
 import MemberCartLink from '@/components/MemberCartLink';
 import PendingMemberBadge from '@/components/PendingMemberBadge';
 
-export default function Header({locale}: {locale: 'fr' | 'en'}) {
+export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 'en'; showAdminLink?: boolean}) {
   const t = useTranslations('nav');
   const pathname = usePathname();
 
@@ -103,6 +103,16 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
           <div className="header-account">
             <PendingMemberBadge locale={locale} />
             <MemberCartLink locale={locale} />
+            {showAdminLink ? (
+              <Link
+                href="/admin"
+                locale={locale}
+                className="admin-shortcut-link"
+                aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
+              >
+                {t('admin')}
+              </Link>
+            ) : null}
             <AuthLink locale={locale} />
           </div>
         </nav>
@@ -152,6 +162,17 @@ export default function Header({locale}: {locale: 'fr' | 'en'}) {
               <div className="nav-mobile-account">
                 <PendingMemberBadge locale={locale} />
                 <MemberCartLink locale={locale} />
+                {showAdminLink ? (
+                  <Link
+                    href="/admin"
+                    locale={locale}
+                    className="admin-shortcut-link"
+                    onClick={close}
+                    aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
+                  >
+                    {t('admin')}
+                  </Link>
+                ) : null}
                 <div onClick={close}>
                   <AuthLink locale={locale} />
                 </div>

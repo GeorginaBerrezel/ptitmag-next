@@ -11,6 +11,7 @@ import { CartProvider } from '@/lib/cart/CartContext';
 import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
 import { getProfile } from '@/lib/supabase/auth';
 import { applyCielMarkup } from '@/lib/members/profile';
+import { isAdminEmail } from '@/lib/admin/access';
 import { rootLayoutMetadata } from '@/lib/seo';
 
 const LOCALES = ['fr', 'en'] as const;
@@ -46,6 +47,7 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
   const messages = await getMessages({locale});
   const profile = await getProfile();
   const cielMarkup = profile ? applyCielMarkup(profile) : false;
+  const showAdminLink = isAdminEmail(profile?.email);
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
@@ -54,7 +56,7 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
           <Suspense fallback={null}>
             <NavigationScrollManager />
           </Suspense>
-          <Header locale={locale} />
+          <Header locale={locale} showAdminLink={showAdminLink} />
           <div id="app-scroll">
             <main id="main">{props.children}</main>
             <Footer locale={locale} />
