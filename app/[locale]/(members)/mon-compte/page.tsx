@@ -112,10 +112,10 @@ export default async function MonComptePage({
         {showAdminLink && (
           <div className="admin-account-card">
             <p className="admin-account-card__text">
-              <strong>Administration du magasin</strong> — commandes, membres, import catalogue.
+              <strong>Espace admin</strong> — commandes, membres, import catalogue.
             </p>
             <Link href="/admin" locale={locale as 'fr' | 'en'} className="admin-account-card__btn">
-              Ouvrir l&apos;admin
+              Admin
             </Link>
           </div>
         )}

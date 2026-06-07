@@ -453,7 +453,13 @@ export default function CatalogueClient({
           )}
         </nav>
 
-        <div className={`catalogue-page-head${view === 'products' ? ' catalogue-page-head--compact' : ''}`}>
+        <div
+          className={[
+            'catalogue-page-head',
+            view !== 'suppliers' ? 'catalogue-page-head--with-back' : '',
+            view === 'products' ? 'catalogue-page-head--compact' : '',
+          ].filter(Boolean).join(' ')}
+        >
           {view !== 'suppliers' && (
             <button
               type="button"
