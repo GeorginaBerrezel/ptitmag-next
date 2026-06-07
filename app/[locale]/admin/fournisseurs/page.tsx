@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from 'react'
 import { nextOrderWindowForSupplier } from '@/lib/catalog/order-windows'
 import { formatSupplierOrderDeadline } from '@/lib/catalog/supplier-orders'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -159,7 +160,7 @@ function ProductPanel({
         }}>Réduire ▲</button>
       </div>
 
-      {loading && <p style={{ fontSize: '0.8rem', opacity: 0.45, margin: 0 }}>Chargement…</p>}
+      {loading && <InlineStatus message="Chargement des produits…" live="polite" />}
 
       {!loading && products.length === 0 && (
         <p style={{ fontSize: '0.8rem', opacity: 0.45, margin: 0 }}>Aucun produit.</p>
@@ -413,7 +414,7 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
         )}
       </div>
 
-      {loading && <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>Chargement…</div>}
+      {loading && <InlineStatus message="Chargement des fournisseurs…" centered live="polite" />}
 
       {error && (
         <div style={{ background: '#fdf2f2', border: '1px solid #f5c6c6', borderRadius: 10, padding: '1rem 1.25rem', color: '#c0392b', marginBottom: '1.5rem' }}>

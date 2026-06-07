@@ -17,6 +17,7 @@ import {
   incrementQuantity,
 } from '@/lib/catalog/quantity-rules'
 import { Link } from '@/i18n/navigation'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 import styles from './panier.module.css'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -63,8 +64,8 @@ export default function PanierPage({
 
   if (catalogAccess === 'loading') {
     return (
-      <div className="container" style={{ paddingTop: '3rem', textAlign: 'center', color: 'rgba(16,24,40,0.55)' }}>
-        Chargement…
+      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
+        <InlineStatus message="Chargement du panier…" centered live="polite" />
       </div>
     )
   }
@@ -423,7 +424,7 @@ export default function PanierPage({
         })}
       </div>
 
-      <div className={styles.actions}>
+      <div className={styles.actions} aria-busy={loading}>
         <Link href="/commandes" locale={locale} className={styles.continueLink}>
           ← Continuer mes achats
         </Link>
@@ -437,6 +438,15 @@ export default function PanierPage({
           {loading ? 'Envoi en cours…' : confirmLabel}
         </button>
       </div>
+
+      {loading && (
+        <InlineStatus
+          message="Envoi de votre commande au magasin…"
+          centered
+          live="assertive"
+          className={styles.confirmLoading}
+        />
+      )}
     </div>
   )
 }

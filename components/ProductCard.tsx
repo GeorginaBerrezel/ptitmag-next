@@ -305,12 +305,13 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
                 type="button"
                 onClick={() => void handleExtendAdd()}
                 disabled={extendLoading}
+                aria-busy={extendLoading}
                 className={[
                   styles.addBtn,
                   extendDone ? styles.addBtnAdded : '',
                 ].filter(Boolean).join(' ')}
               >
-                {extendLoading ? '…' : extendDone ? '✓ Ajouté à la commande' : '+ Ajouter à ma commande'}
+                {extendLoading ? 'Ajout en cours…' : extendDone ? '✓ Ajouté à la commande' : '+ Ajouter à ma commande'}
               </button>
             ) : (
               <button

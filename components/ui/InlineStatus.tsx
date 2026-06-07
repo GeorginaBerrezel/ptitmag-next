@@ -4,6 +4,8 @@ type InlineStatusProps = {
   message: string
   /** polite = mise à jour non urgente ; assertive = action en cours importante */
   live?: 'polite' | 'assertive'
+  /** Pleine largeur, centré — pages catalogue, admin, etc. */
+  centered?: boolean
   className?: string
 }
 
@@ -11,13 +13,19 @@ type InlineStatusProps = {
 export function InlineStatus({
   message,
   live = 'polite',
+  centered = false,
   className,
 }: InlineStatusProps) {
   return (
     <p
       role="status"
       aria-live={live}
-      className={[styles.inlineStatus, className].filter(Boolean).join(' ')}
+      aria-busy="true"
+      className={[
+        styles.inlineStatus,
+        centered ? styles.centered : '',
+        className,
+      ].filter(Boolean).join(' ')}
     >
       <span className={styles.spinner} aria-hidden />
       {message}

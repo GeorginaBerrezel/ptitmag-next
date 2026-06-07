@@ -12,6 +12,7 @@ import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import lineStyles from '@/components/orders/order-lines.module.css'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -694,9 +695,7 @@ export default function AdminCommandesPage({
 
       {/* États de chargement / erreur / vide */}
       {loading && (
-        <p style={{ textAlign: 'center', opacity: 0.5, padding: '4rem 0' }}>
-          Chargement des commandes…
-        </p>
+        <InlineStatus message="Chargement des commandes…" centered live="polite" />
       )}
 
       {error && (

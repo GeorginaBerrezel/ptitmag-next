@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { MEMBER_STATUS_LABELS } from '@/lib/members/profile'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,9 +199,7 @@ export default function AdminDashboardPage({
 
       {/* Chargement */}
       {loading && (
-        <p style={{ textAlign: 'center', opacity: 0.5, padding: '4rem 0' }}>
-          Chargement…
-        </p>
+        <InlineStatus message="Chargement du tableau de bord…" centered live="polite" />
       )}
 
       {error && (

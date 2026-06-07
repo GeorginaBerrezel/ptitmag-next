@@ -5,6 +5,7 @@ import { ADMIN_MEMBER_STATUSES, MEMBER_STATUS_LABELS, formatCotisation } from '@
 import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/status-guide'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -465,9 +466,7 @@ export default function AdminMembresPage({
 
       {/* État de chargement */}
       {loading && (
-        <p style={{ textAlign: 'center', opacity: 0.5, padding: '4rem 0' }}>
-          Chargement des membres…
-        </p>
+        <InlineStatus message="Chargement des membres…" centered live="polite" />
       )}
 
       {/* Erreur */}

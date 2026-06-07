@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
 import AccordionChevron from '@/components/ui/AccordionChevron'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 import styles from './my-orders.module.css'
 
 const PAGE_SIZE = 15
@@ -183,11 +184,16 @@ export default function MyOrdersSection({
             className={styles.exportBtn}
             onClick={handleExport}
             disabled={exporting}
+            aria-busy={exporting}
           >
             {exporting ? 'Téléchargement…' : '↓ Télécharger CSV'}
           </button>
         </div>
       </div>
+
+      {exporting && (
+        <InlineStatus message="Préparation de votre export CSV…" live="assertive" className={styles.exportLoading} />
+      )}
 
       <div className={styles.tabs} role="tablist" aria-label="Filtrer les commandes">
         <button

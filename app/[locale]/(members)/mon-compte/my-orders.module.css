@@ -65,6 +65,10 @@
   cursor: not-allowed;
 }
 
+.exportLoading {
+  margin: 0 0 0.75rem;
+}
+
 .tabs {
   display: flex;
   gap: 0.35rem;

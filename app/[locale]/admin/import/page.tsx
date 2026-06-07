@@ -4,6 +4,7 @@ import { use, useRef, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { nextWednesday1830, nextThursday1200, toDatetimeLocalValue } from '@/lib/import/deadline-defaults'
 import { BIOPARTNER_CATALOGS } from '@/lib/import/biopartner-catalogs'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 
 type ImportResult = {
   success: boolean
@@ -661,6 +662,7 @@ export default function ImportPage({
       <button
         onClick={handleImport}
         disabled={!file || loading}
+        aria-busy={loading}
         style={{
           width: '100%',
           padding: '0.8rem',
@@ -677,6 +679,14 @@ export default function ImportPage({
       >
         {loading ? 'Import en cours…' : `Importer ${supplier.label}`}
       </button>
+
+      {loading && (
+        <InlineStatus
+          message="Import du catalogue en cours — cela peut prendre quelques secondes…"
+          centered
+          live="assertive"
+        />
+      )}
 
       {/* Erreur */}
       {error && (

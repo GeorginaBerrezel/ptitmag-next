@@ -18,6 +18,7 @@ import HorizontalScrollStrip from './catalogue/HorizontalScrollStrip'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
+import { InlineStatus } from '@/components/ui/InlineStatus'
 
 const TYPE_LABELS: Record<string, string> = {
   local: 'Producteurs locaux',
@@ -621,14 +622,14 @@ export default function CatalogueClient({
         )}
 
         {loadingSupplier && view !== 'suppliers' && (
-          <LoadingState label="Chargement des produits…" />
+          <InlineStatus message="Chargement des produits…" centered live="polite" />
         )}
 
         {/* Vue fournisseurs */}
         {view === 'suppliers' && (
           <>
             {isSearching && searchLoading && (
-              <LoadingState label="Recherche en cours…" />
+              <InlineStatus message="Recherche en cours…" centered live="polite" />
             )}
 
             {isSearching && !searchLoading && globalSearchResults.length > 0 && (
@@ -744,7 +745,7 @@ export default function CatalogueClient({
         {/* Vue produits */}
         {view === 'products' && !loadingSupplier && (activeProducts || categoryProducts || isLargeCatalog) && (
           displayedProducts.length === 0 && isLargeCatalog && !categoryProducts ? (
-            <LoadingState label="Chargement de la catégorie…" />
+            <InlineStatus message="Chargement de la catégorie…" centered live="polite" />
           ) : displayedProducts.length === 0 ? (
             <>
               {isSearching && (
@@ -796,14 +797,6 @@ function SearchResultsSection({
       <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', opacity: 0.6 }}>{subtitle}</p>
       {children}
     </section>
-  )
-}
-
-function LoadingState({ label }: { label: string }) {
-  return (
-    <p style={{ textAlign: 'center', padding: '2rem 0', opacity: 0.55, margin: 0 }}>
-      {label}
-    </p>
   )
 }
 
