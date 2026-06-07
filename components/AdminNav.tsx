@@ -171,30 +171,6 @@ export default function AdminNav({
         )
       })}
 
-      {/* Retour au site — aligné à droite */}
-      <Link
-        href="/mon-compte"
-        locale={locale}
-        onMouseEnter={() => setHovered('back')}
-        onMouseLeave={() => setHovered(null)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginLeft: 'auto',
-          padding: '0 1.25rem',
-          textDecoration: 'none',
-          fontSize: '0.79rem',
-          color: hovered === 'back'
-            ? 'rgba(255,255,255,0.75)'
-            : 'rgba(255,255,255,0.35)',
-          borderLeft: '1px solid rgba(255,255,255,0.08)',
-          transition: 'color 0.15s',
-          whiteSpace: 'nowrap',
-          gap: '0.3rem',
-        }}
-      >
-        ← Retour au site
-      </Link>
     </nav>
   )
 }

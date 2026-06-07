@@ -1,4 +1,4 @@
-import { getProfile, getMyOrders } from '@/lib/supabase/auth'
+import { getProfile, getMyOrders, getUser } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import { Suspense } from 'react'
 import ProfileHeader from './ProfileHeader'
@@ -19,7 +19,7 @@ export default async function MonComptePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const [profile, orders] = await Promise.all([getProfile(), getMyOrders()])
+  const [profile, orders, user] = await Promise.all([getProfile(), getMyOrders(), getUser()])
 
   const memberStatus = getMemberStatusDisplay(profile?.status)
   const hasCatalogAccess = profile ? canAccessCatalog(profile) : false
@@ -31,7 +31,7 @@ export default async function MonComptePage({
     profile?.status === 'member' ||
     (profile?.cotisation_amount != null && profile.cotisation_amount > 0)
   const creditBalance = Number(profile?.credit_balance) || 0
-  const showAdminLink = isAdminEmail(profile?.email)
+  const showAdminLink = isAdminEmail(profile?.email ?? user?.email)
 
   return (
     <div className={`container ${styles.page}`}>

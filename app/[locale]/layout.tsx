@@ -9,7 +9,7 @@ import Footer from '@/components/Footer';
 import NavigationScrollManager from '@/components/NavigationScrollManager';
 import { CartProvider } from '@/lib/cart/CartContext';
 import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
-import { getProfile } from '@/lib/supabase/auth';
+import { getProfile, getUser } from '@/lib/supabase/auth';
 import { applyCielMarkup } from '@/lib/members/profile';
 import { isAdminEmail } from '@/lib/admin/access';
 import { rootLayoutMetadata } from '@/lib/seo';
@@ -45,9 +45,9 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
   setRequestLocale(locale);
 
   const messages = await getMessages({locale});
-  const profile = await getProfile();
+  const [profile, user] = await Promise.all([getProfile(), getUser()]);
   const cielMarkup = profile ? applyCielMarkup(profile) : false;
-  const showAdminLink = isAdminEmail(profile?.email);
+  const showAdminLink = isAdminEmail(profile?.email ?? user?.email);
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
