@@ -158,6 +158,13 @@
   line-height: 1.2;
 }
 
+.totalsHint {
+  margin: 0.45rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgba(16, 24, 40, 0.55);
+}
+
 .orderActions {
   padding: 0;
   margin: 0;

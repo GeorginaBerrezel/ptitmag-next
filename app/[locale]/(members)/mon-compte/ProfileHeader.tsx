@@ -19,16 +19,13 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
   const displayName = profile?.username ?? profile?.full_name?.split(' ')[0] ?? 'Adhérent·e'
   const shownAvatar = previewUrl ?? avatarUrl
 
-  function openFilePicker() {
-    fileRef.current?.click()
-  }
-
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setPendingFile(file)
     setPreviewUrl(URL.createObjectURL(file))
     setEditing(true)
+    setError(null)
   }
 
   async function handleSave() {
@@ -64,6 +61,7 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
     setPreviewUrl(null)
     setEditing(false)
     setSuccess(true)
+    if (fileRef.current) fileRef.current.value = ''
     setTimeout(() => setSuccess(false), 3000)
   }
 
@@ -73,17 +71,14 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
     setPreviewUrl(null)
     setEditing(false)
     setError(null)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   return (
     <section className={styles.card} aria-label="Profil">
       <div className={styles.avatarWrap}>
-        <button
-          type="button"
-          className={styles.avatarBtn}
-          onClick={openFilePicker}
-          aria-label="Changer ma photo de profil"
-        >
+        {/* Label natif = fiable sur mobile (Safari bloque souvent input.click() depuis un bouton) */}
+        <label htmlFor="profile-avatar-input" className={styles.avatarPicker}>
           <Avatar
             src={shownAvatar}
             name={profile?.full_name ?? profile?.username}
@@ -92,24 +87,19 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
             size={80}
             editable
           />
-        </button>
+          <span className={styles.editPhotoBadge} aria-hidden>
+            ✎
+          </span>
+          <span className="sr-only">Choisir une photo de profil (JPEG, PNG ou WebP, max. 2 Mo)</span>
+        </label>
         <input
           ref={fileRef}
+          id="profile-avatar-input"
           type="file"
-          accept="image/jpeg,image/png,image/webp"
-          style={{ display: 'none' }}
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+          className={styles.hiddenFileInput}
           onChange={handleFileChange}
-          aria-hidden
-          tabIndex={-1}
         />
-        <button
-          type="button"
-          onClick={openFilePicker}
-          className={styles.editPhotoBtn}
-          aria-label="Changer ma photo de profil"
-        >
-          ✎
-        </button>
       </div>
 
       {editing ? (

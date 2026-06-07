@@ -115,6 +115,12 @@
   color: #1a1a2e;
 }
 
+.recapRowFinal {
+  margin-top: 0.5rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(16, 24, 40, 0.12);
+}
+
 .recapPreview {
   margin-top: 0.75rem;
   padding: 0.65rem 0.75rem;

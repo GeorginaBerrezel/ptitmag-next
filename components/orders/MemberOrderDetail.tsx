@@ -37,7 +37,7 @@ export default function MemberOrderDetail({ order, hasCatalogAccess }: Props) {
   const grossTotal = Math.round(
     items.reduce((s, i) => s + i.quantity * i.unit_price, 0) * 100,
   ) / 100
-  const showCreditBreakdown = credit > 0 && !isProvisional
+  const showCreditBreakdown = credit > 0
 
   return (
     <div className={lineStyles.orderDetail}>
@@ -77,17 +77,24 @@ export default function MemberOrderDetail({ order, hasCatalogAccess }: Props) {
           {showCreditBreakdown ? (
             <>
               <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowMuted}`}>
-                <span>Sous-total</span>
+                <span>Sous-total produits</span>
                 <span>CHF {grossTotal.toFixed(2)}</span>
               </div>
               <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowCredit}`}>
-                <span>Avoir déduit</span>
+                <span>{isProvisional ? 'Avoir prévu' : 'Avoir déduit'}</span>
                 <span>− CHF {credit.toFixed(2)}</span>
               </div>
               <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
-                <span className={lineStyles.totalsFinalLabel}>Total à payer</span>
+                <span className={lineStyles.totalsFinalLabel}>
+                  {isProvisional ? 'Total provisoire' : 'Total à payer'}
+                </span>
                 <span className={lineStyles.totalsFinalAmount}>CHF {order.total.toFixed(2)}</span>
               </div>
+              {isProvisional && (
+                <p className={lineStyles.totalsHint}>
+                  Le montant définitif sera recalculé à la clôture (ajouts sur place, retraits éventuels).
+                </p>
+              )}
             </>
           ) : (
             <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowFinal}`}>
@@ -97,12 +104,6 @@ export default function MemberOrderDetail({ order, hasCatalogAccess }: Props) {
               <span className={lineStyles.totalsFinalAmount}>
                 CHF {order.total.toFixed(2)}
               </span>
-            </div>
-          )}
-          {credit > 0 && isProvisional && (
-            <div className={`${lineStyles.totalsRow} ${lineStyles.totalsRowCredit}`}>
-              <span>Avoir prévu</span>
-              <span>− CHF {credit.toFixed(2)}</span>
             </div>
           )}
         </div>

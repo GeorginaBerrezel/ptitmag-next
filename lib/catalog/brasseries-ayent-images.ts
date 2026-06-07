@@ -6,7 +6,7 @@ const BRASSERIES_SLUG = 'brasseries-ayent'
 const NAME_TO_IMAGE: Array<{ pattern: RegExp; imageId: string }> = [
   { pattern: /cornflex/i, imageId: 'cornflex' },
   { pattern: /effe/i, imageId: 'effe' },
-  { pattern: /\bfdn\b|fille du nord/i, imageId: 'fdn' },
+  { pattern: /\bfdn\b|fille du nord|fleur de napalm|fleurdnapalm/i, imageId: 'fdn' },
   { pattern: /f[eé]e\s*des\s*glaces|feedesglaces/i, imageId: 'fee-des-glaces' },
   { pattern: /folamour/i, imageId: 'folamour' },
   { pattern: /golem/i, imageId: 'golem' },
@@ -17,7 +17,7 @@ const NAME_TO_IMAGE: Array<{ pattern: RegExp; imageId: string }> = [
   { pattern: /terre\s*creuse|terrecreuse/i, imageId: 'terre-creuse' },
   { pattern: /thymbr[eé]e|thymbree/i, imageId: 'thymbree' },
   { pattern: /triple/i, imageId: 'triple' },
-  { pattern: /\buce\b/i, imageId: 'uce' },
+  { pattern: /\buce\b|upper class elegance|upperclasselegance/i, imageId: 'uce' },
   { pattern: /zombier/i, imageId: 'zombier' },
   { pattern: /zone\s*51|zone51/i, imageId: 'zone51' },
 ]

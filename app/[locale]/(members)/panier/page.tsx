@@ -213,36 +213,43 @@ export default function PanierPage({
       <section className={styles.recapCard} aria-label="Récapitulatif du panier">
         <h2 className={styles.recapTitle}>Récapitulatif</h2>
         <div className={styles.recapTotalRow}>
-          <span className={styles.recapTotalLabel}>Valeur de la commande</span>
+          <span className={styles.recapTotalLabel}>Sous-total produits</span>
           <span className={styles.recapTotalAmount}>CHF {globalTotal.toFixed(2)}</span>
         </div>
 
         {estimatedCredit > 0 && (
           <div className={styles.recapPreview}>
             <div className={styles.recapRow}>
-              <span className={styles.recapLabel}>Prévision — pris sur votre avoir</span>
-              <span className={styles.recapCredit}>CHF {estimatedCredit.toFixed(2)}</span>
+              <span className={styles.recapLabel}>Avoir prévu sur cette commande</span>
+              <span className={styles.recapCredit}>− CHF {estimatedCredit.toFixed(2)}</span>
             </div>
             {creditRemaining > 0 && (
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Solde avoir après confirmation</span>
+                <span className={styles.recapLabel}>Solde avoir restant après confirmation</span>
                 <span>CHF {creditRemaining.toFixed(2)}</span>
               </div>
             )}
           </div>
         )}
 
-        {payableTotal > 0 && (
+        {estimatedCredit > 0 && (
+          <div className={`${styles.recapRow} ${styles.recapRowFinal}`}>
+            <span className={styles.recapLabel}>Total après avoir (estimation)</span>
+            <span className={styles.recapComplement}>CHF {Math.max(0, payableTotal).toFixed(2)}</span>
+          </div>
+        )}
+
+        {estimatedCredit <= 0 && payableTotal > 0 && (
           <div className={styles.recapRow}>
-            <span className={styles.recapLabel}>Complément estimé au retrait</span>
+            <span className={styles.recapLabel}>Total à payer au retrait</span>
             <span className={styles.recapComplement}>CHF {payableTotal.toFixed(2)}</span>
           </div>
         )}
 
         <p className={styles.recapNote}>
           Pas de paiement en ligne — la confirmation enregistre votre commande au magasin.
-          {estimatedCredit > 0 && payableTotal <= 0 && (
-            <> L&apos;avoir sera déduit <strong>à la confirmation</strong>, pas avant.</>
+          {estimatedCredit > 0 && (
+            <> L&apos;avoir est déduit <strong>à la confirmation</strong> ; le montant définitif est fixé à la clôture de la commande.</>
           )}
         </p>
       </section>

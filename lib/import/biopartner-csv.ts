@@ -174,6 +174,14 @@ export function parseMinQuantity(uc: string): number {
   return Number.isNaN(n) || n < 1 ? 1 : n
 }
 
+/**
+ * Commande partielle (+10 %) : seulement si UC > 1 et prix déjà TTC (UM = 1).
+ * Ex. 410002015 (UC = 10, UM = 0) → minimum strict 10, pas de commande en dessous.
+ */
+export function allowsPartialBiopartnerOrder(row: BiopartnerRow, minQuantity: number): boolean {
+  return minQuantity > 1 && row.UM === '1'
+}
+
 export function buildUnitPrice(row: BiopartnerRow): number | null {
   const raw = parsePrice(row.Prix)
   if (raw == null) return null
@@ -192,7 +200,7 @@ export function rowToProduct(row: BiopartnerRow, supplierId: string) {
     unit: buildUnit(row),
     unit_price: buildUnitPrice(row),
     min_quantity: minQuantity,
-    allows_partial_order: minQuantity > 1,
+    allows_partial_order: allowsPartialBiopartnerOrder(row, minQuantity),
     order_deadline: null as string | null,
     supplier_id: supplierId,
     supplier_ref: row.Article,
