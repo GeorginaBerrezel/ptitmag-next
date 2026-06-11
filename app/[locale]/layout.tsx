@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
-import {Suspense} from 'react';
+import {Suspense, type ReactNode} from 'react';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, getTranslations, setRequestLocale} from 'next-intl/server';
 
@@ -38,8 +38,14 @@ function assertLocale(value: string): asserts value is Locale {
   if (!LOCALES.includes(value as Locale)) notFound();
 }
 
-export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
-  const {locale} = await props.params;
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const {locale} = await params;
   assertLocale(locale);
 
   setRequestLocale(locale);
@@ -58,7 +64,7 @@ export default async function LocaleLayout(props: LayoutProps<'/[locale]'>) {
           </Suspense>
           <Header locale={locale} showAdminLink={showAdminLink} />
           <div id="app-scroll">
-            <main id="main">{props.children}</main>
+            <main id="main">{children}</main>
             <Footer locale={locale} />
           </div>
         </CartProvider>
