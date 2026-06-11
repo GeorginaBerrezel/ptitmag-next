@@ -1,0 +1,41 @@
+---
+description: Contexte projet Le P'tit Mag — stack, URLs, docs
+alwaysApply: true
+---
+
+# Projet ptitmag-next
+
+Plateforme de commandes groupées pour l'association **Le P'tit Mag** (St-Romain, CH).
+Client : Joel Azoo · info@leptitmag.org · domaine `leptitmag.org` (Infomaniak).
+
+## Stack
+
+Next.js 16 · Supabase (auth + PostgreSQL) · Vercel · GitHub `GeorginaBerrezel/ptitmag-next`.
+
+## URLs
+
+| Environnement | URL | Branche Git |
+|---|---|---|
+| Prod | https://www.leptitmag.org | `main` |
+| Préprod | https://preprod.leptitmag.org | `staging` |
+| Dev | http://localhost:3000 | locale |
+
+## Docs à consulter avant gros changements
+
+- `docs/hebergement-et-deploiement.md` — infra, DNS, déploiement
+- `docs/handoff-nouvelle-session.md` — handoff complet
+- `docs/guide-joel.md` — usage gérant
+- `lib/catalog/pricing.ts` — règles prix Terre / Ciel (+20 %) / Biopartner UC (+10 %)
+
+## Admin autorisé
+
+`lib/admin/access.ts` — info@leptitmag.org, georgina.berrezel@gmail.com
+
+## Éthique / hébergement
+
+Domaine suisse Infomaniak OK. Vercel (USA) = compromis documenté, migrable vers Infomaniak Node.js.
+Ne pas toucher les enregistrements DNS MX/TXT (emails Infomaniak).
+
+## Zones sensibles (demander validation explicite)
+
+Imports Biopartner, commandes, pricing, migrations SQL Supabase, DNS, variables Vercel.
