@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from 'react'
 import { ADMIN_MEMBER_STATUSES, MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
 import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/status-guide'
 import AccordionChevron from '@/components/ui/AccordionChevron'
+import Avatar from '@/components/Avatar'
 import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
@@ -77,9 +78,6 @@ function getMemberName(m: Member) {
   return fromParts || m.full_name || m.username || m.email?.split('@')[0] || 'Membre inconnu'
 }
 
-function getInitial(m: Member) {
-  return getMemberName(m)[0]?.toUpperCase() ?? '?'
-}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-CH', {
@@ -514,19 +512,20 @@ export default function AdminMembresPage({
                 >
 
                   <div className="admin-member-summary__avatar">
-                    {member.avatar_url
-                      ? <img src={member.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : getInitial(member)
-                    }
+                    <Avatar
+                      src={member.avatar_url}
+                      name={name}
+                      email={member.email}
+                      userId={member.id}
+                      size={44}
+                    />
                   </div>
 
                   <div className="admin-member-summary__body">
-                    <div className="admin-member-summary__name">
-                      {name}
-                      {member.username && member.full_name && (
-                        <span className="admin-member-summary__username">@{member.username}</span>
-                      )}
-                    </div>
+                    <div className="admin-member-summary__name">{name}</div>
+                    {member.username && (
+                      <span className="admin-member-summary__username">@{member.username}</span>
+                    )}
                     <div className="admin-member-contact">
                       {member.email && (
                         <div className="admin-member-contact__row">
