@@ -2,9 +2,9 @@
 
 :root{
   /* Vert “verre” mais SOLIDE (pas d'alpha) */
-  --header-bg: #6E9B6D;
+  --header-bg: #486B47;
   --header-fg: #ffffff;
-  --header-fg-muted: rgba(255,255,255,0.78);
+  --header-fg-muted: #ffffff;
 
   /* Orange très partiel (hover/accents) */
   --orange: #d0822a;

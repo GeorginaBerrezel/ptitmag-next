@@ -176,7 +176,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
 
       <div className={styles.info}>
         <div className={styles.nameRow}>
-          <p className={styles.name}>{product.name}</p>
+          <h2 className={styles.name}>{product.name}</h2>
           {product.is_featured && (
             <span style={{
               background: '#DC7F00', color: '#fff',

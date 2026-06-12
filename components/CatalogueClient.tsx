@@ -424,7 +424,7 @@ export default function CatalogueClient({
 
         <nav
           aria-label="Fil d'ariane"
-          className={view === 'products' ? 'catalogue-breadcrumb catalogue-breadcrumb--mobile-hidden' : 'catalogue-breadcrumb'}
+          className={`catalogue-breadcrumb${view === 'products' ? ' catalogue-breadcrumb--mobile-compact' : ''}`}
         >
           <button
             type="button"

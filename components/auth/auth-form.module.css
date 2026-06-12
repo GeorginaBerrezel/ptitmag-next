@@ -125,9 +125,18 @@
 }
 
 .linkSubtle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 0.85rem;
   color: rgba(16, 24, 40, 0.65);
   font-weight: 600;
+}
+
+.linkSubtle:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .submitBtn {
