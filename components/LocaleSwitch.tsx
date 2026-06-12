@@ -7,8 +7,8 @@ export default function LocaleSwitch() {
 
   return (
     <div className="lang-switch" aria-label="Language switch">
-      <Link href={pathname as any} locale="fr">FR</Link>
-      <Link href={pathname as any} locale="en">EN</Link>
+      <Link href={pathname} locale="fr">FR</Link>
+      <Link href={pathname} locale="en">EN</Link>
     </div>
   );
 }

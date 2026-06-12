@@ -1,0 +1,47 @@
+---
+description: Structure code React/Next — composants, CSS modules, conventions
+globs: "**/*.{ts,tsx,css}"
+alwaysApply: false
+---
+
+# Conventions code
+
+Lire le fichier voisin avant d'ajouter du code. Matcher le style existant.
+
+## Composants React
+
+- Composants fonctionnels, `'use client'` seulement si nécessaire (hooks, events).
+- Un composant = un fichier ; extraire sous-composants si > ~150 lignes.
+- Logique métier dans `lib/`, pas dans les composants UI.
+- Types explicites ; pas de `any` sauf contrainte externe documentée.
+
+## Styles
+
+- **CSS Modules** colocalisés : `MonComposant.tsx` + `mon-composant.module.css`.
+- Variables globales dans `styles/theme.css` et `styles/globals.css` — pas de duplication.
+- Pas de feuille CSS monolithique : si > ~80 lignes, scinder en module par composant/page.
+- Admin : `styles/admin.css` + modules locaux (`app/[locale]/admin/**/*.module.css`).
+
+## Structure dossiers
+
+```
+components/   → UI réutilisable
+app/          → pages et routes API Next.js
+lib/          → logique métier, Supabase, imports, pricing
+messages/     → i18n (fr.json, en.json) — toute string visible passe par next-intl
+```
+
+## i18n
+
+Textes utilisateur via `next-intl` (`useTranslations`), jamais de français en dur dans JSX sauf commentaires.
+
+## API routes (`app/api/`)
+
+- Validation des entrées côté serveur.
+- Vérifier les droits admin (`lib/admin/access.ts`) sur routes admin.
+- Erreurs explicites, pas de fuite de détails internes au client.
+
+## Pricing et commandes
+
+Ne pas modifier `lib/catalog/pricing.ts` ou flux commandes sans tests manuels documentés
+(Terre, Ciel +20 %, Biopartner UC +10 %, clôture, avoirs).

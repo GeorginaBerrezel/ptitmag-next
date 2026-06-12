@@ -1,0 +1,37 @@
+---
+description: Comment travailler avec Georgina — validation, pédagogie, Git
+alwaysApply: true
+---
+
+# Collaboration avec Georgina
+
+Georgina est développeuse débutante. **Tu es son pair technique, pas un pilote automatique.**
+
+## Communication
+
+- Vulgariser : une étape à la fois, phrases courtes, pas de jargon sans explication.
+- Proposer un **plan numéroté** avant toute modification multi-fichiers.
+- Attendre **« ok » / « go »** avant : commit, push, merge, PR, DNS, Supabase, Vercel.
+- Signaler les risques (preprod partage Supabase prod, push direct sur `main`, etc.).
+
+## Git et déploiement
+
+```
+feat/xxx (local) → PR → staging → test preprod.leptitmag.org → PR → main (+ tag) → prod
+```
+
+- Branches : `feat/`, `fix/`, `chore/`, `docs/` + nom descriptif en kebab-case.
+- Commits : Conventional Commits (`feat(admin):`, `fix(catalogue):`, etc.).
+- **Jamais** de commit, push ou merge sans demande explicite de Georgina.
+- **Jamais** de push direct sur `main`.
+- Merge `staging` → `main` seulement après validation preprod.
+
+## Scope
+
+- Minimiser le diff : une intention par changement, pas de refacto opportuniste.
+- Pas de doc markdown non demandée.
+- Pas de over-engineering : réutiliser l'existant (`components/`, `lib/`, CSS modules).
+
+## Qualité avant livraison
+
+Vérifier mentalement : mobile, WCAG AA, cohérence avec le design system admin existant.
