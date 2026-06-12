@@ -23,6 +23,7 @@ Next.js 16 · Supabase (auth + PostgreSQL) · Vercel · GitHub `GeorginaBerrezel
 ## Docs à consulter avant gros changements
 
 - `docs/hebergement-et-deploiement.md` — infra, DNS, déploiement
+- `docs/workflow-git.md` — workflow Git, PR, CI, tags
 - `docs/handoff-nouvelle-session.md` — handoff complet
 - `docs/guide-joel.md` — usage gérant
 - `lib/catalog/pricing.ts` — règles prix Terre / Ciel (+20 %) / Biopartner UC (+10 %)
