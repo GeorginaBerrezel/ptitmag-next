@@ -178,6 +178,12 @@
   cursor: not-allowed;
 }
 
+.qtyBtn:focus-visible,
+.addBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
 .qtyValue {
   min-width: 2.75rem;
   padding: 0 0.35rem;
@@ -207,6 +213,7 @@
 
 .addBtn {
   width: 100%;
+  min-height: 44px;
   background: #1a1a2e;
   color: #fff;
   border: none;
