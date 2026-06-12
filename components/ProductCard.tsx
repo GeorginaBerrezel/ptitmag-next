@@ -68,6 +68,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
     ? (imageSrc ?? PRODUCT_IMAGE_PLACEHOLDER)
     : null
   const hasImage = supportsProductImage && imageUrl != null
+  const imageObjectFit = product.supplier?.type === 'grossiste_bio' ? 'contain' : 'cover'
 
   const minAllowed = getMinAllowedQuantity(qtyRules)
 
@@ -93,7 +94,11 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
     if (orderable && product.supplier.order_deadline) {
       return `Commandez avant le ${formatSupplierOrderDeadline(product.supplier.order_deadline)}`
     }
-    if (!orderable) return supplierStatus.label
+    if (!orderable) {
+      return supplierStatus.detail
+        ? `${supplierStatus.label} — ${supplierStatus.detail}`
+        : supplierStatus.label
+    }
     return null
   })()
 
@@ -164,7 +169,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
             alt=""
             fill
             sizes="(max-width: 560px) 88px, 104px"
-            style={{ objectFit: 'contain', objectPosition: 'center' }}
+            style={{ objectFit: imageObjectFit, objectPosition: 'center' }}
             onError={() => {
               if (imageUrl !== PRODUCT_IMAGE_PLACEHOLDER) {
                 setImageSrc(PRODUCT_IMAGE_PLACEHOLDER)

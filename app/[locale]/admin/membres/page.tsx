@@ -507,7 +507,7 @@ export default function AdminMembresPage({
               >
                 {/* ── Résumé cliquable ── */}
                 <summary
-                  className={`${accordionStyles.cardSummary} admin-member-summary`}
+                  className={`${accordionStyles.cardSummary} ${accordionStyles.cardSummaryMember} admin-member-summary`}
                   aria-label={`Membre ${name}, afficher le détail`}
                 >
 
@@ -522,45 +522,67 @@ export default function AdminMembresPage({
                   </div>
 
                   <div className="admin-member-summary__body">
-                    <div className="admin-member-summary__name">{name}</div>
-                    {member.username && (
-                      <span className="admin-member-summary__username">@{member.username}</span>
-                    )}
-                    <div className="admin-member-contact">
+                    <div
+                      className="admin-member-summary__identity admin-member-copyable"
+                      onPointerDown={e => e.stopPropagation()}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <div className="admin-member-summary__name">{name}</div>
+                      {member.username && (
+                        <span className="admin-member-summary__username">@{member.username}</span>
+                      )}
+                    </div>
+                    <div
+                      className="admin-member-contact admin-member-copyable"
+                      onPointerDown={e => e.stopPropagation()}
+                      onClick={e => e.stopPropagation()}
+                    >
                       {member.email && (
                         <div className="admin-member-contact__row">
                           <span className="admin-member-contact__icon" aria-hidden>✉</span>
-                          <span>{member.email}</span>
+                          <a
+                            href={`mailto:${member.email}`}
+                            className="admin-member-contact__link"
+                          >
+                            {member.email}
+                          </a>
                         </div>
                       )}
                       {member.phone && (
                         <div className="admin-member-contact__row">
                           <span className="admin-member-contact__icon" aria-hidden>📞</span>
-                          <span>{member.phone}</span>
+                          <a
+                            href={`tel:${member.phone.replace(/\s/g, '')}`}
+                            className="admin-member-contact__link"
+                          >
+                            {member.phone}
+                          </a>
                         </div>
                       )}
                       {location && (
                         <div className="admin-member-contact__row">
                           <span className="admin-member-contact__icon" aria-hidden>📍</span>
-                          <span>{location}</span>
+                          <span className="admin-member-contact__text">{location}</span>
                         </div>
                       )}
                       {member.created_at && (
                         <div className="admin-member-contact__row">
                           <span className="admin-member-contact__icon" aria-hidden>📅</span>
-                          <span>Inscrit·e le {formatDate(member.created_at)}</span>
+                          <span className="admin-member-contact__text">Inscrit·e le {formatDate(member.created_at)}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="admin-member-summary__meta">
-                    <span style={{
-                      background: st.bg, color: st.color,
-                      border: `1px solid ${st.border}33`,
-                      borderRadius: 999, padding: '0.18rem 0.65rem',
-                      fontSize: '0.78rem', fontWeight: 600, whiteSpace: 'nowrap',
-                    }}>
+                    <span
+                      className="admin-member-status-badge"
+                      style={{
+                        background: st.bg,
+                        color: st.color,
+                        border: `1px solid ${st.border}33`,
+                      }}
+                    >
                       {st.label}
                     </span>
                     <span className="admin-member-summary__stat">
@@ -573,16 +595,14 @@ export default function AdminMembresPage({
                         : 'Aucune commande'}
                     </span>
                     {member.credit_balance > 0 && (
-                      <span style={{
-                        fontSize: '0.78rem', fontWeight: 600, color: '#2e7d32',
-                        whiteSpace: 'nowrap',
-                      }}>
+                      <span className="admin-member-credit">
                         Avoir CHF {member.credit_balance.toFixed(2)}
                       </span>
                     )}
                   </div>
+
                   <span className="admin-member-summary__chevron">
-                    <AccordionChevron />
+                    <AccordionChevron compact />
                   </span>
                 </summary>
 

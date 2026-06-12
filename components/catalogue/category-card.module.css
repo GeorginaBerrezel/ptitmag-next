@@ -61,13 +61,26 @@
 }
 
 .chevron {
-  font-size: 1rem;
-  opacity: 0.35;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -0.35rem -0.35rem -0.35rem 0;
+  border: 1px solid rgba(16, 24, 40, 0.15);
+  border-radius: 8px;
+  background: #f8f9fa;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(16, 24, 40, 0.62);
 }
 
 .cardActive .chevron {
-  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .meta {

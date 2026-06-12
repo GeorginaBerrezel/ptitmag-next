@@ -13,6 +13,7 @@ type Props = {
   categoryCount: number
   isOpen: boolean
   statusLabel: string
+  statusDetail?: string
   onClick: () => void
 }
 
@@ -26,6 +27,7 @@ export default function SupplierCard({
   categoryCount,
   isOpen,
   statusLabel,
+  statusDetail,
   onClick,
 }: Props) {
   return (
@@ -43,7 +45,7 @@ export default function SupplierCard({
             )}
           </div>
         </div>
-        <span style={{ fontSize: '1.1rem', opacity: 0.35, lineHeight: 1, flexShrink: 0 }} aria-hidden>›</span>
+        <span className={styles.chevron} aria-hidden>›</span>
       </div>
 
       <div className={styles.footer}>
@@ -53,11 +55,14 @@ export default function SupplierCard({
           {categoryCount} catégorie{categoryCount > 1 ? 's' : ''}
         </p>
         <span className={isOpen ? styles.statusOpen : styles.statusClosed}>
-          {statusLabel}
+          <span className={styles.statusTitle}>{statusLabel}</span>
+          {statusDetail && (
+            <span className={styles.statusDetail}>{statusDetail}</span>
+          )}
         </span>
       </div>
 
-      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#DC7F00' }}>
+      <span className={styles.cta}>
         Voir le catalogue →
       </span>
     </button>
