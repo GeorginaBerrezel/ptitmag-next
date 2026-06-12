@@ -1,4 +1,4 @@
-/** Règles de quantité : Biopartner (UC entier), Bioterroir (0,25 kg), défaut (entiers). */
+/** Règles de quantité : Biopartner (UC entier ou décimal), Bioterroir (0,25 kg), défaut. */
 
 import { BIOTERROIR_KG_STEP } from '@/lib/catalog/bioterroir-quantity'
 
@@ -12,15 +12,28 @@ export function usesFractionalStep(rules: QuantityRules): boolean {
   return rules.minQuantity > 0 && rules.minQuantity < 1
 }
 
+/** UC Biopartner décimale ≥ 1 (ex. 2,5 kg). */
+export function usesDecimalPackStep(rules: QuantityRules): boolean {
+  return rules.minQuantity > 1 && !Number.isInteger(rules.minQuantity)
+}
+
+function usesStepRounding(rules: QuantityRules): boolean {
+  return usesFractionalStep(rules) || usesDecimalPackStep(rules)
+}
+
 function quantityStep(rules: QuantityRules): number {
-  if (usesFractionalStep(rules)) return rules.minQuantity
+  if (usesStepRounding(rules)) return rules.minQuantity
   return Math.max(1, rules.minQuantity)
+}
+
+function stepDecimals(step: number): number {
+  if (step < 1 || !Number.isInteger(step)) return 2
+  return 0
 }
 
 function roundToStep(value: number, step: number): number {
   const rounded = Math.round(value / step) * step
-  const decimals = step < 1 ? 2 : 0
-  return Number(rounded.toFixed(decimals))
+  return Number(rounded.toFixed(stepDecimals(step)))
 }
 
 export function getMinAllowedQuantity(rules: QuantityRules): number {
@@ -31,7 +44,7 @@ export function getMinAllowedQuantity(rules: QuantityRules): number {
 
 export function incrementQuantity(qty: number, rules: QuantityRules): number {
   const step = quantityStep(rules)
-  if (usesFractionalStep(rules)) {
+  if (usesStepRounding(rules)) {
     return roundToStep(qty + step, step)
   }
   const min = Math.max(1, rules.minQuantity)
@@ -44,7 +57,7 @@ export function decrementQuantity(qty: number, rules: QuantityRules): number {
   const minAllowed = getMinAllowedQuantity(rules)
   const step = quantityStep(rules)
   if (qty <= minAllowed) return qty
-  if (usesFractionalStep(rules)) {
+  if (usesStepRounding(rules)) {
     return roundToStep(Math.max(minAllowed, qty - step), step)
   }
   const min = Math.max(1, rules.minQuantity)
@@ -57,7 +70,7 @@ export function normalizeQuantity(qty: number, rules: QuantityRules): number {
   const minAllowed = getMinAllowedQuantity(rules)
   const step = quantityStep(rules)
   if (qty < minAllowed) return minAllowed
-  if (usesFractionalStep(rules)) {
+  if (usesStepRounding(rules)) {
     return roundToStep(qty, step)
   }
   const min = Math.max(1, rules.minQuantity)
@@ -68,17 +81,31 @@ export function normalizeQuantity(qty: number, rules: QuantityRules): number {
 }
 
 export function formatQuantityDisplay(qty: number, rules: QuantityRules): string {
-  if (usesFractionalStep(rules)) {
+  if (usesStepRounding(rules)) {
     const rounded = roundToStep(qty, rules.minQuantity)
-    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/0$/, '')
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/\.?0+$/, '')
   }
   return String(qty)
+}
+
+function formatStepLabel(step: number): string {
+  return Number.isInteger(step) ? String(step) : step.toFixed(2).replace(/\.?0+$/, '')
 }
 
 export function quantityHintText(rules: QuantityRules, unit: string): string {
   if (usesFractionalStep(rules)) {
     const step = BIOTERROIR_KG_STEP
     return `par ${step} ${unit} (ex. ${step}, ${step * 2}, ${step * 3}, 1…)`
+  }
+  if (usesDecimalPackStep(rules)) {
+    const step = rules.minQuantity
+    const label = formatStepLabel(step)
+    const ex2 = formatStepLabel(step * 2)
+    const ex3 = formatStepLabel(step * 3)
+    if (rules.allowsPartialOrder) {
+      return `min. sans majoration : ${label} ${unit} (ou moins avec +10 %)`
+    }
+    return `par ${label} ${unit} (ex. ${label}, ${ex2}, ${ex3}…)`
   }
   const min = Math.max(1, rules.minQuantity)
   if (rules.allowsPartialOrder && min > 1) {
