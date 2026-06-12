@@ -1,0 +1,42 @@
+---
+description: Accessibilité WCAG 2.1 AA et UX mobile — obligatoire sur toute UI
+globs: "**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# Accessibilité et UX mobile
+
+Référence : **WCAG 2.1 niveau AA** (comme SNCF, lauréat accessibilité).
+
+## Mobile-first
+
+- Concevoir d'abord pour petit écran, puis enrichir desktop.
+- Scroll principal : conteneur `#app-scroll` (pas `body`).
+- Inputs sur iOS : `font-size` ≥ 16px pour éviter le zoom automatique.
+- Pas de hover-only : toute action doit être utilisable au toucher.
+
+## Zones tactiles
+
+- Boutons et liens cliquables : **min 44×44 px** (`min-width` / `min-height`).
+- Espacement suffisant entre cibles adjacentes.
+
+## Accessibilité (WCAG AA)
+
+- Hiérarchie titres (`h1` → `h2` → …), un seul `h1` par page.
+- Labels explicites sur tous les champs ; `aria-label` si pas de label visible.
+- États dynamiques : `role="status"`, `aria-live="polite"`, spinners avec texte sr-only.
+- Focus visible : `:focus-visible` (voir `styles/theme.css`).
+- Contraste texte/fond ≥ 4.5:1 (normal) ; vérifier sur fond vert header et admin.
+- Images décoratives : `alt=""` ; informatives : `alt` descriptif.
+- `prefers-reduced-motion` : désactiver animations non essentielles.
+
+## Patterns existants à réutiliser
+
+- `components/ui/InlineStatus.tsx` — feedback accessible
+- `components/catalogue/CategoryPillButton.tsx` — touch 44px
+- `components/auth/PasswordCriteria.tsx` — critères mot de passe
+- Skip-link et landmarks dans le layout existant
+
+## Vérification
+
+Avant de proposer « c'est prêt » : Lighthouse accessibilité, navigation clavier, test viewport 375px.
