@@ -1,5 +1,7 @@
 /** Photos produits Graines d'Avenir — fichiers dans /public/images/products/graines-avenir/ */
 
+import { findLocalProducer } from '@/lib/catalog/local-producers'
+
 const GRAINES_SLUG = 'graines-avenir'
 
 /** Motifs testés dans le nom produit (insensible à la casse, sans accents). */
@@ -30,8 +32,7 @@ const NAME_TO_IMAGE: Array<{ pattern: RegExp; imageId: string }> = [
 
 export function isGrainesAvenirSupplier(supplierName: string | undefined | null): boolean {
   if (!supplierName) return false
-  const n = supplierName.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
-  return n.includes('graines') && n.includes('avenir')
+  return findLocalProducer(supplierName)?.slug === GRAINES_SLUG
 }
 
 export function resolveGrainesAvenirImageId(productName: string): string | null {
