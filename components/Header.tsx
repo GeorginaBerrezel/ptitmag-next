@@ -7,6 +7,7 @@ import {useTranslations} from 'next-intl';
 import AuthLink from '@/components/AuthLink';
 import CatalogueNavLink from '@/components/CatalogueNavLink';
 import MemberCartLink from '@/components/MemberCartLink';
+import MemberWishlistLink from '@/components/MemberWishlistLink';
 import PendingMemberBadge from '@/components/PendingMemberBadge';
 
 export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 'en'; showAdminLink?: boolean}) {
@@ -102,6 +103,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
           </ul>
           <div className="header-account">
             <PendingMemberBadge locale={locale} />
+            <MemberWishlistLink locale={locale} />
             <MemberCartLink locale={locale} />
             {showAdminLink ? (
               <Link
@@ -161,6 +163,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
               </ul>
               <div className="nav-mobile-account">
                 <PendingMemberBadge locale={locale} />
+                <MemberWishlistLink locale={locale} />
                 <MemberCartLink locale={locale} />
                 {showAdminLink ? (
                   <Link

@@ -1,0 +1,90 @@
+.page {
+  padding-top: 1.5rem;
+  padding-bottom: 4rem;
+}
+
+.pageTitle {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 1.25rem;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.breadcrumbLink {
+  color: #dc7f00;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbCurrent {
+  color: rgba(16, 24, 40, 0.75);
+  font-weight: 600;
+}
+
+.intro {
+  margin: 0 0 1.5rem;
+  max-width: 42rem;
+  line-height: 1.55;
+  color: rgba(16, 24, 40, 0.72);
+}
+
+.emptyCard {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  border: 2px dashed rgba(16, 24, 40, 0.12);
+  border-radius: 16px;
+  background: #fafbfc;
+}
+
+.emptyIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.emptyTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.emptyText {
+  margin: 0 auto 1.25rem;
+  max-width: 28rem;
+  line-height: 1.55;
+  color: rgba(16, 24, 40, 0.65);
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  background: #dc7f00;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ctaPrimary:hover {
+  background: #b56500;
+}
+
+.countNote {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: rgba(16, 24, 40, 0.6);
+}

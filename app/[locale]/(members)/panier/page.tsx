@@ -18,6 +18,7 @@ import {
 } from '@/lib/catalog/quantity-rules'
 import { Link } from '@/i18n/navigation'
 import { InlineStatus } from '@/components/ui/InlineStatus'
+import WishlistButton from '@/components/WishlistButton'
 import styles from './panier.module.css'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -276,7 +277,14 @@ export default function PanierPage({
                     <div key={item.productId} className={styles.line}>
                       {/* Nom + numéro article */}
                       <div className={styles.lineInfo}>
-                        <span style={{ fontWeight: 500 }}>{item.productName}</span>
+                        <div className={styles.lineNameRow}>
+                          <span style={{ fontWeight: 500 }}>{item.productName}</span>
+                          <WishlistButton
+                            productId={item.productId}
+                            productName={item.productName}
+                            compact
+                          />
+                        </div>
                         {item.supplierRef && (
                           <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
                             Réf. {item.supplierRef}

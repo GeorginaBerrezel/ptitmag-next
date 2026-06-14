@@ -107,7 +107,6 @@
 }
 
 .orderBtn {
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -121,6 +120,30 @@
   white-space: nowrap;
 }
 
+.statusActions {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.favorisBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fff;
+  color: #dc7f00;
+  border: 2px solid #dc7f00;
+  border-radius: 8px;
+  padding: 0.35rem 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.favorisBtn:focus-visible,
 .orderBtn:focus-visible {
   outline: 2px solid #1a1a2e;
   outline-offset: 2px;

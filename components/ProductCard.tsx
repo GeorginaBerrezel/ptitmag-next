@@ -19,6 +19,7 @@ import {
 } from '@/lib/catalog/quantity-rules'
 import type { Product } from '@/lib/supabase/products'
 import CielPriceHint from '@/components/catalog/CielPriceHint'
+import WishlistButton from '@/components/WishlistButton'
 import styles from './ProductCard.module.css'
 
 function daysLeft(deadline: string, nowMs: number): number {
@@ -186,6 +187,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
       <div className={styles.head}>
         <div className={styles.nameRow}>
           <h2 className={styles.name}>{product.name}</h2>
+          <WishlistButton productId={product.id} productName={product.name} compact />
           {product.is_featured && (
             <span style={{
               background: '#DC7F00', color: '#fff',

@@ -24,6 +24,13 @@
   line-height: 1;
   color: var(--header-fg);
   text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .header-brand .brand-text{
+    font-size: 1.12rem;
+  }
 }
 
 /* ===== Navigation header — sobre, lisible, sans effets lourds ===== */
