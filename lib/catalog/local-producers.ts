@@ -106,7 +106,7 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     description: 'Pains et pâtisseries bio, préparés avec des farines locales.',
     emoji: '🥖',
     website: 'https://graines-d-avenir.ch',
-    logo: 'graines-avenir.png',
+    logo: 'graines-avenir.jpg',
   },
   {
     slug: 'olivier-stephanie',

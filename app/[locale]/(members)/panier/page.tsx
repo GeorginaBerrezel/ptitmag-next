@@ -117,30 +117,17 @@ export default function PanierPage({
 
   if (confirmed) {
     return (
-      <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
-        <div style={{
-          background: '#e8f5e9',
-          borderRadius: 16,
-          padding: '2rem',
-          textAlign: 'center',
-        }}>
-          <p style={{ fontSize: '2.5rem', margin: '0 0 0.5rem' }}>✓</p>
-          <h1 style={{ margin: '0 0 0.5rem' }}>Commande confirmée !</h1>
-          <p style={{ opacity: 0.7, margin: '0 0 1.5rem' }}>
+      <div className={`container ${styles.narrowWrap}`}>
+        <div className={styles.successCard}>
+          <p className={styles.successIcon} aria-hidden>✓</p>
+          <h1 className={styles.successTitle}>Commande confirmée !</h1>
+          <p className={styles.successText}>
             Vos commandes ont été enregistrées. L&apos;équipe du p&apos;tit mag vous contactera pour confirmer les détails.
           </p>
           <Link
             href="/mon-compte"
             locale={locale}
-            style={{
-              display: 'inline-block',
-              background: '#2e7d32',
-              color: '#fff',
-              borderRadius: 8,
-              padding: '0.6rem 1.5rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
+            className={styles.successBtn}
           >
             Retour à mon compte
           </Link>
@@ -151,7 +138,7 @@ export default function PanierPage({
 
   if (items.length === 0) {
     return (
-      <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
+      <div className={`container ${styles.narrowWrap}`}>
         <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
           <Link href="/" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>Accueil</Link>
           <span aria-hidden>›</span>
@@ -159,21 +146,12 @@ export default function PanierPage({
           <span aria-hidden>›</span>
           <span className={styles.breadcrumbCurrent} aria-current="page">Panier</span>
         </nav>
-        <h1 style={{ marginBottom: '0.5rem' }}>Mon panier</h1>
-        <p style={{ opacity: 0.6 }}>Votre panier est vide.</p>
+        <h1 className={styles.pageTitle}>Mon panier</h1>
+        <p className={styles.emptyText}>Votre panier est vide.</p>
         <Link
           href="/commandes"
           locale={locale}
-          style={{
-            display: 'inline-block',
-            marginTop: '1rem',
-            background: '#DC7F00',
-            color: '#fff',
-            borderRadius: 8,
-            padding: '0.5rem 1.25rem',
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}
+          className={styles.ctaPrimary}
         >
           Commander
         </Link>

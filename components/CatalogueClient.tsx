@@ -656,6 +656,7 @@ export default function CatalogueClient({
                             categoryCount={summary.categories.length}
                             isOpen={status.isOpen}
                             statusLabel={status.label}
+                            statusDetail={status.detail}
                             onClick={() => openSupplier(summary.supplier.id)}
                           />
                         )
