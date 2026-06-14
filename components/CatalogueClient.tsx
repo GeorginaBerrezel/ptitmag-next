@@ -52,6 +52,8 @@ export default function CatalogueClient({
 
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [selectedSearchSupplierId, setSelectedSearchSupplierId] = useState<string | null>(null)
+  const [selectedSearchCategory, setSelectedSearchCategory] = useState<string | null>(null)
   const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
   const [activeSupplierId, setActiveSupplierId] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -132,6 +134,15 @@ export default function CatalogueClient({
   }, [view, activeSupplierId, activeCategory])
 
   const isSearching = search.trim().length > 0
+
+  useEffect(() => {
+    if (isSearching) setSelectedType(null)
+  }, [isSearching])
+
+  useEffect(() => {
+    setSelectedSearchSupplierId(null)
+    setSelectedSearchCategory(null)
+  }, [search, selectedType])
 
   useEffect(() => {
     if (!activeSupplierId) return
@@ -228,19 +239,85 @@ export default function CatalogueClient({
     return () => window.clearTimeout(timer)
   }, [search, selectedType, view, isSearching])
 
+  const filteredSearchResults = useMemo(() => {
+    return globalSearchResults.filter(p => {
+      if (selectedSearchSupplierId && p.supplier?.id !== selectedSearchSupplierId) return false
+      if (selectedSearchCategory) {
+        const cat = p.category?.trim() || 'Autres'
+        if (cat !== selectedSearchCategory) return false
+      }
+      return true
+    })
+  }, [globalSearchResults, selectedSearchSupplierId, selectedSearchCategory])
+
   const matchingSupplierIds = useMemo(
-    () => new Set(globalSearchResults.map(p => p.supplier?.id).filter(Boolean) as string[]),
-    [globalSearchResults],
+    () => new Set(filteredSearchResults.map(p => p.supplier?.id).filter(Boolean) as string[]),
+    [filteredSearchResults],
   )
+
+  const searchFacets = useMemo(() => {
+    if (!isSearching || globalSearchResults.length === 0) {
+      return { suppliers: [] as { id: string; name: string; count: number }[], categories: [] as { name: string; count: number }[] }
+    }
+
+    const supplierSource = globalSearchResults.filter(p => {
+      if (!selectedSearchCategory) return true
+      return (p.category?.trim() || 'Autres') === selectedSearchCategory
+    })
+    const categorySource = globalSearchResults.filter(p => {
+      if (!selectedSearchSupplierId) return true
+      return p.supplier?.id === selectedSearchSupplierId
+    })
+
+    const supplierMap = new Map<string, { id: string; name: string; count: number }>()
+    for (const p of supplierSource) {
+      if (!p.supplier?.id) continue
+      const existing = supplierMap.get(p.supplier.id)
+      if (existing) existing.count += 1
+      else supplierMap.set(p.supplier.id, { id: p.supplier.id, name: p.supplier.name, count: 1 })
+    }
+
+    const categoryMap = new Map<string, number>()
+    for (const p of categorySource) {
+      const cat = p.category?.trim() || 'Autres'
+      categoryMap.set(cat, (categoryMap.get(cat) ?? 0) + 1)
+    }
+
+    return {
+      suppliers: [...supplierMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'fr')),
+      categories: [...categoryMap.entries()]
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'fr')),
+    }
+  }, [globalSearchResults, isSearching, selectedSearchSupplierId, selectedSearchCategory])
+
+  const supplierFacetTotal = useMemo(() => {
+    return globalSearchResults.filter(p => {
+      if (!selectedSearchCategory) return true
+      return (p.category?.trim() || 'Autres') === selectedSearchCategory
+    }).length
+  }, [globalSearchResults, selectedSearchCategory])
+
+  const categoryFacetTotal = useMemo(() => {
+    return globalSearchResults.filter(p => {
+      if (!selectedSearchSupplierId) return true
+      return p.supplier?.id === selectedSearchSupplierId
+    }).length
+  }, [globalSearchResults, selectedSearchSupplierId])
 
   const filteredSummaries = useMemo(() => {
     return baseSummaries.filter(s => {
       if (selectedType && s.supplier.type !== selectedType) return false
+      if (selectedSearchSupplierId && s.supplier.id !== selectedSearchSupplierId) return false
       if (!isSearching) return true
+      if (selectedSearchCategory) {
+        const hasCategoryProduct = filteredSearchResults.some(p => p.supplier?.id === s.supplier.id)
+        if (hasCategoryProduct) return true
+      }
       return supplierMatches(s.supplier.name, search)
         || matchingSupplierIds.has(s.supplier.id)
     })
-  }, [baseSummaries, selectedType, search, isSearching, matchingSupplierIds])
+  }, [baseSummaries, selectedType, selectedSearchSupplierId, selectedSearchCategory, search, isSearching, matchingSupplierIds, filteredSearchResults])
 
   const supplierProductResults = useMemo(() => {
     if (view !== 'categories' || !activeSummary || !isSearching) return []
@@ -307,7 +384,6 @@ export default function CatalogueClient({
     setSelectedType(prev => (prev === type ? null : type))
     setActiveSupplierId(null)
     setActiveCategory(null)
-    setSearch('')
     setEphemereOnly(false)
   }
 
@@ -316,7 +392,12 @@ export default function CatalogueClient({
     setSelectedType(null)
     setActiveSupplierId(null)
     setActiveCategory(null)
+  }
+
+  function clearSearch() {
     setSearch('')
+    setSelectedSearchSupplierId(null)
+    setSelectedSearchCategory(null)
   }
 
   function openSupplier(id: string) {
@@ -477,7 +558,8 @@ export default function CatalogueClient({
               {view === 'products' && activeCategory}
             </h1>
             <p className="catalogue-page-sub">
-              {view === 'suppliers' && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
+              {view === 'suppliers' && !isSearching && 'Choisissez un fournisseur, puis une catégorie pour parcourir les produits.'}
+              {view === 'suppliers' && isSearching && 'Affinez avec les filtres, puis ajoutez au panier.'}
               {view === 'categories' && 'Choisissez une catégorie pour afficher les produits.'}
               {view === 'products' && activeProducts && !isSearching && (
                 `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeSummary?.supplier.name}`
@@ -521,7 +603,7 @@ export default function CatalogueClient({
           {search && (
             <button
               type="button"
-              onClick={() => setSearch('')}
+              onClick={clearSearch}
               className="catalogue-search-clear"
               aria-label="Effacer la recherche"
             >
@@ -531,42 +613,84 @@ export default function CatalogueClient({
         </div>
 
         {view === 'suppliers' && (
-          <HorizontalScrollStrip className="catalogue-type-filters-wrap" ariaLabel="Types de fournisseurs">
-            <div className="catalogue-type-filters">
-              {hasFeatured && (
-                <button type="button" onClick={handleEphemereClick} aria-pressed={ephemereOnly} style={{
-                  padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                  borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
-                  background: ephemereOnly ? '#DC7F00' : '#fff',
-                  color: ephemereOnly ? '#fff' : '#1a1a2e',
-                  fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-                  minHeight: 44,
-                }}>
-                  ⏳ Éphémères
-                </button>
-              )}
-              {!ephemereOnly && TYPE_ORDER.map(type => {
-                const count = baseSummaries.filter(s => s.supplier.type === type).length
-                if (count === 0) return null
-                const active = selectedType === type
-                return (
-                  <button key={type} type="button" onClick={() => handleTypeClick(type)} aria-pressed={active} style={{
-                    padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
-                    borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
-                    background: active ? '#1a1a2e' : '#fff',
-                    color: active ? '#fff' : '#1a1a2e',
-                    fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-                    minHeight: 44,
-                  }}>
-                    {TYPE_LABELS[type] ?? type}
-                    <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
-                      {count}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </HorizontalScrollStrip>
+          <aside
+            className={`catalogue-search-refine${isSearching ? ' catalogue-search-refine--active' : ''}`}
+            aria-label={isSearching ? 'Affiner la recherche' : 'Filtrer les fournisseurs'}
+          >
+            {(hasFeatured || (!isSearching && !ephemereOnly)) && (
+              <HorizontalScrollStrip className="catalogue-type-filters-wrap" ariaLabel="Types de fournisseurs">
+                <div className="catalogue-type-filters">
+                  {hasFeatured && (
+                    <button type="button" onClick={handleEphemereClick} aria-pressed={ephemereOnly} style={{
+                      padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
+                      borderColor: ephemereOnly ? '#DC7F00' : 'rgba(16,24,40,0.15)',
+                      background: ephemereOnly ? '#DC7F00' : '#fff',
+                      color: ephemereOnly ? '#fff' : '#1a1a2e',
+                      fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                      minHeight: 44,
+                    }}>
+                      ⏳ Éphémères
+                    </button>
+                  )}
+                  {!isSearching && !ephemereOnly && TYPE_ORDER.map(type => {
+                    const count = baseSummaries.filter(s => s.supplier.type === type).length
+                    if (count === 0) return null
+                    const active = selectedType === type
+                    return (
+                      <button key={type} type="button" onClick={() => handleTypeClick(type)} aria-pressed={active} style={{
+                        padding: '0.4rem 1rem', borderRadius: 999, border: '1.5px solid',
+                        borderColor: active ? '#1a1a2e' : 'rgba(16,24,40,0.15)',
+                        background: active ? '#1a1a2e' : '#fff',
+                        color: active ? '#fff' : '#1a1a2e',
+                        fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                        minHeight: 44,
+                      }}>
+                        {TYPE_LABELS[type] ?? type}
+                        <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontWeight: 400, fontSize: '0.8rem' }}>
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </HorizontalScrollStrip>
+            )}
+
+            {isSearching && !searchLoading && globalSearchResults.length > 0 && (
+              <>
+                {searchFacets.suppliers.length >= 1 && (
+                  <FacetFilterStrip
+                    label="Fournisseur"
+                    allActive={selectedSearchSupplierId === null}
+                    allCount={supplierFacetTotal}
+                    onClearAll={() => setSelectedSearchSupplierId(null)}
+                    items={searchFacets.suppliers.map(s => ({
+                      key: s.id,
+                      label: s.name,
+                      count: s.count,
+                      active: selectedSearchSupplierId === s.id,
+                      onClick: () => setSelectedSearchSupplierId(prev => (prev === s.id ? null : s.id)),
+                    }))}
+                  />
+                )}
+                {searchFacets.categories.length >= 1 && (
+                  <FacetFilterStrip
+                    label="Catégorie"
+                    allActive={selectedSearchCategory === null}
+                    allCount={categoryFacetTotal}
+                    onClearAll={() => setSelectedSearchCategory(null)}
+                    items={searchFacets.categories.map(c => ({
+                      key: c.name,
+                      label: c.name,
+                      count: c.count,
+                      active: selectedSearchCategory === c.name,
+                      onClick: () => setSelectedSearchCategory(prev => (prev === c.name ? null : c.name)),
+                    }))}
+                  />
+                )}
+              </>
+            )}
+          </aside>
         )}
 
         {ephemereOnly && view === 'suppliers' && (
@@ -609,63 +733,73 @@ export default function CatalogueClient({
               <InlineStatus message="Recherche en cours…" centered live="polite" />
             )}
 
-            {isSearching && !searchLoading && globalSearchResults.length > 0 && (
-              <SearchResultsSection
-                title={`Produits trouvés (${globalSearchResults.length}${globalSearchResults.length >= 100 ? '+' : ''})`}
-                subtitle="Ajoutez directement au panier ou ouvrez le fournisseur pour voir la catégorie."
-              >
-                <ProductList products={globalSearchResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
-              </SearchResultsSection>
+            {!isSearching && (
+              filteredSummaries.length === 0 ? (
+                <EmptyState message="Aucun fournisseur disponible." />
+              ) : (
+                TYPE_ORDER.map(type => {
+                  const list = summariesByType.get(type)
+                  if (!list?.length) return null
+                  const showHeader = !selectedType && !ephemereOnly
+                  return (
+                    <section key={type} style={{ marginBottom: showHeader ? '2rem' : 0 }}>
+                      {showHeader && (
+                        <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
+                          {TYPE_LABELS[type] ?? type}
+                        </h2>
+                      )}
+                      <div className="catalogue-supplier-grid">
+                        {list.map(summary => {
+                          const status = supplierStatus(summary)
+                          const display = getSupplierDisplayInfo(summary.supplier.name, summary.supplier.type)
+                          return (
+                            <SupplierCard
+                              key={summary.supplier.id}
+                              name={summary.supplier.name}
+                              typeLabel={TYPE_LABELS[summary.supplier.type] ?? summary.supplier.type}
+                              description={display.description}
+                              emoji={display.emoji}
+                              logo={display.logo}
+                              productCount={summary.productCount}
+                              categoryCount={summary.categories.length}
+                              isOpen={status.isOpen}
+                              statusLabel={status.label}
+                              statusDetail={status.detail}
+                              onClick={() => openSupplier(summary.supplier.id)}
+                            />
+                          )
+                        })}
+                      </div>
+                    </section>
+                  )
+                })
+              )
             )}
 
-            {isSearching && !searchLoading && globalSearchResults.length > 0 && filteredSummaries.length > 0 && (
-              <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
-                Fournisseurs
-              </h2>
+            {isSearching && !searchLoading && (
+              filteredSearchResults.length > 0 ? (
+                <SearchResultsSection
+                  title={formatSearchResultsTitle(filteredSearchResults.length, globalSearchResults.length >= 100)}
+                  subtitle={formatSearchResultsSubtitle(globalSearchResults.length >= 100, selectedSearchSupplierId, selectedSearchCategory)}
+                  live
+                >
+                  <ProductList
+                    products={filteredSearchResults}
+                    nowMs={catalogNow}
+                    extendOrderId={extendOrderId}
+                    showSupplier
+                  />
+                </SearchResultsSection>
+              ) : filteredSummaries.length > 0 ? (
+                <CompactSupplierMatches
+                  summaries={filteredSummaries}
+                  onOpen={openSupplier}
+                  getStatus={supplierStatus}
+                />
+              ) : (
+                <EmptyState message="Aucun produit ne correspond à votre recherche." />
+              )
             )}
-
-            {!isSearching && filteredSummaries.length === 0 ? (
-              <EmptyState message="Aucun fournisseur disponible." />
-            ) : isSearching && !searchLoading && filteredSummaries.length === 0 && globalSearchResults.length === 0 ? (
-              <EmptyState message="Aucun produit ni fournisseur ne correspond à votre recherche." />
-            ) : filteredSummaries.length > 0 ? (
-              TYPE_ORDER.map(type => {
-                const list = summariesByType.get(type)
-                if (!list?.length) return null
-                const showHeader = !selectedType && !ephemereOnly && !isSearching
-                return (
-                  <section key={type} style={{ marginBottom: showHeader ? '2rem' : 0 }}>
-                    {showHeader && (
-                      <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, opacity: 0.65 }}>
-                        {TYPE_LABELS[type] ?? type}
-                      </h2>
-                    )}
-                    <div className="catalogue-supplier-grid">
-                      {list.map(summary => {
-                        const status = supplierStatus(summary)
-                        const display = getSupplierDisplayInfo(summary.supplier.name, summary.supplier.type)
-                        return (
-                          <SupplierCard
-                            key={summary.supplier.id}
-                            name={summary.supplier.name}
-                            typeLabel={TYPE_LABELS[summary.supplier.type] ?? summary.supplier.type}
-                            description={display.description}
-                            emoji={display.emoji}
-                            logo={display.logo}
-                            productCount={summary.productCount}
-                            categoryCount={summary.categories.length}
-                            isOpen={status.isOpen}
-                            statusLabel={status.label}
-                            statusDetail={status.detail}
-                            onClick={() => openSupplier(summary.supplier.id)}
-                          />
-                        )
-                      })}
-                    </div>
-                  </section>
-                )
-              })
-            ) : null}
           </>
         )}
 
@@ -760,18 +894,134 @@ export default function CatalogueClient({
   )
 }
 
+function formatSearchResultsTitle(count: number, capped: boolean): string {
+  const suffix = capped ? '+' : ''
+  return `${count}${suffix} produit${count !== 1 ? 's' : ''}`
+}
+
+function formatSearchResultsSubtitle(
+  capped: boolean,
+  selectedSearchSupplierId: string | null,
+  selectedSearchCategory: string | null,
+): string {
+  if (capped) {
+    return 'Beaucoup de résultats — affinez avec les filtres ci-dessus.'
+  }
+  if (selectedSearchSupplierId || selectedSearchCategory) {
+    return 'Filtres actifs — « Toutes » ou recliquez un filtre pour élargir.'
+  }
+  return 'Le fournisseur est indiqué sur chaque fiche · ajoutez directement au panier.'
+}
+
+function CompactSupplierMatches({
+  summaries,
+  onOpen,
+  getStatus,
+}: {
+  summaries: CatalogueSupplierSummary[]
+  onOpen: (id: string) => void
+  getStatus: (summary: CatalogueSupplierSummary) => ReturnType<typeof supplierOrderStatusLabel>
+}) {
+  return (
+    <section className="catalogue-search-supplier-matches" aria-label="Fournisseurs correspondants">
+      <h2 className="catalogue-search-supplier-matches__title">
+        {summaries.length === 1 ? 'Fournisseur correspondant' : 'Fournisseurs correspondants'}
+      </h2>
+      <p className="catalogue-search-supplier-matches__sub">
+        Aucun produit dans les premiers résultats — ouvrez le catalogue du fournisseur.
+      </p>
+      <ul className="catalogue-search-supplier-matches__list">
+        {summaries.map(summary => {
+          const status = getStatus(summary)
+          const display = getSupplierDisplayInfo(summary.supplier.name, summary.supplier.type)
+          return (
+            <li key={summary.supplier.id}>
+              <button
+                type="button"
+                className="catalogue-search-supplier-matches__btn"
+                onClick={() => onOpen(summary.supplier.id)}
+              >
+                <span className="catalogue-search-supplier-matches__emoji" aria-hidden="true">
+                  {display.emoji}
+                </span>
+                <span className="catalogue-search-supplier-matches__label">
+                  <span className="catalogue-search-supplier-matches__name">{summary.supplier.name}</span>
+                  <span className="catalogue-search-supplier-matches__meta">
+                    {status.label}
+                    {status.detail ? ` · ${status.detail}` : ''}
+                  </span>
+                </span>
+                <span className="catalogue-search-supplier-matches__arrow" aria-hidden="true">→</span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+function FacetFilterStrip({
+  label,
+  items,
+  allActive,
+  allCount,
+  onClearAll,
+}: {
+  label: string
+  items: { key: string; label: string; count: number; active: boolean; onClick: () => void }[]
+  allActive: boolean
+  allCount: number
+  onClearAll: () => void
+}) {
+  const chips = [
+    {
+      key: '__all__',
+      label: 'Toutes',
+      count: allCount,
+      active: allActive,
+      onClick: onClearAll,
+    },
+    ...items,
+  ]
+
+  return (
+    <div className="catalogue-search-facets">
+      <p className="catalogue-search-facets__label">{label}</p>
+      <HorizontalScrollStrip className="catalogue-search-facets__strip" ariaLabel={`Filtrer par ${label.toLowerCase()}`}>
+        <div className="catalogue-type-filters">
+          {chips.map(item => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={item.onClick}
+              aria-pressed={item.active}
+              className={item.active ? 'catalogue-facet-chip catalogue-facet-chip--active' : 'catalogue-facet-chip'}
+            >
+              {item.label}
+              <span className="catalogue-facet-chip__count">{item.count}</span>
+            </button>
+          ))}
+        </div>
+      </HorizontalScrollStrip>
+    </div>
+  )
+}
+
 function SearchResultsSection({
   title,
   subtitle,
   children,
+  live = false,
 }: {
   title: string
   subtitle: string
   children: ReactNode
+  live?: boolean
 }) {
   return (
-    <section style={{ marginBottom: '2rem' }}>
-      <h2 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 700 }}>{title}</h2>
+    <section className="catalogue-search-results" aria-live={live ? 'polite' : undefined}>
+      <h2 className="catalogue-search-results__title">{title}</h2>
       <p className="catalogue-search-results-sub">{subtitle}</p>
       {children}
     </section>
