@@ -8,13 +8,16 @@ const PAGE_SIZE = 40
 
 type Props = {
   products: Product[]
-  nowMs: number
+  /** Horloge partagée (catalogue). Si omis, fixée au montage client. */
+  nowMs?: number
   extendOrderId?: string | null
   /** Recherche globale — affiche le fournisseur sur chaque fiche produit. */
   showSupplier?: boolean
 }
 
-function ProductListInner({ products, nowMs, extendOrderId = null, showSupplier = false }: Props) {
+function ProductListInner({ products, nowMs: nowMsProp, extendOrderId = null, showSupplier = false }: Props) {
+  const [clientNowMs] = useState(() => Date.now())
+  const nowMs = nowMsProp ?? clientNowMs
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {

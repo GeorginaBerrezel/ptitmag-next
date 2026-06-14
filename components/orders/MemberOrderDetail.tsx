@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import WishlistButton from '@/components/WishlistButton'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import { previewCreditAtClose } from '@/lib/members/credit'
 import { grossTotalFromOrderItems } from '@/lib/orders/order-gross'
@@ -59,6 +60,13 @@ export default function MemberOrderDetail({ order, hasCatalogAccess, creditBalan
                 </span>
               </div>
               <div className={lineStyles.lineMeta}>
+                {item.product?.id && (
+                  <WishlistButton
+                    productId={item.product.id}
+                    productName={item.product.name}
+                    compact
+                  />
+                )}
                 <span className={lineStyles.lineQty}>
                   {item.quantity} {item.product?.unit}
                 </span>
