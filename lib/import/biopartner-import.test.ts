@@ -78,9 +78,25 @@ describe('buildUnitPrice', () => {
     assert.equal(price, 10.26)
   })
 
-  it('ne double pas la TVA si UM = TTC', () => {
-    const price = buildUnitPrice(row({ UM: '1', Prix: '10,15', TVA: 'Taux TVA normal 8.1%' }))
+  it('ne double pas la TVA si UM = 1 et UC = 1 (prix déjà TTC)', () => {
+    const price = buildUnitPrice(row({
+      UM: '1',
+      UC: '1',
+      Prix: '10,15',
+      TVA: 'Taux TVA normal 8.1%',
+    }))
     assert.equal(price, 10.15)
+  })
+
+  it('applique la TVA sur HT si UM = 1 et UC > 1 (diminuable +10 %)', () => {
+    const price = buildUnitPrice(row({
+      Article: '600771490',
+      UM: '1',
+      UC: '3',
+      Prix: '1,89',
+      TVA: 'Taux TVA normal 8.1%',
+    }))
+    assert.equal(price, 2.04)
   })
 })
 
