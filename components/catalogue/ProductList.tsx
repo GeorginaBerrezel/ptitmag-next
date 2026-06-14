@@ -10,9 +10,11 @@ type Props = {
   products: Product[]
   nowMs: number
   extendOrderId?: string | null
+  /** Recherche globale — affiche le fournisseur sur chaque fiche produit. */
+  showSupplier?: boolean
 }
 
-function ProductListInner({ products, nowMs, extendOrderId = null }: Props) {
+function ProductListInner({ products, nowMs, extendOrderId = null, showSupplier = false }: Props) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
@@ -31,6 +33,7 @@ function ProductListInner({ products, nowMs, extendOrderId = null }: Props) {
             product={product}
             nowMs={nowMs}
             extendOrderId={extendOrderId}
+            showSupplier={showSupplier}
           />
         ))}
       </div>

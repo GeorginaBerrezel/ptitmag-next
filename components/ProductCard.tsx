@@ -35,9 +35,11 @@ type Props = {
   /** Horloge catalogue partagée (CatalogueClient) — évite Date.now() éparpillé. */
   nowMs?: number
   extendOrderId?: string | null
+  /** Recherche globale — le fournisseur n’est pas évident sans navigation préalable. */
+  showSupplier?: boolean
 }
 
-function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
+function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier = false }: Props) {
   const { addItem, items } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
   const now = nowMs ?? Date.now()
@@ -156,7 +158,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
     styles.card,
     !orderable ? styles.cardClosed : '',
     product.is_featured ? styles.cardFeatured : '',
-    hasImage ? styles.cardWithImage : styles.cardNoImage,
+    hasImage ? styles.cardWithImage : '',
   ].filter(Boolean).join(' ')
 
   return (
@@ -169,7 +171,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
             alt=""
             fill
             unoptimized={isLocalCatalogImage(imageUrl)}
-            sizes="(max-width: 560px) 88px, 104px"
+            sizes="(max-width: 767px) 96px, 104px"
             style={{ objectFit: imageObjectFit, objectPosition: 'center' }}
             onError={() => {
               if (imageUrl !== PRODUCT_IMAGE_PLACEHOLDER) {
@@ -181,6 +183,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
       )}
 
       <div className={styles.info}>
+      <div className={styles.head}>
         <div className={styles.nameRow}>
           <h2 className={styles.name}>{product.name}</h2>
           {product.is_featured && (
@@ -194,53 +197,47 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
             </span>
           )}
         </div>
+      </div>
 
+      <div className={styles.meta}>
         {product.description && (
           <p className={styles.description}>{product.description}</p>
         )}
-
-        <div className={styles.meta}>
-          {product.category && (
-            <span style={{
-              fontSize: '0.73rem', fontWeight: 600,
-              background: '#f0f4ff', color: '#3b4fa8',
-              borderRadius: 999, padding: '0.1rem 0.5rem',
-            }}>
-              {product.category}
-            </span>
-          )}
-          {product.supplier_ref && (
-            <span style={{ fontSize: '0.75rem', opacity: 0.45 }}>
-              Réf. {product.supplier_ref}
-            </span>
-          )}
-          {biopartnerInfoUrl && (
-            <a
-              href={biopartnerInfoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.biopartnerInfoLink}
-              aria-label={`Allergènes et fiche produit Biopartner pour ${product.name}`}
-            >
-              Allergènes &amp; fiche Biopartner ↗
-            </a>
-          )}
-          {deadlineLabel && (
-            <span style={{
-              fontSize: '0.78rem', fontWeight: 500,
-              background: orderable
-                ? (days !== null && days <= 3 ? '#fff3cd' : '#ecfdf5')
-                : '#f3f4f6',
-              color: orderable
-                ? (days !== null && days <= 3 ? '#92400e' : '#047857')
-                : '#4b5563',
-              borderRadius: 999, padding: '0.1rem 0.55rem',
-              lineHeight: 1.35,
-            }}>
-              {deadlineLabel}
-            </span>
-          )}
-        </div>
+        {showSupplier && product.supplier?.name && (
+          <p className={styles.supplierName}>{product.supplier.name}</p>
+        )}
+        {(product.category || product.supplier_ref) && (
+          <div className={styles.metaTags}>
+            {product.category && (
+              <span className={styles.categoryTag}>{product.category}</span>
+            )}
+            {product.supplier_ref && (
+              <span className={styles.refTag}>Réf. {product.supplier_ref}</span>
+            )}
+          </div>
+        )}
+        {biopartnerInfoUrl && (
+          <a
+            href={biopartnerInfoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.biopartnerInfoLink}
+            aria-label={`Allergènes et fiche produit Biopartner pour ${product.name}`}
+          >
+            Allergènes &amp; fiche Biopartner ↗
+          </a>
+        )}
+        {deadlineLabel && (
+          <span className={[
+            styles.deadlineTag,
+            !orderable ? styles.deadlineTagClosed
+              : days !== null && days <= 3 ? styles.deadlineTagSoon
+              : styles.deadlineTagOpen,
+          ].filter(Boolean).join(' ')}>
+            {deadlineLabel}
+          </span>
+        )}
+      </div>
       </div>
 
       <div className={styles.actions}>
@@ -272,75 +269,77 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
 
         {orderable ? (
           <>
-            <div
-              className={styles.qtyRow}
-              role="group"
-              aria-label={`Quantité : ${formatQuantityDisplay(qty, qtyRules)} ${product.unit}`}
-            >
-              <button
-                type="button"
-                onClick={decrement}
-                disabled={qty <= minAllowed}
-                aria-label="Diminuer la quantité"
-                className={styles.qtyBtn}
+            <div className={styles.purchaseRow}>
+              <div
+                className={styles.qtyRow}
+                role="group"
+                aria-label={`Quantité : ${formatQuantityDisplay(qty, qtyRules)} ${product.unit}`}
               >
-                −
-              </button>
+                <button
+                  type="button"
+                  onClick={decrement}
+                  disabled={qty <= minAllowed}
+                  aria-label="Diminuer la quantité"
+                  className={styles.qtyBtn}
+                >
+                  −
+                </button>
 
-              <span
-                className={styles.qtyValue}
-                aria-hidden="true"
-              >
-                {formatQuantityDisplay(qty, qtyRules)}
-              </span>
+                <span
+                  className={styles.qtyValue}
+                  aria-hidden="true"
+                >
+                  {formatQuantityDisplay(qty, qtyRules)}
+                </span>
 
-              <button
-                type="button"
-                onClick={increment}
-                aria-label="Augmenter la quantité"
-                className={styles.qtyBtn}
-              >
-                +
-              </button>
+                <button
+                  type="button"
+                  onClick={increment}
+                  aria-label="Augmenter la quantité"
+                  className={styles.qtyBtn}
+                >
+                  +
+                </button>
 
-              <span className={styles.qtyUnit}>{product.unit}</span>
+                <span className={styles.qtyUnit}>{product.unit}</span>
+              </div>
+
+              {extendOrderId ? (
+                <button
+                  type="button"
+                  onClick={() => void handleExtendAdd()}
+                  disabled={extendLoading}
+                  aria-busy={extendLoading}
+                  className={[
+                    styles.addBtn,
+                    extendDone ? styles.addBtnAdded : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  {extendLoading ? 'Ajout en cours…' : extendDone ? '✓ Ajouté à la commande' : '+ Ajouter à ma commande'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  className={[
+                    styles.addBtn,
+                    added ? styles.addBtnAdded : '',
+                    !added && inCart ? styles.addBtnInCart : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  {added ? '✓ Ajouté' : inCart ? '✎ Modifier' : '+ Panier'}
+                </button>
+              )}
             </div>
 
-            {extendOrderId ? (
-              <button
-                type="button"
-                onClick={() => void handleExtendAdd()}
-                disabled={extendLoading}
-                aria-busy={extendLoading}
-                className={[
-                  styles.addBtn,
-                  extendDone ? styles.addBtnAdded : '',
-                ].filter(Boolean).join(' ')}
-              >
-                {extendLoading ? 'Ajout en cours…' : extendDone ? '✓ Ajouté à la commande' : '+ Ajouter à ma commande'}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleAdd}
-                className={[
-                  styles.addBtn,
-                  added ? styles.addBtnAdded : '',
-                  !added && inCart ? styles.addBtnInCart : '',
-                ].filter(Boolean).join(' ')}
-              >
-                {added ? '✓ Ajouté' : inCart ? '✎ Modifier' : '+ Panier'}
-              </button>
-            )}
-
-            <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.5, lineHeight: 1.3 }}>
+            <p className={styles.hint}>
               {extendOrderId
                 ? 'Ajout à votre commande livrée de ce fournisseur (total provisoire recalculé).'
                 : quantityHintText(qtyRules, product.unit)}
             </p>
           </>
         ) : (
-          <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.35 }}>
+          <p className={styles.unavailable}>
             Commande indisponible pour le moment
           </p>
         )}
