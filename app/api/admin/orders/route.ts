@@ -94,6 +94,7 @@ export async function GET(request: NextRequest) {
 
     return {
       id: order.id,
+      member_id: order.member_id,
       status: order.status,
       total: order.total,
       credit_applied: order.credit_applied ?? 0,

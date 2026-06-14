@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
+import { getMemberDisplayName, sortByMemberDisplayName } from '@/lib/admin/member-display'
 import {
   sendMemberStatusNotification,
   shouldSendMemberStatusEmail,
@@ -93,30 +94,33 @@ export async function GET() {
 
   const profiles = (profilesResult.data ?? []) as ProfileRow[]
 
-  const members = profiles.map(p => {
-    const status = normalizeMemberStatus(p.status)
-    return {
-      id: p.id,
-      email: p.email,
-      full_name: p.full_name,
-      first_name: p.first_name,
-      last_name: p.last_name,
-      phone: p.phone,
-      postal_code: p.postal_code,
-      commune: p.commune,
-      username: p.username,
-      avatar_url: p.avatar_url,
-      status,
-      cotisation_amount: p.cotisation_amount != null ? Number(p.cotisation_amount) : null,
-      cotisation_active: p.cotisation_active ?? false,
-      credit_balance: p.credit_balance != null ? Number(p.credit_balance) : 0,
-      created_at: p.created_at,
-      orderCount: ordersByMember[p.id]?.count ?? 0,
-      orderTotal: ordersByMember[p.id]?.total ?? 0,
-      lastOrderDate: ordersByMember[p.id]?.lastDate ?? null,
-      recentOrders: ordersByMember[p.id]?.recent ?? [],
-    }
-  })
+  const members = sortByMemberDisplayName(
+    profiles.map(p => {
+      const status = normalizeMemberStatus(p.status)
+      return {
+        id: p.id,
+        email: p.email,
+        full_name: p.full_name,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        phone: p.phone,
+        postal_code: p.postal_code,
+        commune: p.commune,
+        username: p.username,
+        avatar_url: p.avatar_url,
+        status,
+        cotisation_amount: p.cotisation_amount != null ? Number(p.cotisation_amount) : null,
+        cotisation_active: p.cotisation_active ?? false,
+        credit_balance: p.credit_balance != null ? Number(p.credit_balance) : 0,
+        created_at: p.created_at,
+        orderCount: ordersByMember[p.id]?.count ?? 0,
+        orderTotal: ordersByMember[p.id]?.total ?? 0,
+        lastOrderDate: ordersByMember[p.id]?.lastDate ?? null,
+        recentOrders: ordersByMember[p.id]?.recent ?? [],
+      }
+    }),
+    m => getMemberDisplayName(m),
+  )
 
   const totalCotisations = members.reduce(
     (sum, m) => sum + (m.cotisation_amount ?? 0),
