@@ -2,26 +2,52 @@
  * Accordéons (<details>) — pattern SNCF / WCAG
  */
 
-.chevron {
+.chevronWrap {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.15rem;
-  height: 1.15rem;
-  font-size: 0.62rem;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(16, 24, 40, 0.18);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
   line-height: 1;
-  color: rgba(16, 24, 40, 0.55);
+  color: rgba(16, 24, 40, 0.72);
+  transition: transform 0.2s ease;
+}
+
+/* Chevron cartes membres admin — zone 44 px, glyph lisible */
+.chevronCompact {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 0.8rem;
+  line-height: 1;
+  color: rgba(16, 24, 40, 0.62);
   transition: transform 0.2s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chevron {
+  .chevron,
+  .chevronCompact {
     transition: none;
   }
 }
 
-details[open] > summary .chevron {
+details[open] > summary .chevron,
+details[open] > summary .chevronCompact {
   transform: rotate(180deg);
 }
 
@@ -69,6 +95,33 @@ details[open] > summary .chevron {
   list-style: none;
   user-select: none;
   background: #fafafa;
+}
+
+/* Grille explicite — prime sur le flex de .cardSummary (admin commandes, etc.) */
+.cardSummaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 44px;
+  gap: 0.65rem 1rem;
+  align-items: center;
+  justify-content: initial;
+}
+
+/* Membres admin — flex prod (cardSummary) + avatar en haut */
+.cardSummaryMember {
+  align-items: flex-start;
+}
+
+@media (max-width: 720px) {
+  .cardSummaryMember {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    grid-template-areas:
+      'avatar identity chevron'
+      'meta meta meta'
+      'contact contact contact';
+    gap: 0.5rem 0.75rem;
+    align-items: start;
+  }
 }
 
 .cardSummary::-webkit-details-marker {

@@ -1,6 +1,8 @@
 /** Parse et transformation CSV Biopartner (partagé import + découpage). */
 
-import { vatMultiplierFromLabel } from '@/lib/import/biopartner-vat'
+import { ceilToCentime } from '@/lib/catalog/money'
+import { vatMultiplierForRow } from '@/lib/import/biopartner-vat'
+import { isBiopartnerPriceTtc } from '@/lib/import/biopartner-um'
 
 export type BiopartnerRow = {
   Article: string
@@ -170,25 +172,31 @@ function parsePrice(prix: string): number | null {
 }
 
 export function parseMinQuantity(uc: string): number {
-  const n = parseInt(uc, 10)
-  return Number.isNaN(n) || n < 1 ? 1 : n
+  const n = parseFloat(String(uc).trim().replace(',', '.'))
+  if (Number.isNaN(n) || n < 0.01) return 1
+  return n
 }
 
 /**
- * Commande partielle (+10 %) : seulement si UC > 1 et prix déjà TTC (UM = 1).
+ * Commande partielle (+10 %) : seulement si UC > 1 et UM ≥ 1.
  * Ex. 410002015 (UC = 10, UM = 0) → minimum strict 10, pas de commande en dessous.
  */
 export function allowsPartialBiopartnerOrder(row: BiopartnerRow, minQuantity: number): boolean {
-  return minQuantity > 1 && row.UM === '1'
+  return minQuantity > 1 && isBiopartnerPriceTtc(row.UM)
 }
 
 export function buildUnitPrice(row: BiopartnerRow): number | null {
   const raw = parsePrice(row.Prix)
   if (raw == null) return null
-  // UM = 1 : prix déjà TTC chez Biopartner ; UM = 0 : HT → appliquer le taux colonne TVA
-  if (row.UM === '1') return Math.round(raw * 100) / 100
-  const mult = vatMultiplierFromLabel(row.TVA)
-  return Math.round(raw * mult * 100) / 100
+  const minQuantity = parseMinQuantity(row.UC)
+  const partialOrder = allowsPartialBiopartnerOrder(row, minQuantity)
+  // UM ≥ 1 sans commande partielle (UC = 1) : prix déjà TTC chez Biopartner.
+  // UM ≥ 1 + UC > 1 (diminuable +10 %) : prix HT → appliquer la TVA.
+  if (isBiopartnerPriceTtc(row.UM) && !partialOrder) {
+    return ceilToCentime(raw)
+  }
+  const mult = vatMultiplierForRow(row.Article, row.TVA)
+  return ceilToCentime(raw * mult)
 }
 
 export function rowToProduct(row: BiopartnerRow, supplierId: string) {

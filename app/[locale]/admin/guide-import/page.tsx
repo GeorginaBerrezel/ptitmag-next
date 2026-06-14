@@ -80,7 +80,7 @@ export default async function GuideImportPage({
             <tbody>
               <tr><td>A</td><td><code>Article</code></td><td>Réf. fournisseur</td></tr>
               <tr><td>B + C</td><td><code>Désignation</code> + <code>Désignation 2</code></td><td>Nom du produit</td></tr>
-              <tr><td>F</td><td><code>UM</code></td><td>0 = HT (+ TVA) · 1 = déjà TTC · aussi : 1 autorise commande &lt; UC avec +10&nbsp;%</td></tr>
+              <tr><td>F</td><td><code>UM</code></td><td>0 = minimum strict · ≥ 1 = commande &lt; UC possible avec +10&nbsp;% (prix HT si UC &gt; 1)</td></tr>
               <tr><td>G</td><td><code>UC</code></td><td>Quantité minimum (multiples si UM = 0 et UC &gt; 1)</td></tr>
               <tr><td>J</td><td><code>Prix</code></td><td>Prix catalogue</td></tr>
               <tr><td>V</td><td><code>Categorie produit</code></td><td>Menu catégories</td></tr>
@@ -91,7 +91,7 @@ export default async function GuideImportPage({
         <div className={styles.example}>
           <strong>Exemple concret</strong>
           Savon mandarine · Article <code>500600396</code> · Prix <code>9,39</code> · UM <code>0</code> ·
-          TVA «&nbsp;normal 8.1%&nbsp;» → <strong>10,15 CHF</strong> affiché sur le site.
+          TVA «&nbsp;normal 8.1%&nbsp;» → <strong>10,16 CHF</strong> affiché sur le site (centime sup.).
         </div>
         <pre className={styles.preBlock}>{`Article;Désignation;…;UM;UC;…;Prix;…;Categorie produit;…;TVA
 500600396;Savon de Marseille corporel mandarine;…;0;1;…;9,39;…;Hygiène;…;Taux TVA normal 8.1%`}</pre>

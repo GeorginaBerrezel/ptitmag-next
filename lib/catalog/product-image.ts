@@ -3,6 +3,10 @@ import {
   buildBrasseriesAyentImagePath,
   isBrasseriesAyentSupplier,
 } from '@/lib/catalog/brasseries-ayent-images'
+import {
+  buildGrainesAvenirImagePath,
+  isGrainesAvenirSupplier,
+} from '@/lib/catalog/graines-avenir-images'
 
 export const PRODUCT_IMAGE_PLACEHOLDER = '/images/product-placeholder.svg'
 export const PRODUCT_IMAGES_BUCKET = 'product-images'
@@ -26,11 +30,14 @@ function getBiopartnerProductImageUrl(product: Product): string | null {
 }
 
 /**
- * URL d'image catalogue : Biopartner (Storage) ou Brasseries d'Ayent (assets locaux).
+ * URL d'image catalogue : Biopartner (Storage), Brasseries d'Ayent ou Graines d'Avenir (assets locaux).
  */
 export function getProductImageUrl(product: Product): string | null {
   if (isBrasseriesAyentSupplier(product.supplier?.name)) {
     return buildBrasseriesAyentImagePath(product.name) ?? PRODUCT_IMAGE_PLACEHOLDER
+  }
+  if (isGrainesAvenirSupplier(product.supplier?.name)) {
+    return buildGrainesAvenirImagePath(product.name) ?? PRODUCT_IMAGE_PLACEHOLDER
   }
   if (product.supplier?.type === 'grossiste_bio') {
     return getBiopartnerProductImageUrl(product)
@@ -40,9 +47,15 @@ export function getProductImageUrl(product: Product): string | null {
 
 export function showProductImage(product: Product): boolean {
   if (isBrasseriesAyentSupplier(product.supplier?.name)) return true
+  if (isGrainesAvenirSupplier(product.supplier?.name)) return true
   return product.supplier?.type === 'grossiste_bio'
 }
 
 export function isProductImagePlaceholder(url: string): boolean {
   return url === PRODUCT_IMAGE_PLACEHOLDER || url.endsWith(PRODUCT_IMAGE_PLACEHOLDER)
+}
+
+/** Images statiques /public (Graines d'Avenir, Ayent…) — pas via l'optimiseur Next. */
+export function isLocalCatalogImage(url: string): boolean {
+  return url.startsWith('/images/products/')
 }

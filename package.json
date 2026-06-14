@@ -9,9 +9,11 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:biopartner": "node --import tsx --test lib/import/biopartner-import.test.ts",
     "biopartner:compress": "node scripts/biopartner-images-compress.mjs",
     "biopartner:import": "node scripts/biopartner-images-import.mjs",
-    "biopartner:upload": "node --env-file=.env.local scripts/biopartner-images-upload.mjs"
+    "biopartner:upload": "node --env-file=.env.local scripts/biopartner-images-upload.mjs",
+    "graines-avenir:compress": "node scripts/graines-avenir-images-compress.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -32,6 +34,7 @@
     "eslint": "latest",
     "eslint-config-next": "latest",
     "sharp": "^0.34.5",
+    "tsx": "^4.22.4",
     "typescript": "latest"
   }
 }

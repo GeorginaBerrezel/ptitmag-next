@@ -41,5 +41,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Test import Biopartner
+        run: npm run test:biopartner
+
       - name: Build
         run: npm run build
