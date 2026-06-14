@@ -59,13 +59,13 @@ describe('isBiopartnerPriceTtc', () => {
 })
 
 describe('buildUnitPrice', () => {
-  it('applique TVA 8.1 % sur HT', () => {
+  it('applique TVA 8.1 % sur HT (arrondi centime sup.)', () => {
     const price = buildUnitPrice(row({
       UM: '0',
       Prix: '9,39',
       TVA: 'Taux TVA normal 8.1%',
     }))
-    assert.equal(price, 10.15)
+    assert.equal(price, 10.16)
   })
 
   it('applique TVA 2.6 % sur HT alimentaire', () => {
@@ -96,7 +96,7 @@ describe('buildUnitPrice', () => {
       Prix: '1,89',
       TVA: 'Taux TVA normal 8.1%',
     }))
-    assert.equal(price, 2.04)
+    assert.equal(price, 2.05)
   })
 })
 

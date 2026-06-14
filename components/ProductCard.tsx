@@ -8,7 +8,7 @@ import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { getBiopartnerProductInfoUrl } from '@/lib/catalog/biopartner-product-url'
-import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER, showProductImage } from '@/lib/catalog/product-image'
+import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER, showProductImage, isLocalCatalogImage } from '@/lib/catalog/product-image'
 import { resolveQuantityRules } from '@/lib/catalog/bioterroir-quantity'
 import {
   decrementQuantity,
@@ -168,6 +168,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null }: Props) {
             src={imageUrl}
             alt=""
             fill
+            unoptimized={isLocalCatalogImage(imageUrl)}
             sizes="(max-width: 560px) 88px, 104px"
             style={{ objectFit: imageObjectFit, objectPosition: 'center' }}
             onError={() => {

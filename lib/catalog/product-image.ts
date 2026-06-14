@@ -54,3 +54,8 @@ export function showProductImage(product: Product): boolean {
 export function isProductImagePlaceholder(url: string): boolean {
   return url === PRODUCT_IMAGE_PLACEHOLDER || url.endsWith(PRODUCT_IMAGE_PLACEHOLDER)
 }
+
+/** Images statiques /public (Graines d'Avenir, Ayent…) — pas via l'optimiseur Next. */
+export function isLocalCatalogImage(url: string): boolean {
+  return url.startsWith('/images/products/')
+}

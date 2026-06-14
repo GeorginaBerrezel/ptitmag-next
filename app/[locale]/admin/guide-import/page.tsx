@@ -91,7 +91,7 @@ export default async function GuideImportPage({
         <div className={styles.example}>
           <strong>Exemple concret</strong>
           Savon mandarine · Article <code>500600396</code> · Prix <code>9,39</code> · UM <code>0</code> ·
-          TVA «&nbsp;normal 8.1%&nbsp;» → <strong>10,15 CHF</strong> affiché sur le site.
+          TVA «&nbsp;normal 8.1%&nbsp;» → <strong>10,16 CHF</strong> affiché sur le site (centime sup.).
         </div>
         <pre className={styles.preBlock}>{`Article;Désignation;…;UM;UC;…;Prix;…;Categorie produit;…;TVA
 500600396;Savon de Marseille corporel mandarine;…;0;1;…;9,39;…;Hygiène;…;Taux TVA normal 8.1%`}</pre>

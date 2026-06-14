@@ -1,5 +1,6 @@
 /** Parse et transformation CSV Biopartner (partagé import + découpage). */
 
+import { ceilToCentime } from '@/lib/catalog/money'
 import { vatMultiplierForRow } from '@/lib/import/biopartner-vat'
 import { isBiopartnerPriceTtc } from '@/lib/import/biopartner-um'
 
@@ -192,10 +193,10 @@ export function buildUnitPrice(row: BiopartnerRow): number | null {
   // UM ≥ 1 sans commande partielle (UC = 1) : prix déjà TTC chez Biopartner.
   // UM ≥ 1 + UC > 1 (diminuable +10 %) : prix HT → appliquer la TVA.
   if (isBiopartnerPriceTtc(row.UM) && !partialOrder) {
-    return Math.round(raw * 100) / 100
+    return ceilToCentime(raw)
   }
   const mult = vatMultiplierForRow(row.Article, row.TVA)
-  return Math.round(raw * mult * 100) / 100
+  return ceilToCentime(raw * mult)
 }
 
 export function rowToProduct(row: BiopartnerRow, supplierId: string) {
