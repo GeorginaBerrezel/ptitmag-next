@@ -117,30 +117,17 @@ export default function PanierPage({
 
   if (confirmed) {
     return (
-      <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
-        <div style={{
-          background: '#e8f5e9',
-          borderRadius: 16,
-          padding: '2rem',
-          textAlign: 'center',
-        }}>
-          <p style={{ fontSize: '2.5rem', margin: '0 0 0.5rem' }}>✓</p>
-          <h1 style={{ margin: '0 0 0.5rem' }}>Commande confirmée !</h1>
-          <p style={{ opacity: 0.7, margin: '0 0 1.5rem' }}>
+      <div className={`container ${styles.narrowWrap}`}>
+        <div className={styles.successCard}>
+          <p className={styles.successIcon} aria-hidden>✓</p>
+          <h1 className={styles.successTitle}>Commande confirmée !</h1>
+          <p className={styles.successText}>
             Vos commandes ont été enregistrées. L&apos;équipe du p&apos;tit mag vous contactera pour confirmer les détails.
           </p>
           <Link
             href="/mon-compte"
             locale={locale}
-            style={{
-              display: 'inline-block',
-              background: '#2e7d32',
-              color: '#fff',
-              borderRadius: 8,
-              padding: '0.6rem 1.5rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
+            className={styles.successBtn}
           >
             Retour à mon compte
           </Link>
@@ -151,7 +138,7 @@ export default function PanierPage({
 
   if (items.length === 0) {
     return (
-      <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: 600 }}>
+      <div className={`container ${styles.narrowWrap}`}>
         <nav aria-label="Fil d'ariane" className={styles.breadcrumb}>
           <Link href="/" locale={locale as 'fr' | 'en'} className={styles.breadcrumbLink}>Accueil</Link>
           <span aria-hidden>›</span>
@@ -159,21 +146,12 @@ export default function PanierPage({
           <span aria-hidden>›</span>
           <span className={styles.breadcrumbCurrent} aria-current="page">Panier</span>
         </nav>
-        <h1 style={{ marginBottom: '0.5rem' }}>Mon panier</h1>
-        <p style={{ opacity: 0.6 }}>Votre panier est vide.</p>
+        <h1 className={styles.pageTitle}>Mon panier</h1>
+        <p className={styles.emptyText}>Votre panier est vide.</p>
         <Link
           href="/commandes"
           locale={locale}
-          style={{
-            display: 'inline-block',
-            marginTop: '1rem',
-            background: '#DC7F00',
-            color: '#fff',
-            borderRadius: 8,
-            padding: '0.5rem 1.25rem',
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}
+          className={styles.ctaPrimary}
         >
           Commander
         </Link>
@@ -265,27 +243,15 @@ export default function PanierPage({
           const { supplierName, supplierType } = supplierItems[0]
 
           return (
-            <div key={supplierId} style={{
-              border: '2px solid rgba(16,24,40,0.1)',
-              borderRadius: 16,
-              overflow: 'hidden',
-            }}>
-              {/* En-tête fournisseur */}
-              <div style={{
-                background: '#f8f9fa',
-                padding: '0.75rem 1.25rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '1px solid rgba(16,24,40,0.08)',
-              }}>
-                <div>
-                  <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>{supplierName}</span>
-                  <span style={{ marginLeft: '0.5rem', opacity: 0.55, fontSize: '0.85rem' }}>
+            <div key={supplierId} className={styles.supplierSection}>
+              <div className={styles.supplierHeader}>
+                <div className={styles.supplierHeaderMain}>
+                  <span className={styles.supplierName}>{supplierName}</span>
+                  <span className={styles.supplierType}>
                     · {TYPE_LABELS[supplierType] ?? supplierType}
                   </span>
                 </div>
-                <span style={{ fontWeight: 700, color: '#1a1a2e' }}>
+                <span className={styles.supplierTotal}>
                   CHF {supplierTotal.toFixed(2)}
                 </span>
               </div>
@@ -329,35 +295,20 @@ export default function PanierPage({
                       {/* Contrôles quantité */}
                       <div className={styles.lineQty}>
                         <button
+                          type="button"
                           onClick={() => updateQuantity(item.productId, decrementQuantity(item.quantity, qtyRules))}
                           disabled={item.quantity <= minAllowed}
                           aria-label="Diminuer"
-                          style={{
-                            width: 44, height: 44, minWidth: 44, minHeight: 44,
-                            border: '1px solid rgba(16,24,40,0.15)',
-                            borderRadius: 6,
-                            background: item.quantity <= minAllowed ? '#f5f5f5' : '#fff',
-                            color: item.quantity <= minAllowed ? '#bbb' : '#1a1a2e',
-                            cursor: item.quantity <= minAllowed ? 'not-allowed' : 'pointer',
-                            fontSize: '1rem', fontWeight: 700,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            padding: 0, flexShrink: 0,
-                          }}
+                          className={styles.qtyBtn}
                         >−</button>
-                        <span style={{ minWidth: 32, textAlign: 'center', fontWeight: 700, fontSize: '0.9rem' }}>
+                        <span className={styles.qtyDisplay}>
                           {formatQuantityDisplay(item.quantity, qtyRules)}
                         </span>
                         <button
+                          type="button"
                           onClick={() => updateQuantity(item.productId, incrementQuantity(item.quantity, qtyRules))}
                           aria-label="Augmenter"
-                          style={{
-                            width: 44, height: 44, minWidth: 44, minHeight: 44,
-                            border: '1px solid rgba(16,24,40,0.15)',
-                            borderRadius: 6, background: '#fff', color: '#1a1a2e',
-                            cursor: 'pointer', fontSize: '1rem', fontWeight: 700,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            padding: 0, flexShrink: 0,
-                          }}
+                          className={styles.qtyBtn}
                         >+</button>
                         <span style={{ fontSize: '0.78rem', opacity: 0.5, marginLeft: '0.1rem' }}>{item.unit}</span>
                       </div>

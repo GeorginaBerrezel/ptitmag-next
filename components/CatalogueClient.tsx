@@ -424,7 +424,7 @@ export default function CatalogueClient({
 
         <nav
           aria-label="Fil d'ariane"
-          className={view === 'products' ? 'catalogue-breadcrumb catalogue-breadcrumb--mobile-hidden' : 'catalogue-breadcrumb'}
+          className={`catalogue-breadcrumb${view === 'products' ? ' catalogue-breadcrumb--mobile-compact' : ''}`}
         >
           <button
             type="button"
@@ -656,6 +656,7 @@ export default function CatalogueClient({
                             categoryCount={summary.categories.length}
                             isOpen={status.isOpen}
                             statusLabel={status.label}
+                            statusDetail={status.detail}
                             onClick={() => openSupplier(summary.supplier.id)}
                           />
                         )

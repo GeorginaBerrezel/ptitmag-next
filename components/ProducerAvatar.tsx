@@ -17,6 +17,7 @@ export default function ProducerAvatar({ logo, emoji, name, size = 48 }: Props) 
   return (
     <div
       style={{
+        position: 'relative',
         width: size,
         height: size,
         borderRadius: '50%',
@@ -34,9 +35,9 @@ export default function ProducerAvatar({ logo, emoji, name, size = 48 }: Props) 
         <Image
           src={logo}
           alt=""
-          width={size}
-          height={size}
-          style={{ objectFit: 'contain', padding: size > 40 ? 4 : 2 }}
+          fill
+          sizes={`${size}px`}
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
           onError={() => setFailed(true)}
         />
       ) : (

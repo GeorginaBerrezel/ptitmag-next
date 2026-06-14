@@ -35,20 +35,21 @@ export function formatSupplierOrderDeadline(
 export function supplierOrderStatusLabel(
   supplier: SupplierOrderSettings,
   nowMs: number,
-): { isOpen: boolean; label: string } {
+): { isOpen: boolean; label: string; detail?: string } {
   if (supplierOrdersOpenAt(supplier, nowMs)) {
     const deadline = supplier.order_deadline
     if (deadline) {
       return {
         isOpen: true,
-        label: `Commandes ouvertes — jusqu'au ${formatSupplierOrderDeadline(deadline)}`,
+        label: 'Commandes ouvertes',
+        detail: `Jusqu'au ${formatSupplierOrderDeadline(deadline)}`,
       }
     }
     return { isOpen: true, label: 'Commandes ouvertes' }
   }
 
   if (supplier.orders_open && supplier.order_deadline) {
-    return { isOpen: false, label: 'Commandes fermées — délai dépassé' }
+    return { isOpen: false, label: 'Commandes fermées', detail: 'Délai dépassé' }
   }
 
   return { isOpen: false, label: 'Commandes fermées' }

@@ -759,13 +759,7 @@ export default function AdminCommandesPage({
               >
                 {/* ── En-tête cliquable (résumé) ── */}
                 <summary
-                  className={accordionStyles.cardSummary}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr auto auto',
-                    gap: '0.5rem 1rem',
-                    alignItems: 'center',
-                  }}
+                  className={`${accordionStyles.cardSummary} ${accordionStyles.cardSummaryGrid}`}
                   aria-label={`Commande ${memberName}, ${order.supplier?.name ?? 'fournisseur'}, afficher le détail`}
                 >
                   {/* Colonne gauche : membre + fournisseur + date */}
@@ -802,7 +796,9 @@ export default function AdminCommandesPage({
                       background: st.bg, color: st.color,
                       border: `1px solid ${st.border}22`,
                       borderRadius: 999, padding: '0.18rem 0.65rem',
-                      fontSize: '0.78rem', fontWeight: 600, whiteSpace: 'nowrap',
+                      fontSize: '0.78rem', fontWeight: 600,
+                      maxWidth: '100%',
+                      textAlign: 'center',
                     }}>
                       {st.label}
                     </span>

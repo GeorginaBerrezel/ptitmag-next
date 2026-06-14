@@ -56,7 +56,10 @@ export default function CatalogueSupplierSidebar({
                   </span>
                   <span className="catalogue-supplier-sidebar__label">
                     <span className="catalogue-supplier-sidebar__name">{summary.supplier.name}</span>
-                    <span className="catalogue-supplier-sidebar__meta">{status.label}</span>
+                    <span className="catalogue-supplier-sidebar__meta">
+                      {status.label}
+                      {status.detail ? ` — ${status.detail}` : ''}
+                    </span>
                   </span>
                 </div>
               ) : (
@@ -70,7 +73,10 @@ export default function CatalogueSupplierSidebar({
                   </span>
                   <span className="catalogue-supplier-sidebar__label">
                     <span className="catalogue-supplier-sidebar__name">{summary.supplier.name}</span>
-                    <span className="catalogue-supplier-sidebar__meta">{status.label}</span>
+                    <span className="catalogue-supplier-sidebar__meta">
+                      {status.label}
+                      {status.detail ? ` — ${status.detail}` : ''}
+                    </span>
                   </span>
                 </button>
               )}

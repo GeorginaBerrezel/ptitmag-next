@@ -37,8 +37,8 @@ const FR: StatusGuideLocale = {
     ciel: {
       emoji: '☁️',
       name: 'Membre Ciel',
-      tagline: '+20 % de marge sur le catalogue',
-      body: 'Accès au catalogue avec une majoration de 20 % (marge) sur les produits. Statut pour une cotisation annuelle légère, adaptée à votre situation.',
+      tagline: '+20 % sur le catalogue',
+      body: 'Statut avec cotisation annuelle légère : pour tester notre système ou pour les membres faisant peu de commandes. Accès au catalogue avec une majoration de 20 % sur les produits.',
       cotisationHint: 'Cotisation annuelle légère — montant convenu avec l\'association.',
     },
   },
@@ -83,7 +83,7 @@ export const MEMBER_STATUS_GUIDE = FR.statuses
 export const ADMIN_MEMBER_STATUS_REMINDER = [
   'Non membre → pas d\'accès catalogue (nouvelle inscription).',
   'Terre → prix juste (sans marge) · cotisation mensuelle.',
-  'Ciel → +20 % sur le catalogue · cotisation annuelle.',
+  'Ciel → +20 % sur le catalogue · cotisation annuelle légère (test ou peu de commandes).',
   'Un e-mail est envoyé automatiquement à l\'adhérent·e quand vous activez ou modifiez un statut Ciel/Terre.',
 ] as const
 
