@@ -1,6 +1,7 @@
 'use client'
 
-import { use, useCallback, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useState } from 'react'
+import { getMemberDisplayName, sortByMemberDisplayName } from '@/lib/admin/member-display'
 import { ADMIN_MEMBER_STATUSES, MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
 import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/status-guide'
 import AccordionChevron from '@/components/ui/AccordionChevron'
@@ -74,8 +75,7 @@ const STATUS_BUTTON_LABELS: Record<AdminMemberStatus, string> = {
 }
 
 function getMemberName(m: Member) {
-  const fromParts = [m.first_name, m.last_name].filter(Boolean).join(' ').trim()
-  return fromParts || m.full_name || m.username || m.email?.split('@')[0] || 'Membre inconnu'
+  return getMemberDisplayName(m)
 }
 
 
@@ -141,26 +141,29 @@ export default function AdminMembresPage({
 
   // ── Filtres ───────────────────────────────────────────────────────────────
 
-  const filtered = members.filter(m => {
-    if (filterStatus && m.status !== filterStatus) return false
-    if (filterCommune && m.commune !== filterCommune) return false
-    if (search) {
-      const q    = search.toLowerCase()
-      const name  = getMemberName(m).toLowerCase()
-      const email = (m.email ?? '').toLowerCase()
-      const phone = (m.phone ?? '').toLowerCase()
-      const commune = (m.commune ?? '').toLowerCase()
-      const postal = (m.postal_code ?? '').toLowerCase()
-      if (
-        !name.includes(q) &&
-        !email.includes(q) &&
-        !phone.includes(q) &&
-        !commune.includes(q) &&
-        !postal.includes(q)
-      ) return false
-    }
-    return true
-  })
+  const filtered = useMemo(() => {
+    const list = members.filter(m => {
+      if (filterStatus && m.status !== filterStatus) return false
+      if (filterCommune && m.commune !== filterCommune) return false
+      if (search) {
+        const q    = search.toLowerCase()
+        const name  = getMemberName(m).toLowerCase()
+        const email = (m.email ?? '').toLowerCase()
+        const phone = (m.phone ?? '').toLowerCase()
+        const commune = (m.commune ?? '').toLowerCase()
+        const postal = (m.postal_code ?? '').toLowerCase()
+        if (
+          !name.includes(q) &&
+          !email.includes(q) &&
+          !phone.includes(q) &&
+          !commune.includes(q) &&
+          !postal.includes(q)
+        ) return false
+      }
+      return true
+    })
+    return sortByMemberDisplayName(list, getMemberName)
+  }, [members, filterStatus, filterCommune, search])
 
   const communeOptions = [...new Set(members.map(m => m.commune).filter(Boolean))].sort() as string[]
 

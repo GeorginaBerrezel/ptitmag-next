@@ -10,6 +10,7 @@ import {
 } from '@/lib/admin/order-export'
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
+import { getMemberDisplayName, groupOrdersByMember, sumOrderTotals } from '@/lib/admin/member-display'
 import lineStyles from '@/components/orders/order-lines.module.css'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
@@ -28,6 +29,7 @@ type OrderItem = {
 
 type AdminOrder = {
   id: string
+  member_id: string
   status: string
   total: number
   credit_applied?: number
@@ -56,12 +58,7 @@ const SUPPLIER_TYPE_LABELS: Record<string, string> = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getMemberName(order: Pick<AdminOrder, 'member'>) {
-  return (
-    order.member?.full_name ||
-    order.member?.username ||
-    order.member?.email?.split('@')[0] ||
-    'Membre inconnu'
-  )
+  return getMemberDisplayName(order.member ?? {})
 }
 
 function formatDate(iso: string) {
@@ -158,6 +155,16 @@ export default function AdminCommandesPage({
     }
     return true
   })
+
+  const groupedOrders = useMemo(
+    () =>
+      groupOrdersByMember(
+        filtered,
+        getMemberName,
+        order => order.member?.email ?? null,
+      ),
+    [filtered],
+  )
 
   const hasFilters = filterStatus || filterSupplier || filterDate
 
@@ -739,10 +746,50 @@ export default function AdminCommandesPage({
         />
       )}
 
-      {/* Liste des commandes */}
+      {!loading && !error && filterSupplier && filtered.length > 0 && (
+        <p className="admin-order-groups__hint">
+          <strong>Détail par membre</strong> — commandes <em>{filterSupplier}</em> uniquement
+          (le tableau vert ci-dessus additionne les quantités pour passer commande chez ce fournisseur).
+        </p>
+      )}
+
+      {/* Liste des commandes — accordéon par membre */}
       {!loading && !error && filtered.length > 0 && (
-        <div style={{ display: 'grid', gap: '0.6rem' }}>
-          {filtered.map(order => {
+        <div className="admin-order-groups">
+          {groupedOrders.map(group => {
+            const groupTotal = sumOrderTotals(group.orders)
+            const orderLabel = `${group.orders.length} commande${group.orders.length !== 1 ? 's' : ''}`
+
+            return (
+              <details
+                key={group.memberId}
+                className={`${accordionStyles.card} admin-order-group`}
+              >
+                <summary
+                  className={`${accordionStyles.cardSummary} admin-order-group__summary`}
+                  aria-label={`${group.memberName}, ${orderLabel}, CHF ${groupTotal.toFixed(2)}, afficher les commandes`}
+                >
+                  <div className="admin-order-group__lead">
+                    <span className="admin-order-group__name">{group.memberName}</span>
+                    {group.memberEmail && (
+                      <span className="admin-order-group__email">{group.memberEmail}</span>
+                    )}
+                    <span className="admin-order-group__meta">
+                      {orderLabel} · CHF {groupTotal.toFixed(2)}
+                    </span>
+                    <ul className="admin-order-group__chips" aria-label="Fournisseurs">
+                      {group.orders.map(order => (
+                        <li key={order.id} className="admin-order-group__chip" title={order.supplier?.name ?? undefined}>
+                          {order.supplier?.name ?? 'Fournisseur inconnu'}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <AccordionChevron />
+                </summary>
+
+                <div className={`${accordionStyles.panel} ${accordionStyles.panelInner} admin-order-group__orders`}>
+                {group.orders.map(order => {
             const st         = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.confirmed
             const memberName = getMemberName(order)
             const isUpdating = updating === order.id
@@ -762,12 +809,10 @@ export default function AdminCommandesPage({
                   className={`${accordionStyles.cardSummary} ${accordionStyles.cardSummaryGrid}`}
                   aria-label={`Commande ${memberName}, ${order.supplier?.name ?? 'fournisseur'}, afficher le détail`}
                 >
-                  {/* Colonne gauche : membre + fournisseur + date */}
+                  {/* Colonne gauche : fournisseur + date */}
                   <div style={{ display: 'grid', gap: '0.2rem' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'baseline' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{memberName}</span>
-                      <span style={{ opacity: 0.35 }}>·</span>
-                      <span style={{ fontWeight: 600, color: '#DC7F00', fontSize: '0.88rem' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#DC7F00' }}>
                         {order.supplier?.name ?? 'Fournisseur inconnu'}
                       </span>
                       <span style={{ opacity: 0.45, fontSize: '0.76rem' }}>
@@ -1030,6 +1075,10 @@ export default function AdminCommandesPage({
                       </button>
                     )}
                   </div>
+                </div>
+              </details>
+            )
+                })}
                 </div>
               </details>
             )
