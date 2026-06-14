@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NavigationScrollManager from '@/components/NavigationScrollManager';
 import { CartProvider } from '@/lib/cart/CartContext';
+import { WishlistProvider } from '@/lib/wishlist/WishlistContext';
 import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
 import { getProfile, getUser } from '@/lib/supabase/auth';
 import { applyCielMarkup } from '@/lib/members/profile';
@@ -59,14 +60,16 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <MemberPricingProvider applyCielMarkup={cielMarkup}>
         <CartProvider>
-          <Suspense fallback={null}>
-            <NavigationScrollManager />
-          </Suspense>
-          <Header locale={locale} showAdminLink={showAdminLink} />
-          <div id="app-scroll">
-            <main id="main">{children}</main>
-            <Footer locale={locale} />
-          </div>
+          <WishlistProvider>
+            <Suspense fallback={null}>
+              <NavigationScrollManager />
+            </Suspense>
+            <Header locale={locale} showAdminLink={showAdminLink} />
+            <div id="app-scroll">
+              <main id="main">{children}</main>
+              <Footer locale={locale} />
+            </div>
+          </WishlistProvider>
         </CartProvider>
       </MemberPricingProvider>
     </NextIntlClientProvider>

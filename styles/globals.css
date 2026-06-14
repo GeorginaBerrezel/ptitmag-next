@@ -999,4 +999,5 @@ time {
   line-height: 1;
   color: var(--header-fg);
   text-decoration: none;
+  white-space: nowrap;
 }

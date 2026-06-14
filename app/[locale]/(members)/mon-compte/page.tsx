@@ -101,9 +101,14 @@ export default async function MonComptePage({
           )}
 
           {hasCatalogAccess && (
-            <Link href="/commandes" className={styles.orderBtn}>
-              + Commander
-            </Link>
+            <div className={styles.statusActions}>
+              <Link href="/mes-favoris" className={styles.favorisBtn}>
+                ♡ Mes favoris
+              </Link>
+              <Link href="/commandes" className={styles.orderBtn}>
+                + Commander
+              </Link>
+            </div>
           )}
         </div>
 
