@@ -177,7 +177,7 @@ export function parseMinQuantity(uc: string): number {
 }
 
 /**
- * Commande partielle (+10 %) : seulement si UC > 1 et prix déjà TTC (UM ≥ 1).
+ * Commande partielle (+10 %) : seulement si UC > 1 et UM ≥ 1.
  * Ex. 410002015 (UC = 10, UM = 0) → minimum strict 10, pas de commande en dessous.
  */
 export function allowsPartialBiopartnerOrder(row: BiopartnerRow, minQuantity: number): boolean {
@@ -187,7 +187,13 @@ export function allowsPartialBiopartnerOrder(row: BiopartnerRow, minQuantity: nu
 export function buildUnitPrice(row: BiopartnerRow): number | null {
   const raw = parsePrice(row.Prix)
   if (raw == null) return null
-  if (isBiopartnerPriceTtc(row.UM)) return Math.round(raw * 100) / 100
+  const minQuantity = parseMinQuantity(row.UC)
+  const partialOrder = allowsPartialBiopartnerOrder(row, minQuantity)
+  // UM ≥ 1 sans commande partielle (UC = 1) : prix déjà TTC chez Biopartner.
+  // UM ≥ 1 + UC > 1 (diminuable +10 %) : prix HT → appliquer la TVA.
+  if (isBiopartnerPriceTtc(row.UM) && !partialOrder) {
+    return Math.round(raw * 100) / 100
+  }
   const mult = vatMultiplierForRow(row.Article, row.TVA)
   return Math.round(raw * mult * 100) / 100
 }

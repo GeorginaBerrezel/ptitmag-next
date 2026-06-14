@@ -80,7 +80,7 @@ export default async function GuideImportPage({
             <tbody>
               <tr><td>A</td><td><code>Article</code></td><td>Réf. fournisseur</td></tr>
               <tr><td>B + C</td><td><code>Désignation</code> + <code>Désignation 2</code></td><td>Nom du produit</td></tr>
-              <tr><td>F</td><td><code>UM</code></td><td>0 = HT (+ TVA) · 1 = déjà TTC · aussi : 1 autorise commande &lt; UC avec +10&nbsp;%</td></tr>
+              <tr><td>F</td><td><code>UM</code></td><td>0 = minimum strict · ≥ 1 = commande &lt; UC possible avec +10&nbsp;% (prix HT si UC &gt; 1)</td></tr>
               <tr><td>G</td><td><code>UC</code></td><td>Quantité minimum (multiples si UM = 0 et UC &gt; 1)</td></tr>
               <tr><td>J</td><td><code>Prix</code></td><td>Prix catalogue</td></tr>
               <tr><td>V</td><td><code>Categorie produit</code></td><td>Menu catégories</td></tr>
