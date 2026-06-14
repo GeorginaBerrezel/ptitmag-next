@@ -58,7 +58,7 @@ export default async function MesFavorisPage({
           <p className={styles.countNote}>
             {products.length} produit{products.length > 1 ? 's' : ''} en favori
           </p>
-          <ProductList products={products} nowMs={Date.now()} showSupplier />
+          <ProductList products={products} showSupplier />
         </>
       )}
     </div>
