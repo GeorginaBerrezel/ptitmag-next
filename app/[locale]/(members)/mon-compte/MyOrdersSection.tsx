@@ -7,6 +7,7 @@ import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import { orderDisplayAmount } from '@/lib/orders/order-gross'
+import { usePickupChecklist } from '@/lib/members/usePickupChecklist'
 import styles from './my-orders.module.css'
 
 const PAGE_SIZE = 15
@@ -69,14 +70,17 @@ export default function MyOrdersSection({
   orders,
   hasCatalogAccess,
   creditBalance = 0,
+  memberId,
 }: {
   orders: OrderWithItems[]
   hasCatalogAccess: boolean
   creditBalance?: number
+  memberId?: string
 }) {
   const [tab, setTab] = useState<TabId>('confirmed')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [exporting, setExporting] = useState(false)
+  const pickupChecklist = usePickupChecklist(memberId)
 
   const confirmedOrders = useMemo(
     () => orders.filter(o => o.status === 'confirmed' || o.status === 'draft'),
@@ -111,6 +115,17 @@ export default function MyOrdersSection({
     (s, o) => s + orderDisplayAmount(o.status, o.total, o.order_items),
     0,
   )
+  const deliveredItemCount = useMemo(
+    () => deliveredOrders.reduce(
+      (sum, order) => sum + order.order_items.filter(i => !i.cancelled_at).length,
+      0,
+    ),
+    [deliveredOrders],
+  )
+  const showPickupChecklist = tab === 'delivered' && Boolean(memberId)
+  const pickupChecklistProps = showPickupChecklist
+    ? { isPicked: pickupChecklist.isPicked, onTogglePicked: pickupChecklist.togglePicked }
+    : undefined
 
   function switchTab(next: TabId) {
     setTab(next)
@@ -252,6 +267,16 @@ export default function MyOrdersSection({
         </button>
       </div>
 
+      {showPickupChecklist && deliveredItemCount > 0 && pickupChecklist.ready && (
+        <p className={styles.pickupHint} role="status">
+          {pickupChecklist.pickedCount} sur {deliveredItemCount} produit
+          {deliveredItemCount !== 1 ? 's' : ''} marqué
+          {pickupChecklist.pickedCount !== 1 ? 's' : ''} comme récupéré
+          {pickupChecklist.pickedCount !== 1 ? 's' : ''}
+          {' '}— aide-mémoire perso sur cet appareil.
+        </p>
+      )}
+
       <div
         id="panel-orders"
         role="tabpanel"
@@ -337,6 +362,7 @@ export default function MyOrdersSection({
                         order={order}
                         hasCatalogAccess={hasCatalogAccess}
                         creditBalance={creditBalance}
+                        pickupChecklist={pickupChecklistProps}
                       />
                     </details>
                   )

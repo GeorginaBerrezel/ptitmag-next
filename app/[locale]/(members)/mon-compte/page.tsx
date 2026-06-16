@@ -133,6 +133,7 @@ export default async function MonComptePage({
           orders={orders}
           hasCatalogAccess={hasCatalogAccess}
           creditBalance={creditBalance}
+          memberId={profile?.id}
         />
 
         <AccountSessionSection locale={locale} />
