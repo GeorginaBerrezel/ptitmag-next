@@ -135,10 +135,11 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     displayName: 'Vérène Melchior',
     aliases: ['Vérène Melchior', 'Verene Melchior', 'Truffes au chocolat cru'],
     location: 'Savièse',
-    products: 'Truffes et gourmandises crues',
+    products: 'Gourmandises crues et biologiques',
     certification: 'Bio',
-    description: 'Truffes au chocolat cru et gourmandises bio, fabriquées artisanalement.',
+    description: 'Truffes et moelleux biologiques.',
     emoji: '🍫',
+    logo: 'verene-melchior.jpg',
   },
   {
     slug: 'evoleina',
