@@ -332,7 +332,8 @@ export default function MyOrdersSection({
                           <span className={styles.supplierType}>
                             {SUPPLIER_TYPE[order.supplier?.type ?? ''] ?? ''}
                           </span>
-                          {order.created_via_complement && (
+                          {order.created_via_complement &&
+                            !order.order_items.some(i => !i.cancelled_at && i.added_at_closure) && (
                             <div className={styles.badgeRow}>
                               <span className={styles.complementBadge}>Ajout sur place</span>
                             </div>

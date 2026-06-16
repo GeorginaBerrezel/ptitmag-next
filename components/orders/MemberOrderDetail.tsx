@@ -3,6 +3,7 @@
 import WishlistButton from '@/components/WishlistButton'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import { previewCreditAtClose } from '@/lib/members/credit'
+import { CLOSURE_ADD_LINE_LABEL } from '@/lib/orders/closure-add-label'
 import { grossTotalFromOrderItems } from '@/lib/orders/order-gross'
 import lineStyles from './order-lines.module.css'
 
@@ -86,6 +87,9 @@ export default function MemberOrderDetail({
                 <span className={lineStyles.lineName}>
                   {item.product?.name ?? '—'}
                 </span>
+                {item.added_at_closure && (
+                  <span className={lineStyles.closureAddBadge}>{CLOSURE_ADD_LINE_LABEL}</span>
+                )}
               </div>
               <div className={lineStyles.lineMeta}>
                 {item.product?.id && (

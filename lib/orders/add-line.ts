@@ -197,6 +197,7 @@ export async function addProductToOrderAtClosure(
     product_id: productId,
     quantity,
     unit_price: unitPrice,
+    added_at_closure: true,
   })
 
   if (insErr) {

@@ -57,6 +57,7 @@ export type OrderWithItems = {
     quantity: number
     unit_price: number
     cancelled_at?: string | null
+    added_at_closure?: boolean
     product: { id: string; name: string; unit: string } | null
   }[]
 }
@@ -76,7 +77,7 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
       id, status, total, credit_applied, created_via_complement, created_at,
       supplier:suppliers(id, name, type),
       order_items(
-        id, quantity, unit_price, cancelled_at,
+        id, quantity, unit_price, cancelled_at, added_at_closure,
         product:products(id, name, unit)
       )
     `)
