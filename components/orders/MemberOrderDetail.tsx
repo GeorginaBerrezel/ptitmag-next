@@ -14,7 +14,7 @@ const STATUS_HINT: Record<string, { className: string; text: string } | null> = 
   },
   delivered: {
     className: lineStyles.hintBannerDelivered,
-    text: 'Vous pouvez encore ajouter des produits sur place (tous fournisseurs). Chaque fournisseur garde sa propre commande.',
+    text: 'Cochez les produits que vous avez récupérés pour vous organiser (aide-mémoire perso, sans impact sur la commande). Vous pouvez encore ajouter des produits sur place — chaque fournisseur garde sa propre commande.',
   },
   closed: {
     className: lineStyles.hintBannerClosed,
@@ -23,18 +23,34 @@ const STATUS_HINT: Record<string, { className: string; text: string } | null> = 
   cancelled: null,
 }
 
+type PickupChecklistProps = {
+  isPicked: (orderItemId: string) => boolean
+  onTogglePicked: (orderItemId: string) => void
+}
+
 type Props = {
   order: OrderWithItems
   hasCatalogAccess: boolean
   creditBalance?: number
+  pickupChecklist?: PickupChecklistProps
 }
 
 function activeItems(order: OrderWithItems) {
   return order.order_items.filter(i => !i.cancelled_at)
 }
 
-export default function MemberOrderDetail({ order, hasCatalogAccess, creditBalance = 0 }: Props) {
-  const hint = STATUS_HINT[order.status]
+export default function MemberOrderDetail({
+  order,
+  hasCatalogAccess,
+  creditBalance = 0,
+  pickupChecklist,
+}: Props) {
+  const hint = order.status === 'delivered' && pickupChecklist
+    ? {
+        className: lineStyles.hintBannerDelivered,
+        text: 'Cochez les produits récupérés (aide-mémoire perso). Vous pouvez encore compléter cette commande sur place — chaque fournisseur garde sa propre commande.',
+      }
+    : STATUS_HINT[order.status]
   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
   const credit = Number(order.credit_applied) || 0
   const items = activeItems(order)
@@ -52,8 +68,23 @@ export default function MemberOrderDetail({ order, hasCatalogAccess, creditBalan
       <div className={lineStyles.orderLines}>
         {items.map(item => {
           const lineTotal = item.quantity * item.unit_price
+          const picked = pickupChecklist?.isPicked(item.id) ?? false
           return (
-            <div key={item.id} className={lineStyles.orderLine}>
+            <div
+              key={item.id}
+              className={`${lineStyles.orderLine}${pickupChecklist ? ` ${lineStyles.orderLineWithPickup}` : ''}${picked ? ` ${lineStyles.orderLinePicked}` : ''}`}
+            >
+              {pickupChecklist && (
+                <label className={lineStyles.pickupCheck}>
+                  <input
+                    type="checkbox"
+                    checked={picked}
+                    onChange={() => pickupChecklist.onTogglePicked(item.id)}
+                    aria-label={`J'ai récupéré ${item.product?.name ?? 'ce produit'}`}
+                  />
+                  <span className={lineStyles.pickupCheckLabel}>Récupéré</span>
+                </label>
+              )}
               <div className={lineStyles.lineInfo}>
                 <span className={lineStyles.lineName}>
                   {item.product?.name ?? '—'}

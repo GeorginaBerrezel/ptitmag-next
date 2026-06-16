@@ -76,6 +76,17 @@
   flex-wrap: wrap;
 }
 
+.pickupHint {
+  margin: -0.35rem 0 1rem;
+  padding: 0.65rem 0.85rem;
+  background: #e8f4fd;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #0d47a1;
+}
+
 .tab {
   border: 1px solid rgba(16, 24, 40, 0.12);
   background: #fafafa;
@@ -386,6 +397,31 @@
     border-radius: 12px;
   }
 
+  .monthSummary {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.35rem 0.5rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .summaryLead {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .monthLabel {
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+
+  .monthMeta {
+    flex: 1 1 100%;
+    text-align: left;
+    padding-left: calc(44px + 0.5rem);
+    line-height: 1.4;
+    opacity: 0.65;
+  }
+
   .orderSummary {
     grid-template-columns: 1fr auto;
     grid-template-areas:
@@ -420,5 +456,11 @@
 
   .expandHint {
     display: none;
+  }
+
+  .pickupHint {
+    margin: -0.15rem 0 0.85rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
   }
 }
