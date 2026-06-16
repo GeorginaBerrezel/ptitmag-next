@@ -96,7 +96,8 @@ export default function AdminCommandesPage({
   const [exporting, setExporting]     = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
   const [removingAggregateKey, setRemovingAggregateKey] = useState<string | null>(null)
-  const [closingOrderId, setClosingOrderId] = useState<string | null>(null)
+  const [closingMemberId, setClosingMemberId] = useState<string | null>(null)
+  const [notifyingMemberId, setNotifyingMemberId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivableCount, setArchivableCount] = useState(0)
   const [archiving, setArchiving] = useState(false)
@@ -230,42 +231,77 @@ export default function AdminCommandesPage({
     setUpdating(null)
   }
 
-  async function closeOrder(orderId: string) {
-    const order = orders.find(o => o.id === orderId)
+  async function notifyMemberDelivery(memberId: string, memberName: string, deliveredCount: number) {
     const ok = window.confirm(
-      `Clôturer la commande de ${order ? getMemberName(order) : 'ce membre'} ?\n\n` +
-        'Le total final sera recalculé. L\'avoir sera déduit s\'il ne l\'était pas encore. Un email récapitulatif sera envoyé.',
+      `Envoyer l'email de retrait à ${memberName} ?\n\n` +
+        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} livrée${deliveredCount > 1 ? 's' : ''} — ` +
+        'un seul email regroupant tous les fournisseurs.',
     )
     if (!ok) return
 
-    setClosingOrderId(orderId)
+    setNotifyingMemberId(memberId)
     try {
-      const res = await fetch('/api/admin/orders/close', {
+      const res = await fetch('/api/admin/orders/notify-delivery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
+        body: JSON.stringify({ memberId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de l\'envoi.')
+
+      if (data.emailSent === false) {
+        alert('Email non envoyé (SMTP ou adresse introuvable).')
+      }
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setNotifyingMemberId(null)
+    }
+  }
+
+  async function closeMemberOrders(memberId: string, memberName: string, deliveredCount: number) {
+    const ok = window.confirm(
+      `Clôturer toutes les commandes livrées de ${memberName} ?\n\n` +
+        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} — totaux recalculés, avoir déduit si besoin. ` +
+        'Un seul email récapitulatif regroupé sera envoyé.',
+    )
+    if (!ok) return
+
+    setClosingMemberId(memberId)
+    try {
+      const res = await fetch('/api/admin/orders/close-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erreur lors de la clôture.')
 
+      const closedById = new Map(
+        (data.orders as Array<{ orderId: string; total: number; creditApplied: number }>).map(o => [
+          o.orderId,
+          { total: o.total, creditApplied: o.creditApplied },
+        ]),
+      )
+
       setOrders(prev => prev.map(o =>
-        o.id === orderId
+        closedById.has(o.id)
           ? {
               ...o,
               status: 'closed',
-              total: data.total as number,
-              credit_applied: data.creditApplied as number,
+              total: closedById.get(o.id)!.total,
+              credit_applied: closedById.get(o.id)!.creditApplied,
             }
           : o,
       ))
 
       if (data.emailSent === false) {
-        alert('Commande clôturée, mais l\'email n\'a pas pu être envoyé.')
+        alert('Commandes clôturées, mais l\'email n\'a pas pu être envoyé.')
       }
     } catch (e) {
       alert((e as Error).message)
     } finally {
-      setClosingOrderId(null)
+      setClosingMemberId(null)
     }
   }
 
@@ -734,6 +770,23 @@ export default function AdminCommandesPage({
         </div>
       )}
 
+      {!loading && !error && (mode === 'toClose' || mode === 'action') && filtered.length > 0 && (
+        <p className="admin-order-groups__hint">
+          {mode === 'action' && (
+            <>
+              <strong>Marquer Livrée</strong> commande par commande — elles passent ensuite dans l&apos;onglet{' '}
+              <strong>À clôturer</strong>.
+            </>
+          )}
+          {mode === 'toClose' && (
+            <>
+              <strong>✉ Email retrait</strong> puis <strong>✓ Clôturer tout</strong> — un seul email par membre,
+              tous fournisseurs regroupés.
+            </>
+          )}
+        </p>
+      )}
+
       {!loading && !error && filterSupplier && filtered.length > 0 && aggregatedSummary && (
         <AggregatedSummaryPanel
           supplierName={filterSupplier}
@@ -759,6 +812,10 @@ export default function AdminCommandesPage({
           {groupedOrders.map(group => {
             const groupTotal = sumOrderTotals(group.orders)
             const orderLabel = `${group.orders.length} commande${group.orders.length !== 1 ? 's' : ''}`
+            const deliveredInGroup = group.orders.filter(o => o.status === 'delivered')
+            const deliveredCount = deliveredInGroup.length
+            const isNotifying = notifyingMemberId === group.memberId
+            const isClosingMember = closingMemberId === group.memberId
 
             return (
               <details
@@ -784,6 +841,36 @@ export default function AdminCommandesPage({
                         </li>
                       ))}
                     </ul>
+                    {(deliveredCount > 0 && (mode === 'toClose' || (mode === 'history' && filterStatus === 'delivered'))) && (
+                      <div className="admin-order-group__actions">
+                        {(mode === 'toClose' || (mode === 'history' && filterStatus === 'delivered')) && (
+                          <button
+                            type="button"
+                            className="admin-btn admin-order-group__btn admin-order-group__btn--notify"
+                            disabled={isNotifying || isClosingMember}
+                            onClick={e => {
+                              e.preventDefault()
+                              void notifyMemberDelivery(group.memberId, group.memberName, deliveredCount)
+                            }}
+                          >
+                            {isNotifying ? 'Envoi…' : '✉ Email retrait'}
+                          </button>
+                        )}
+                        {mode === 'toClose' && deliveredCount > 0 && (
+                          <button
+                            type="button"
+                            className="admin-btn admin-order-group__btn admin-order-group__btn--close"
+                            disabled={isClosingMember || isNotifying}
+                            onClick={e => {
+                              e.preventDefault()
+                              void closeMemberOrders(group.memberId, group.memberName, deliveredCount)
+                            }}
+                          >
+                            {isClosingMember ? 'Clôture…' : `✓ Clôturer tout (${deliveredCount})`}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <AccordionChevron />
                 </summary>
@@ -1004,30 +1091,6 @@ export default function AdminCommandesPage({
                     })}
                     {isUpdating && (
                       <span style={{ fontSize: '0.78rem', opacity: 0.45 }}>Mise à jour…</span>
-                    )}
-
-                    {order.status === 'delivered' && (
-                      <button
-                        type="button"
-                        onClick={e => {
-                          e.preventDefault()
-                          void closeOrder(order.id)
-                        }}
-                        disabled={closingOrderId === order.id || isUpdating}
-                        style={{
-                          marginLeft: '0.25rem',
-                          padding: '0.35rem 1rem',
-                          borderRadius: 999,
-                          border: 'none',
-                          background: '#2e7d32',
-                          color: '#fff',
-                          fontSize: '0.82rem',
-                          fontWeight: 700,
-                          cursor: closingOrderId === order.id ? 'wait' : 'pointer',
-                        }}
-                      >
-                        {closingOrderId === order.id ? 'Clôture…' : '✓ Clôturer'}
-                      </button>
                     )}
 
                     {mode === 'history' && order.archived_at && (

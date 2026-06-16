@@ -1,6 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
-import { sendDeliveryNotification } from '@/lib/email/sendDeliveryNotification'
 import { requireAdminUser } from '@/lib/admin/auth'
 import { countEligibleForArchive } from '@/lib/admin/order-archive'
 import { roundChf } from '@/lib/members/credit'
@@ -182,59 +181,7 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  // ── Email automatique quand l'admin marque une commande comme livrée ─────
-  if (status === 'delivered') {
-    try {
-      // Récupérer les détails de la commande (fournisseur + produits)
-      const { data: order } = await admin
-        .from('orders')
-        .select(`
-          total, member_id,
-          supplier:suppliers(name),
-          order_items(
-            quantity, unit_price,
-            product:products(name, unit)
-          )
-        `)
-        .eq('id', orderId)
-        .single()
-
-      if (order) {
-        // Récupérer le profil du membre (email + nom)
-        const { data: profile } = await admin
-          .from('profiles')
-          .select('email, full_name, username')
-          .eq('id', order.member_id)
-          .single()
-
-        if (profile?.email) {
-          const memberName = (profile.full_name as string | null) || (profile.username as string | null) || null
-          const supplierName = (order.supplier as unknown as { name: string } | null)?.name ?? 'Fournisseur'
-          const items = (order.order_items as unknown as Array<{
-            quantity: number
-            unit_price: number
-            product: { name: string; unit: string } | null
-          }>).map(item => ({
-            productName: item.product?.name ?? '—',
-            quantity:    item.quantity,
-            unit:        item.product?.unit ?? '',
-            unitPrice:   item.unit_price,
-          }))
-
-          await sendDeliveryNotification({
-            memberEmail: profile.email as string,
-            memberName,
-            supplierName,
-            items,
-            total: order.total as number,
-          })
-        }
-      }
-    } catch (err) {
-      // L'email échoue silencieusement — la mise à jour du statut reste valide
-      console.error('[admin/orders PATCH] Delivery notification failed:', err)
-    }
-  }
+  // v2.0-a : pas d'email automatique par fournisseur — utiliser notify-delivery par membre.
 
   return NextResponse.json({ success: true })
 }

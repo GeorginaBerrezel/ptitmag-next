@@ -664,6 +664,45 @@
   gap: 0.6rem;
 }
 
+.admin-order-group__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.admin-order-group__btn {
+  padding: 0.32rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.admin-order-group__btn--notify {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.admin-order-group__btn--notify:hover:not(:disabled) {
+  background: #bbdefb;
+}
+
+.admin-order-group__btn--close {
+  background: #2e7d32;
+  color: #fff;
+  border: 1px solid #2e7d32;
+}
+
+.admin-order-group__btn--close:hover:not(:disabled) {
+  background: #1b5e20;
+}
+
+.admin-order-group__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   .admin-order-group__chip {
     max-width: 14rem;
