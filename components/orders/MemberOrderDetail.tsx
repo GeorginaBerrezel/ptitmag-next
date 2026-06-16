@@ -1,6 +1,5 @@
 'use client'
 
-import { Link } from '@/i18n/navigation'
 import WishlistButton from '@/components/WishlistButton'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import { previewCreditAtClose } from '@/lib/members/credit'
@@ -14,7 +13,7 @@ const STATUS_HINT: Record<string, { className: string; text: string } | null> = 
   },
   delivered: {
     className: lineStyles.hintBannerDelivered,
-    text: 'Cochez les produits que vous avez récupérés pour vous organiser (aide-mémoire perso, sans impact sur la commande). Vous pouvez encore ajouter des produits sur place — chaque fournisseur garde sa propre commande.',
+    text: 'Cochez les produits que vous avez récupérés pour vous organiser (aide-mémoire perso). Pour ajouter un produit, contactez le magasin avant la clôture.',
   },
   closed: {
     className: lineStyles.hintBannerClosed,
@@ -30,7 +29,6 @@ type PickupChecklistProps = {
 
 type Props = {
   order: OrderWithItems
-  hasCatalogAccess: boolean
   creditBalance?: number
   pickupChecklist?: PickupChecklistProps
 }
@@ -41,14 +39,13 @@ function activeItems(order: OrderWithItems) {
 
 export default function MemberOrderDetail({
   order,
-  hasCatalogAccess,
   creditBalance = 0,
   pickupChecklist,
 }: Props) {
   const hint = order.status === 'delivered' && pickupChecklist
     ? {
         className: lineStyles.hintBannerDelivered,
-        text: 'Cochez les produits récupérés (aide-mémoire perso). Vous pouvez encore compléter cette commande sur place — chaque fournisseur garde sa propre commande.',
+        text: 'Cochez les produits récupérés (aide-mémoire perso). Pour ajouter un produit, contactez le magasin avant la clôture.',
       }
     : STATUS_HINT[order.status]
   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
@@ -170,16 +167,6 @@ export default function MemberOrderDetail({
           )}
         </div>
 
-        {(order.status === 'delivered' && hasCatalogAccess && order.supplier?.id) && (
-          <div className={lineStyles.orderActions}>
-            <Link
-              href={`/commandes?extendOrder=${order.id}&supplierId=${order.supplier.id}`}
-              className={lineStyles.complementBtn}
-            >
-              + Compléter cette commande
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   )

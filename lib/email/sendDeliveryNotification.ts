@@ -145,8 +145,8 @@ export async function sendDeliveryNotification({
               </div>
 
               <p style="margin:16px 0 0;font-size:14px;color:#1565c0;line-height:1.7;">
-                Vous pouvez encore <strong>compléter ${multiple ? 'ces commandes' : 'cette commande'}</strong> sur place (catalogue en ligne : Mon compte → Compléter ma commande).
-                L&apos;avoir sera déduit à la <strong>clôture</strong> (montant définitif après livraison).
+                Des ajouts ou modifications sont possibles sur place avec l&apos;équipe du magasin avant la clôture.
+                L&apos;avoir sera déduit à la <strong>clôture</strong> (montant définitif).
               </p>
               <p style="margin:20px 0 0;font-size:14px;color:#555;line-height:1.7;">
                 Des questions ? Contactez-nous à

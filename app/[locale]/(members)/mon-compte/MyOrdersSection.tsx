@@ -360,7 +360,6 @@ export default function MyOrdersSection({
 
                       <MemberOrderDetail
                         order={order}
-                        hasCatalogAccess={hasCatalogAccess}
                         creditBalance={creditBalance}
                         pickupChecklist={pickupChecklistProps}
                       />
