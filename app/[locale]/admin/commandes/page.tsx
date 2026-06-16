@@ -21,6 +21,7 @@ import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
 import AdminAddProductAtClosure from '@/components/admin/AdminAddProductAtClosure'
+import AdminClosureLineEdit from '@/components/admin/AdminClosureLineEdit'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,8 @@ type OrderItem = {
   quantity: number
   unit_price: number
   added_at_closure?: boolean
+  closure_baseline_quantity?: number | null
+  closure_baseline_unit_price?: number | null
   product: { name: string; unit: string; supplier_ref: string | null } | null
 }
 
@@ -316,6 +319,35 @@ export default function AdminCommandesPage({
     }
   }
 
+  function handleClosureLineUpdated(patch: {
+    orderId: string
+    itemId: string
+    quantity: number
+    unitPrice: number
+    newTotal: number
+    closureBaselineQuantity: number | null
+    closureBaselineUnitPrice: number | null
+  }) {
+    setOrders(prev => prev.map(o => {
+      if (o.id !== patch.orderId) return o
+      return {
+        ...o,
+        total: patch.newTotal,
+        order_items: o.order_items.map(i =>
+          i.id === patch.itemId
+            ? {
+                ...i,
+                quantity: patch.quantity,
+                unit_price: patch.unitPrice,
+                closure_baseline_quantity: patch.closureBaselineQuantity,
+                closure_baseline_unit_price: patch.closureBaselineUnitPrice,
+              }
+            : i,
+        ),
+      }
+    }))
+  }
+
   async function cancelOrderItem(orderId: string, item: OrderItem) {
     const productName = item.product?.name ?? 'ce produit'
     const lineTotal = (item.quantity * item.unit_price).toFixed(2)
@@ -502,7 +534,7 @@ export default function AdminCommandesPage({
             {mode === 'action' &&
               'Confirmées : marquer « Livrée » après distribution, ou « Annulée » si besoin.'}
             {mode === 'toClose' &&
-              'Livrées : le membre peut encore ajouter des produits. Quand tout est bon, clique « Clôturer » — le total est figé et le statut passe à Clôturée.'}
+              'Livrées : ajuster qté ou prix si besoin, puis « Clôturer tout » — l\'avoir est déduit une seule fois sur le total membre.'}
             {mode === 'closed' &&
               'Commandes finalisées — montant et avoir définitifs. Utilise « Historique » pour les filtres avancés.'}
             {mode === 'history' &&
@@ -1019,7 +1051,9 @@ export default function AdminCommandesPage({
                       lineHeight: 1.45,
                     }}>
                       {order.status === 'delivered'
-                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou <strong>+ Produit</strong> (admin, catalogue entier, 1 unité sans majoration). Avoir déduit à la clôture groupée.</>
+                        ? mode === 'toClose'
+                          ? <>Modifiable jusqu&apos;à <strong>Clôturer</strong> — ajuster <strong>qté / prix</strong>, <strong>↩ Rétablir</strong>, <strong>+ Produit</strong> ou <strong>Retirer</strong>. Avoir déduit à la clôture groupée.</>
+                          : <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou <strong>+ Produit</strong> (admin, catalogue entier, 1 unité sans majoration). Avoir déduit à la clôture groupée.</>
                         : <>Produit indisponible ? <strong>Retirer</strong> — total recalculé, email au membre.</>}
                     </p>
                   )}
@@ -1030,9 +1064,13 @@ export default function AdminCommandesPage({
                       const lineTotal = item.quantity * item.unit_price
                       const isRemoving = removingItemId === item.id
                       const canRemove = order.status === 'confirmed' || order.status === 'delivered'
+                      const canEditClosureLine = mode === 'toClose' && order.status === 'delivered'
 
                       return (
-                        <div key={item.id} className={`${lineStyles.orderLine} ${lineStyles.orderLineAdmin}`}>
+                        <div
+                          key={item.id}
+                          className={`${lineStyles.orderLine} ${lineStyles.orderLineAdmin}${canEditClosureLine ? ` ${lineStyles.orderLineAdminClosure}` : ''}`}
+                        >
                           <div className={lineStyles.lineInfo}>
                             <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.product?.name ?? '—'}</span>
                             {item.added_at_closure && (
@@ -1045,17 +1083,31 @@ export default function AdminCommandesPage({
                             )}
                           </div>
 
-                          <div className={lineStyles.lineMeta}>
-                            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
-                              {item.quantity} {item.product?.unit}
-                            </span>
-                            <span style={{ display: 'block', fontSize: '0.78rem', opacity: 0.55 }}>
-                              CHF {item.unit_price.toFixed(2)} / unité
-                            </span>
-                            <span style={{ display: 'block', fontWeight: 700, marginTop: '0.15rem' }}>
-                              CHF {lineTotal.toFixed(2)}
-                            </span>
-                          </div>
+                          {canEditClosureLine ? (
+                            <AdminClosureLineEdit
+                              itemId={item.id}
+                              orderId={order.id}
+                              quantity={item.quantity}
+                              unitPrice={item.unit_price}
+                              unit={item.product?.unit ?? ''}
+                              closureBaselineQuantity={item.closure_baseline_quantity}
+                              closureBaselineUnitPrice={item.closure_baseline_unit_price}
+                              disabled={isRemoving || isUpdating}
+                              onUpdated={handleClosureLineUpdated}
+                            />
+                          ) : (
+                            <div className={lineStyles.lineMeta}>
+                              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                                {item.quantity} {item.product?.unit}
+                              </span>
+                              <span style={{ display: 'block', fontSize: '0.78rem', opacity: 0.55 }}>
+                                CHF {item.unit_price.toFixed(2)} / unité
+                              </span>
+                              <span style={{ display: 'block', fontWeight: 700, marginTop: '0.15rem' }}>
+                                CHF {lineTotal.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
 
                           {canRemove ? (
                             <button
