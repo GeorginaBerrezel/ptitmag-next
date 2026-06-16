@@ -263,7 +263,8 @@
   padding: 0.45rem 0.65rem;
   line-height: 1.2;
   flex-shrink: 0;
-  min-height: 36px;
+  min-height: 44px;
+  min-width: 44px;
   white-space: nowrap;
 }
 
@@ -278,6 +279,170 @@
 
 .orderLineAdmin {
   grid-template-columns: 1fr auto auto;
+}
+
+.orderLineAdminClosure {
+  grid-template-columns: 1fr minmax(12rem, 1.35fr) auto;
+  align-items: center;
+}
+
+.closureEdit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.closureEditFields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 14rem;
+}
+
+.closureEditLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(16, 24, 40, 0.55);
+}
+
+.closureEditInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.closureEditPrefix {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(16, 24, 40, 0.45);
+  flex-shrink: 0;
+}
+
+.closureEditMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 14rem;
+  margin-bottom: 0.15rem;
+}
+
+.closureModifiedBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  background: #fff8ed;
+  color: #92400e;
+  border: 1px solid #ffe082;
+}
+
+.closureBaselineRef {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: rgba(16, 24, 40, 0.55);
+  text-align: right;
+}
+
+.closureRestoreBtn {
+  align-self: stretch;
+  min-height: 36px;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(21, 101, 192, 0.35);
+  border-radius: 8px;
+  background: #fff;
+  color: #1565c0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.closureRestoreBtn:hover:not(:disabled) {
+  background: #e8f4fd;
+}
+
+.closureRestoreBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.closureRestoreBtn:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 1px;
+}
+
+.closureEditTotalWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.closureEditSaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #1b5e20;
+  line-height: 1.2;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+}
+
+.closureEditInput {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(21, 101, 192, 0.35);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  box-sizing: border-box;
+}
+
+.closureEditInput:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 1px;
+}
+
+.closureEditInput:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.closureEditUnit {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(16, 24, 40, 0.55);
+  flex-shrink: 0;
+}
+
+.closureEditError {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #c0392b;
+  text-align: right;
+  max-width: 14rem;
 }
 
 .closureAddBadge {
@@ -389,5 +554,41 @@
   .orderLineAdmin .removeBtn {
     grid-area: remove;
     justify-self: end;
+  }
+
+  .orderLineAdminClosure {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'info'
+      'edit'
+      'remove';
+  }
+
+  .orderLineAdminClosure .lineInfo {
+    grid-area: info;
+  }
+
+  .orderLineAdminClosure .closureEdit {
+    grid-area: edit;
+    align-items: stretch;
+  }
+
+  .orderLineAdminClosure .closureEditFields {
+    max-width: none;
+  }
+
+  .orderLineAdminClosure .closureEditMeta {
+    max-width: none;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .orderLineAdminClosure .closureBaselineRef {
+    text-align: left;
+  }
+
+  .orderLineAdminClosure .removeBtn {
+    grid-area: remove;
+    justify-self: start;
   }
 }

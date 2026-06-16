@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       supplier:suppliers(name, type),
       order_items(
         id, quantity, unit_price, cancelled_at, added_at_closure,
+        closure_baseline_quantity, closure_baseline_unit_price,
         product:products(name, unit, supplier_ref)
       )
     `
