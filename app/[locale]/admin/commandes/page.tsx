@@ -12,6 +12,7 @@ import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import { getMemberDisplayName, groupOrdersByMember, sumOrderTotals } from '@/lib/admin/member-display'
 import { computeMemberCloseCredits } from '@/lib/orders/compute-member-close-credits'
+import { CLOSURE_ADD_LINE_LABEL } from '@/lib/orders/closure-add-label'
 import { orderCreditApplied, orderGrossTotal } from '@/lib/orders/order-totals-display'
 import lineStyles from '@/components/orders/order-lines.module.css'
 import AccordionChevron from '@/components/ui/AccordionChevron'
@@ -27,6 +28,7 @@ type OrderItem = {
   id: string
   quantity: number
   unit_price: number
+  added_at_closure?: boolean
   product: { name: string; unit: string; supplier_ref: string | null } | null
 }
 
@@ -1033,6 +1035,9 @@ export default function AdminCommandesPage({
                         <div key={item.id} className={`${lineStyles.orderLine} ${lineStyles.orderLineAdmin}`}>
                           <div className={lineStyles.lineInfo}>
                             <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.product?.name ?? '—'}</span>
+                            {item.added_at_closure && (
+                              <span className={lineStyles.closureAddBadge}>{CLOSURE_ADD_LINE_LABEL}</span>
+                            )}
                             {item.product?.supplier_ref && (
                               <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
                                 Réf. {item.product.supplier_ref}

@@ -280,6 +280,24 @@
   grid-template-columns: 1fr auto auto;
 }
 
+.closureAddBadge {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  background: #e8f4fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.orderLineAdmin .closureAddBadge {
+  font-size: 0.65rem;
+}
+
 .orderTotalRow {
   display: flex;
   justify-content: space-between;
