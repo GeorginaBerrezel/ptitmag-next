@@ -68,16 +68,20 @@
   align-items: center;
   gap: 0.2rem;
   cursor: pointer;
-  padding-top: 0.1rem;
+  padding: 0.25rem;
   flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
 }
 
 .pickupCheck input {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
   accent-color: #1565c0;
   cursor: pointer;
   margin: 0;
+  flex-shrink: 0;
 }
 
 .pickupCheckLabel {
@@ -294,15 +298,26 @@
   }
 
   .orderLineWithPickup {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr;
     grid-template-areas:
-      'check info'
-      'meta meta';
+      'check'
+      'info'
+      'meta';
+    gap: 0.45rem;
   }
 
   .orderLineWithPickup .pickupCheck {
     grid-area: check;
-    align-self: start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.45rem 0.65rem;
+    background: rgba(21, 101, 192, 0.06);
+    border-radius: 8px;
+    box-sizing: border-box;
   }
 
   .orderLineWithPickup .lineInfo {
@@ -311,6 +326,19 @@
 
   .orderLineWithPickup .lineMeta {
     grid-area: meta;
+  }
+
+  .pickupCheckLabel {
+    max-width: none;
+    font-size: 0.82rem;
+    text-transform: none;
+    font-weight: 600;
+    color: #1565c0;
+  }
+
+  .hintBanner {
+    font-size: 0.76rem;
+    padding: 0.65rem 0.85rem;
   }
 
   .lineMeta {

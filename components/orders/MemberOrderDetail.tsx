@@ -45,7 +45,12 @@ export default function MemberOrderDetail({
   creditBalance = 0,
   pickupChecklist,
 }: Props) {
-  const hint = STATUS_HINT[order.status]
+  const hint = order.status === 'delivered' && pickupChecklist
+    ? {
+        className: lineStyles.hintBannerDelivered,
+        text: 'Cochez les produits récupérés (aide-mémoire perso). Vous pouvez encore compléter cette commande sur place — chaque fournisseur garde sa propre commande.',
+      }
+    : STATUS_HINT[order.status]
   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
   const credit = Number(order.credit_applied) || 0
   const items = activeItems(order)

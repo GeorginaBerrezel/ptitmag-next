@@ -432,4 +432,10 @@
   .expandHint {
     display: none;
   }
+
+  .pickupHint {
+    margin: -0.15rem 0 0.85rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
 }
