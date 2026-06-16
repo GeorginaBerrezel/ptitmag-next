@@ -34,14 +34,6 @@ function buildSupplierBlocks(orders: ClosedOrderGroup[]): string {
         )
         .join('')
 
-      const creditBlock =
-        group.creditApplied > 0
-          ? `<tr>
-          <td colspan="3" style="padding:8px 12px;text-align:right;color:#2e7d32;font-weight:600;">Avoir appliqué</td>
-          <td style="padding:8px 12px;text-align:right;color:#2e7d32;font-weight:600;">− CHF ${group.creditApplied.toFixed(2)}</td>
-        </tr>`
-          : ''
-
       return `
         <div style="margin-bottom:20px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;">
           <div style="background:#f6f8fb;padding:10px 16px;font-weight:700;font-size:15px;">${group.supplierName}</div>
@@ -60,10 +52,9 @@ function buildSupplierBlocks(orders: ClosedOrderGroup[]): string {
                 <td colspan="3" style="padding:8px 12px;text-align:right;font-weight:600;">Sous-total</td>
                 <td style="padding:8px 12px;text-align:right;font-weight:600;">CHF ${group.grossTotal.toFixed(2)}</td>
               </tr>
-              ${creditBlock}
               <tr style="background:#f5f5f5;">
                 <td colspan="3" style="padding:8px 12px;text-align:right;font-weight:700;">Total fournisseur</td>
-                <td style="padding:8px 12px;text-align:right;font-weight:700;">CHF ${group.total.toFixed(2)}</td>
+                <td style="padding:8px 12px;text-align:right;font-weight:700;">CHF ${group.grossTotal.toFixed(2)}</td>
               </tr>
             </tfoot>
           </table>
