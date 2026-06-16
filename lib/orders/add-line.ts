@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
+import { roundChf } from '@/lib/members/credit'
 import { applyCielMarkup } from '@/lib/members/profile'
 import { ORDER_STATUS, orderIsModifiable } from '@/lib/orders/lifecycle'
 import { resolveComplementTargetOrder } from '@/lib/orders/resolve-complement-target'
@@ -118,6 +119,113 @@ export async function addProductToOrder(
 ): Promise<{ newTotal: number; productName: string }> {
   const result = await insertLineOnDeliveredOrder(admin, params)
   return { newTotal: result.newTotal, productName: result.productName }
+}
+
+export type ClosureAddLineResult = {
+  newTotal: number
+  productName: string
+  unitPrice: number
+  quantity: number
+  unit: string
+  targetOrderId: string
+  supplierName: string
+  sameSupplierAsContext: boolean
+  createdOrder: boolean
+}
+
+/**
+ * Ajout admin en « À clôturer » : catalogue entier, 1 unité, prix catalogue sans majoration.
+ * Crée une commande livrée pour le fournisseur si besoin (comme complément membre).
+ */
+export async function addProductToOrderAtClosure(
+  admin: SupabaseClient,
+  params: {
+    contextOrderId: string
+    productId: string
+    memberId: string
+  },
+): Promise<ClosureAddLineResult> {
+  const { contextOrderId, productId, memberId } = params
+
+  const { data: product, error: prodErr } = await admin
+    .from('products')
+    .select('id, name, unit, unit_price, supplier_id, active')
+    .eq('id', productId)
+    .single()
+
+  if (prodErr || !product) {
+    throw new Error('Produit introuvable.')
+  }
+
+  if (!product.active) {
+    throw new Error('Ce produit n\'est plus disponible.')
+  }
+
+  if (product.unit_price == null) {
+    throw new Error('Ce produit n\'a pas de prix.')
+  }
+
+  const target = await resolveComplementTargetOrder(admin, {
+    contextOrderId,
+    productSupplierId: product.supplier_id as string,
+    memberId,
+  })
+
+  const { data: targetOrder, error: targetErr } = await admin
+    .from('orders')
+    .select('id, status, member_id')
+    .eq('id', target.orderId)
+    .single()
+
+  if (targetErr || !targetOrder) {
+    throw new Error('Commande cible introuvable.')
+  }
+
+  if (!orderIsModifiable(targetOrder.status as string)) {
+    throw new Error('Cette commande ne peut plus être modifiée.')
+  }
+
+  if (targetOrder.status !== ORDER_STATUS.delivered) {
+    throw new Error('Les ajouts sont possibles uniquement sur une commande « Livrée ».')
+  }
+
+  const quantity = 1
+  const unitPrice = roundChf(Number(product.unit_price))
+
+  const { error: insErr } = await admin.from('order_items').insert({
+    order_id: target.orderId,
+    product_id: productId,
+    quantity,
+    unit_price: unitPrice,
+    added_at_closure: true,
+  })
+
+  if (insErr) {
+    throw new Error(insErr.message)
+  }
+
+  const newTotal = await syncOrderGrossTotal(admin, target.orderId)
+
+  const { data: orderWithSupplier } = await admin
+    .from('orders')
+    .select('supplier:suppliers(name)')
+    .eq('id', target.orderId)
+    .single()
+
+  const supplierName =
+    (orderWithSupplier?.supplier as unknown as { name: string } | null)?.name ?? 'Fournisseur'
+
+  return {
+    newTotal,
+    productName: product.name as string,
+    unitPrice,
+    quantity,
+    unit: (product.unit as string) ?? '',
+    targetOrderId: target.orderId,
+    supplierName,
+    sameSupplierAsContext: target.sameSupplierAsContext,
+    createdOrder: target.created,
+  }
 }
 
 /** Complément membre : peut cibler un autre fournisseur (commande livrée existante ou nouvelle). */

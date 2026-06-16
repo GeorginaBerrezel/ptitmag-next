@@ -11,12 +11,17 @@ import {
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import { getMemberDisplayName, groupOrdersByMember, sumOrderTotals } from '@/lib/admin/member-display'
+import { computeMemberCloseCredits } from '@/lib/orders/compute-member-close-credits'
+import { CLOSURE_ADD_LINE_LABEL } from '@/lib/orders/closure-add-label'
+import { orderCreditApplied, orderGrossTotal } from '@/lib/orders/order-totals-display'
 import lineStyles from '@/components/orders/order-lines.module.css'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
+import AdminAddProductAtClosure from '@/components/admin/AdminAddProductAtClosure'
+import AdminClosureLineEdit from '@/components/admin/AdminClosureLineEdit'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +29,9 @@ type OrderItem = {
   id: string
   quantity: number
   unit_price: number
+  added_at_closure?: boolean
+  closure_baseline_quantity?: number | null
+  closure_baseline_unit_price?: number | null
   product: { name: string; unit: string; supplier_ref: string | null } | null
 }
 
@@ -35,7 +43,12 @@ type AdminOrder = {
   credit_applied?: number
   created_at: string
   archived_at?: string | null
-  member: { full_name: string | null; email: string | null; username: string | null } | null
+  member: {
+    full_name: string | null
+    email: string | null
+    username: string | null
+    credit_balance?: number
+  } | null
   supplier: { name: string; type: string } | null
   order_items: OrderItem[]
 }
@@ -96,7 +109,9 @@ export default function AdminCommandesPage({
   const [exporting, setExporting]     = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
   const [removingAggregateKey, setRemovingAggregateKey] = useState<string | null>(null)
-  const [closingOrderId, setClosingOrderId] = useState<string | null>(null)
+  const [closingMemberId, setClosingMemberId] = useState<string | null>(null)
+  const [notifyingMemberId, setNotifyingMemberId] = useState<string | null>(null)
+  const [addingProductMemberId, setAddingProductMemberId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivableCount, setArchivableCount] = useState(0)
   const [archiving, setArchiving] = useState(false)
@@ -230,43 +245,107 @@ export default function AdminCommandesPage({
     setUpdating(null)
   }
 
-  async function closeOrder(orderId: string) {
-    const order = orders.find(o => o.id === orderId)
+  async function notifyMemberDelivery(memberId: string, memberName: string, deliveredCount: number) {
     const ok = window.confirm(
-      `Clôturer la commande de ${order ? getMemberName(order) : 'ce membre'} ?\n\n` +
-        'Le total final sera recalculé. L\'avoir sera déduit s\'il ne l\'était pas encore. Un email récapitulatif sera envoyé.',
+      `Envoyer l'email de retrait à ${memberName} ?\n\n` +
+        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} livrée${deliveredCount > 1 ? 's' : ''} — ` +
+        'un seul email regroupant tous les fournisseurs.',
     )
     if (!ok) return
 
-    setClosingOrderId(orderId)
+    setNotifyingMemberId(memberId)
     try {
-      const res = await fetch('/api/admin/orders/close', {
+      const res = await fetch('/api/admin/orders/notify-delivery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
+        body: JSON.stringify({ memberId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de l\'envoi.')
+
+      if (data.emailSent === false) {
+        alert('Email non envoyé (SMTP ou adresse introuvable).')
+      }
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setNotifyingMemberId(null)
+    }
+  }
+
+  async function closeMemberOrders(memberId: string, memberName: string, deliveredCount: number) {
+    const ok = window.confirm(
+      `Clôturer toutes les commandes livrées de ${memberName} ?\n\n` +
+        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} — l'avoir sera déduit une seule fois sur le total membre. ` +
+        'Un seul email récapitulatif regroupé sera envoyé.',
+    )
+    if (!ok) return
+
+    setClosingMemberId(memberId)
+    try {
+      const res = await fetch('/api/admin/orders/close-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erreur lors de la clôture.')
 
+      const closedById = new Map(
+        (data.orders as Array<{ orderId: string; total: number; creditApplied: number }>).map(o => [
+          o.orderId,
+          { total: o.total, creditApplied: o.creditApplied },
+        ]),
+      )
+
       setOrders(prev => prev.map(o =>
-        o.id === orderId
+        closedById.has(o.id)
           ? {
               ...o,
               status: 'closed',
-              total: data.total as number,
-              credit_applied: data.creditApplied as number,
+              total: closedById.get(o.id)!.total,
+              credit_applied: closedById.get(o.id)!.creditApplied,
             }
           : o,
       ))
 
       if (data.emailSent === false) {
-        alert('Commande clôturée, mais l\'email n\'a pas pu être envoyé.')
+        alert('Commandes clôturées, mais l\'email n\'a pas pu être envoyé.')
       }
     } catch (e) {
       alert((e as Error).message)
     } finally {
-      setClosingOrderId(null)
+      setClosingMemberId(null)
     }
+  }
+
+  function handleClosureLineUpdated(patch: {
+    orderId: string
+    itemId: string
+    quantity: number
+    unitPrice: number
+    newTotal: number
+    closureBaselineQuantity: number | null
+    closureBaselineUnitPrice: number | null
+  }) {
+    setOrders(prev => prev.map(o => {
+      if (o.id !== patch.orderId) return o
+      return {
+        ...o,
+        total: patch.newTotal,
+        order_items: o.order_items.map(i =>
+          i.id === patch.itemId
+            ? {
+                ...i,
+                quantity: patch.quantity,
+                unit_price: patch.unitPrice,
+                closure_baseline_quantity: patch.closureBaselineQuantity,
+                closure_baseline_unit_price: patch.closureBaselineUnitPrice,
+              }
+            : i,
+        ),
+      }
+    }))
   }
 
   async function cancelOrderItem(orderId: string, item: OrderItem) {
@@ -455,7 +534,7 @@ export default function AdminCommandesPage({
             {mode === 'action' &&
               'Confirmées : marquer « Livrée » après distribution, ou « Annulée » si besoin.'}
             {mode === 'toClose' &&
-              'Livrées : le membre peut encore ajouter des produits. Quand tout est bon, clique « Clôturer » — le total est figé et le statut passe à Clôturée.'}
+              'Livrées : ajuster qté ou prix si besoin, puis « Clôturer tout » — l\'avoir est déduit une seule fois sur le total membre.'}
             {mode === 'closed' &&
               'Commandes finalisées — montant et avoir définitifs. Utilise « Historique » pour les filtres avancés.'}
             {mode === 'history' &&
@@ -734,6 +813,23 @@ export default function AdminCommandesPage({
         </div>
       )}
 
+      {!loading && !error && (mode === 'toClose' || mode === 'action') && filtered.length > 0 && (
+        <p className="admin-order-groups__hint">
+          {mode === 'action' && (
+            <>
+              <strong>Marquer Livrée</strong> commande par commande — elles passent ensuite dans l&apos;onglet{' '}
+              <strong>À clôturer</strong>.
+            </>
+          )}
+          {mode === 'toClose' && (
+            <>
+              <strong>✉ Email retrait</strong> puis <strong>✓ Clôturer tout</strong> — un seul email par membre,
+              tous fournisseurs regroupés.
+            </>
+          )}
+        </p>
+      )}
+
       {!loading && !error && filterSupplier && filtered.length > 0 && aggregatedSummary && (
         <AggregatedSummaryPanel
           supplierName={filterSupplier}
@@ -759,6 +855,21 @@ export default function AdminCommandesPage({
           {groupedOrders.map(group => {
             const groupTotal = sumOrderTotals(group.orders)
             const orderLabel = `${group.orders.length} commande${group.orders.length !== 1 ? 's' : ''}`
+            const deliveredInGroup = group.orders.filter(o => o.status === 'delivered')
+            const deliveredCount = deliveredInGroup.length
+            const creditBalance = group.orders[0]?.member?.credit_balance ?? 0
+            const closePreview =
+              mode === 'toClose' && deliveredCount > 0 && creditBalance > 0
+                ? computeMemberCloseCredits(
+                    deliveredInGroup.map(o => ({
+                      grossTotal: orderGrossTotal(o.order_items),
+                      storedCredit: orderCreditApplied(o.credit_applied),
+                    })),
+                    creditBalance,
+                  )
+                : null
+            const isNotifying = notifyingMemberId === group.memberId
+            const isClosingMember = closingMemberId === group.memberId
 
             return (
               <details
@@ -775,8 +886,15 @@ export default function AdminCommandesPage({
                       <span className="admin-order-group__email">{group.memberEmail}</span>
                     )}
                     <span className="admin-order-group__meta">
-                      {orderLabel} · CHF {groupTotal.toFixed(2)}
+                      {closePreview
+                        ? `${orderLabel} · CHF ${closePreview.totalGross.toFixed(2)} produits · − CHF ${closePreview.totalCreditApplied.toFixed(2)} avoir · CHF ${closePreview.totalPayable.toFixed(2)} à payer`
+                        : `${orderLabel} · CHF ${groupTotal.toFixed(2)}`}
                     </span>
+                    {closePreview && creditBalance > 0 && (
+                      <span className="admin-order-group__credit-hint">
+                        Avoir membre CHF {creditBalance.toFixed(2)} — déduit sur le total à la clôture
+                      </span>
+                    )}
                     <ul className="admin-order-group__chips" aria-label="Fournisseurs">
                       {group.orders.map(order => (
                         <li key={order.id} className="admin-order-group__chip" title={order.supplier?.name ?? undefined}>
@@ -784,11 +902,65 @@ export default function AdminCommandesPage({
                         </li>
                       ))}
                     </ul>
+                    {(deliveredCount > 0 && (mode === 'toClose' || (mode === 'history' && filterStatus === 'delivered'))) && (
+                      <div className="admin-order-group__actions">
+                        {(mode === 'toClose' || (mode === 'history' && filterStatus === 'delivered')) && (
+                          <button
+                            type="button"
+                            className="admin-btn admin-order-group__btn admin-order-group__btn--notify"
+                            disabled={isNotifying || isClosingMember}
+                            onClick={e => {
+                              e.preventDefault()
+                              void notifyMemberDelivery(group.memberId, group.memberName, deliveredCount)
+                            }}
+                          >
+                            {isNotifying ? 'Envoi…' : '✉ Email retrait'}
+                          </button>
+                        )}
+                        {mode === 'toClose' && deliveredCount > 0 && (
+                          <button
+                            type="button"
+                            className="admin-btn admin-order-group__btn admin-order-group__btn--add"
+                            disabled={isClosingMember || isNotifying}
+                            onClick={e => {
+                              e.preventDefault()
+                              setAddingProductMemberId(
+                                addingProductMemberId === group.memberId ? null : group.memberId,
+                              )
+                            }}
+                          >
+                            {addingProductMemberId === group.memberId ? 'Fermer ajout' : '+ Produit'}
+                          </button>
+                        )}
+                        {mode === 'toClose' && deliveredCount > 0 && (
+                          <button
+                            type="button"
+                            className="admin-btn admin-order-group__btn admin-order-group__btn--close"
+                            disabled={isClosingMember || isNotifying}
+                            onClick={e => {
+                              e.preventDefault()
+                              void closeMemberOrders(group.memberId, group.memberName, deliveredCount)
+                            }}
+                          >
+                            {isClosingMember ? 'Clôture…' : `✓ Clôturer tout (${deliveredCount})`}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <AccordionChevron />
                 </summary>
 
                 <div className={`${accordionStyles.panel} ${accordionStyles.panelInner} admin-order-group__orders`}>
+                {addingProductMemberId === group.memberId && deliveredInGroup[0] && (
+                  <AdminAddProductAtClosure
+                    memberId={group.memberId}
+                    contextOrderId={deliveredInGroup[0].id}
+                    memberName={group.memberName}
+                    onAdded={() => void fetchOrders(showArchived)}
+                    onClose={() => setAddingProductMemberId(null)}
+                  />
+                )}
                 {group.orders.map(order => {
             const st         = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.confirmed
             const memberName = getMemberName(order)
@@ -879,7 +1051,9 @@ export default function AdminCommandesPage({
                       lineHeight: 1.45,
                     }}>
                       {order.status === 'delivered'
-                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou ajout de produits (membre ou admin). Avoir déjà déduit à la commande.</>
+                        ? mode === 'toClose'
+                          ? <>Modifiable jusqu&apos;à <strong>Clôturer</strong> — ajuster <strong>qté / prix</strong>, <strong>↩ Rétablir</strong>, <strong>+ Produit</strong> ou <strong>Retirer</strong>. Avoir déduit à la clôture groupée.</>
+                          : <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou <strong>+ Produit</strong> (admin, catalogue entier, 1 unité sans majoration). Avoir déduit à la clôture groupée.</>
                         : <>Produit indisponible ? <strong>Retirer</strong> — total recalculé, email au membre.</>}
                     </p>
                   )}
@@ -890,11 +1064,18 @@ export default function AdminCommandesPage({
                       const lineTotal = item.quantity * item.unit_price
                       const isRemoving = removingItemId === item.id
                       const canRemove = order.status === 'confirmed' || order.status === 'delivered'
+                      const canEditClosureLine = mode === 'toClose' && order.status === 'delivered'
 
                       return (
-                        <div key={item.id} className={`${lineStyles.orderLine} ${lineStyles.orderLineAdmin}`}>
+                        <div
+                          key={item.id}
+                          className={`${lineStyles.orderLine} ${lineStyles.orderLineAdmin}${canEditClosureLine ? ` ${lineStyles.orderLineAdminClosure}` : ''}`}
+                        >
                           <div className={lineStyles.lineInfo}>
                             <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{item.product?.name ?? '—'}</span>
+                            {item.added_at_closure && (
+                              <span className={lineStyles.closureAddBadge}>{CLOSURE_ADD_LINE_LABEL}</span>
+                            )}
                             {item.product?.supplier_ref && (
                               <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
                                 Réf. {item.product.supplier_ref}
@@ -902,17 +1083,31 @@ export default function AdminCommandesPage({
                             )}
                           </div>
 
-                          <div className={lineStyles.lineMeta}>
-                            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
-                              {item.quantity} {item.product?.unit}
-                            </span>
-                            <span style={{ display: 'block', fontSize: '0.78rem', opacity: 0.55 }}>
-                              CHF {item.unit_price.toFixed(2)} / unité
-                            </span>
-                            <span style={{ display: 'block', fontWeight: 700, marginTop: '0.15rem' }}>
-                              CHF {lineTotal.toFixed(2)}
-                            </span>
-                          </div>
+                          {canEditClosureLine ? (
+                            <AdminClosureLineEdit
+                              itemId={item.id}
+                              orderId={order.id}
+                              quantity={item.quantity}
+                              unitPrice={item.unit_price}
+                              unit={item.product?.unit ?? ''}
+                              closureBaselineQuantity={item.closure_baseline_quantity}
+                              closureBaselineUnitPrice={item.closure_baseline_unit_price}
+                              disabled={isRemoving || isUpdating}
+                              onUpdated={handleClosureLineUpdated}
+                            />
+                          ) : (
+                            <div className={lineStyles.lineMeta}>
+                              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                                {item.quantity} {item.product?.unit}
+                              </span>
+                              <span style={{ display: 'block', fontSize: '0.78rem', opacity: 0.55 }}>
+                                CHF {item.unit_price.toFixed(2)} / unité
+                              </span>
+                              <span style={{ display: 'block', fontWeight: 700, marginTop: '0.15rem' }}>
+                                CHF {lineTotal.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
 
                           {canRemove ? (
                             <button
@@ -1004,30 +1199,6 @@ export default function AdminCommandesPage({
                     })}
                     {isUpdating && (
                       <span style={{ fontSize: '0.78rem', opacity: 0.45 }}>Mise à jour…</span>
-                    )}
-
-                    {order.status === 'delivered' && (
-                      <button
-                        type="button"
-                        onClick={e => {
-                          e.preventDefault()
-                          void closeOrder(order.id)
-                        }}
-                        disabled={closingOrderId === order.id || isUpdating}
-                        style={{
-                          marginLeft: '0.25rem',
-                          padding: '0.35rem 1rem',
-                          borderRadius: 999,
-                          border: 'none',
-                          background: '#2e7d32',
-                          color: '#fff',
-                          fontSize: '0.82rem',
-                          fontWeight: 700,
-                          cursor: closingOrderId === order.id ? 'wait' : 'pointer',
-                        }}
-                      >
-                        {closingOrderId === order.id ? 'Clôture…' : '✓ Clôturer'}
-                      </button>
                     )}
 
                     {mode === 'history' && order.archived_at && (
