@@ -76,6 +76,17 @@
   flex-wrap: wrap;
 }
 
+.pickupHint {
+  margin: -0.35rem 0 1rem;
+  padding: 0.65rem 0.85rem;
+  background: #e8f4fd;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #0d47a1;
+}
+
 .tab {
   border: 1px solid rgba(16, 24, 40, 0.12);
   background: #fafafa;
