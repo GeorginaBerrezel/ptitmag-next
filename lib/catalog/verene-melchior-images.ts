@@ -5,13 +5,15 @@ import { findLocalProducer } from '@/lib/catalog/local-producers'
 const VERENE_SLUG = 'verene-melchior'
 
 const NAME_TO_IMAGE: Array<{ pattern: RegExp; imageId: string }> = [
-  { pattern: /moelleux.*pecan|moelleux.*p[eé]can/i, imageId: 'moelleux-chocolat-pecan' },
-  { pattern: /moelleux.*citron/i, imageId: 'moelleux-chocolat' },
+  { pattern: /moelleux.*(pecan|p[eé]can|noix de pecan)/i, imageId: 'moelleux-chocolat-pecan' },
+  { pattern: /moelleux.*citron/i, imageId: 'truffes-assortiment' },
   { pattern: /moelleux.*chocolat/i, imageId: 'moelleux-chocolat' },
   { pattern: /moelleux/i, imageId: 'moelleux-chocolat' },
-  { pattern: /truffe.*cadeau|assortiment.*cadeau/i, imageId: 'truffes-cadeau' },
-  { pattern: /truffe/i, imageId: 'truffes-assortiment' },
+  { pattern: /boite cadeau|cadeau pour/i, imageId: 'truffes-cadeau' },
+  { pattern: /enrobage|truffe/i, imageId: 'truffes-assortiment' },
 ]
+
+const DEFAULT_IMAGE_ID = 'truffes-assortiment'
 
 export function isVereneMelchiorSupplier(supplierName: string | undefined | null): boolean {
   if (!supplierName) return false
@@ -27,7 +29,6 @@ export function resolveVereneMelchiorImageId(productName: string): string | null
 }
 
 export function buildVereneMelchiorImagePath(productName: string): string | null {
-  const imageId = resolveVereneMelchiorImageId(productName)
-  if (!imageId) return null
+  const imageId = resolveVereneMelchiorImageId(productName) ?? DEFAULT_IMAGE_ID
   return `/images/products/${VERENE_SLUG}/${imageId}.avif`
 }
