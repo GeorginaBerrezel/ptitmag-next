@@ -1,8 +1,13 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminUser } from '@/lib/admin/auth'
-import { addProductToOrder } from '@/lib/orders/add-line'
+import { addProductToOrderAtClosure } from '@/lib/orders/add-line'
 import { NextResponse, type NextRequest } from 'next/server'
 
+/**
+ * POST /api/admin/orders/add-item
+ * Ajout produit admin en « À clôturer » — catalogue entier, 1 unité, sans majoration.
+ * Body : { contextOrderId, productId, memberId }
+ */
 export async function POST(request: NextRequest) {
   const user = await requireAdminUser()
   if (!user) {
@@ -10,38 +15,45 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const orderId = (body.orderId as string | undefined)?.trim()
+  const contextOrderId = (body.contextOrderId as string | undefined)?.trim()
   const productId = (body.productId as string | undefined)?.trim()
-  const quantity = Number(body.quantity) || 1
+  const memberId = (body.memberId as string | undefined)?.trim()
 
-  if (!orderId || !productId) {
+  if (!contextOrderId || !productId || !memberId) {
     return NextResponse.json({ error: 'Paramètres manquants.' }, { status: 400 })
   }
 
   const admin = createAdminClient()
 
-  const { data: order } = await admin
+  const { data: contextOrder } = await admin
     .from('orders')
-    .select('member_id')
-    .eq('id', orderId)
+    .select('member_id, status')
+    .eq('id', contextOrderId)
     .single()
 
-  if (!order?.member_id) {
+  if (!contextOrder || contextOrder.member_id !== memberId) {
     return NextResponse.json({ error: 'Commande introuvable.' }, { status: 404 })
   }
 
   try {
-    const { newTotal, productName } = await addProductToOrder(admin, {
-      orderId,
+    const result = await addProductToOrderAtClosure(admin, {
+      contextOrderId,
       productId,
-      quantity,
-      memberIdForPricing: order.member_id as string,
+      memberId,
     })
+
+    let message = `« ${result.productName} » ajouté (1 ${result.unit}) — CHF ${result.unitPrice.toFixed(2)} / unité, sans majoration.`
+    if (result.createdOrder) {
+      message += ` Nouvelle commande livrée pour ${result.supplierName}.`
+    } else if (!result.sameSupplierAsContext) {
+      message += ` Ajouté à la commande ${result.supplierName}.`
+    }
+    message += ` Total provisoire CHF ${result.newTotal.toFixed(2)}.`
 
     return NextResponse.json({
       success: true,
-      newTotal,
-      message: `« ${productName} » ajouté — total provisoire CHF ${newTotal.toFixed(2)}.`,
+      ...result,
+      message,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue.'

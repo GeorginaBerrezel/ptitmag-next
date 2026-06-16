@@ -19,6 +19,7 @@ import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
+import AdminAddProductAtClosure from '@/components/admin/AdminAddProductAtClosure'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,6 +106,7 @@ export default function AdminCommandesPage({
   const [removingAggregateKey, setRemovingAggregateKey] = useState<string | null>(null)
   const [closingMemberId, setClosingMemberId] = useState<string | null>(null)
   const [notifyingMemberId, setNotifyingMemberId] = useState<string | null>(null)
+  const [addingProductMemberId, setAddingProductMemberId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivableCount, setArchivableCount] = useState(0)
   const [archiving, setArchiving] = useState(false)
@@ -884,6 +886,21 @@ export default function AdminCommandesPage({
                         {mode === 'toClose' && deliveredCount > 0 && (
                           <button
                             type="button"
+                            className="admin-btn admin-order-group__btn admin-order-group__btn--add"
+                            disabled={isClosingMember || isNotifying}
+                            onClick={e => {
+                              e.preventDefault()
+                              setAddingProductMemberId(
+                                addingProductMemberId === group.memberId ? null : group.memberId,
+                              )
+                            }}
+                          >
+                            {addingProductMemberId === group.memberId ? 'Fermer ajout' : '+ Produit'}
+                          </button>
+                        )}
+                        {mode === 'toClose' && deliveredCount > 0 && (
+                          <button
+                            type="button"
                             className="admin-btn admin-order-group__btn admin-order-group__btn--close"
                             disabled={isClosingMember || isNotifying}
                             onClick={e => {
@@ -901,6 +918,15 @@ export default function AdminCommandesPage({
                 </summary>
 
                 <div className={`${accordionStyles.panel} ${accordionStyles.panelInner} admin-order-group__orders`}>
+                {addingProductMemberId === group.memberId && deliveredInGroup[0] && (
+                  <AdminAddProductAtClosure
+                    memberId={group.memberId}
+                    contextOrderId={deliveredInGroup[0].id}
+                    memberName={group.memberName}
+                    onAdded={() => void fetchOrders(showArchived)}
+                    onClose={() => setAddingProductMemberId(null)}
+                  />
+                )}
                 {group.orders.map(order => {
             const st         = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.confirmed
             const memberName = getMemberName(order)
@@ -991,7 +1017,7 @@ export default function AdminCommandesPage({
                       lineHeight: 1.45,
                     }}>
                       {order.status === 'delivered'
-                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou ajout de produits (membre ou admin). Avoir déjà déduit à la commande.</>
+                        ? <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou <strong>+ Produit</strong> (admin, catalogue entier, 1 unité sans majoration). Avoir déduit à la clôture groupée.</>
                         : <>Produit indisponible ? <strong>Retirer</strong> — total recalculé, email au membre.</>}
                     </p>
                   )}
