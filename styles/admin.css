@@ -636,6 +636,12 @@
   margin-top: 0.1rem;
 }
 
+.admin-order-group__credit-hint {
+  font-size: 0.75rem;
+  color: #2e7d32;
+  margin-top: 0.15rem;
+}
+
 .admin-order-group__chips {
   display: flex;
   flex-wrap: wrap;

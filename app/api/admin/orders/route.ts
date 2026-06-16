@@ -65,12 +65,17 @@ export async function GET(request: NextRequest) {
     ...new Set(orders.map((o: Record<string, unknown>) => o.member_id as string).filter(Boolean)),
   ]
 
-  const profilesMap: Record<string, { full_name: string | null; email: string | null; username: string | null }> = {}
+  const profilesMap: Record<string, {
+    full_name: string | null
+    email: string | null
+    username: string | null
+    credit_balance: number
+  }> = {}
 
   if (memberIds.length > 0) {
     const { data: profiles, error: profilesError } = await admin
       .from('profiles')
-      .select('id, full_name, email, username')
+      .select('id, full_name, email, username, credit_balance')
       .in('id', memberIds)
 
     if (profilesError) {
@@ -82,6 +87,7 @@ export async function GET(request: NextRequest) {
         full_name: (p as { full_name: string | null }).full_name,
         email:     (p as { email: string | null }).email,
         username:  (p as { username: string | null }).username,
+        credit_balance: roundChf(Number((p as { credit_balance: number | null }).credit_balance) || 0),
       }
     }
   }

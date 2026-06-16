@@ -1,13 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminUser } from '@/lib/admin/auth'
 import {
-  fetchMemberDeliveredOrders,
   fetchMemberProfile,
   memberDisplayName,
 } from '@/lib/admin/member-order-notifications'
 import { sendOrderClosed } from '@/lib/email/sendOrderClosed'
-import { closeOrder } from '@/lib/orders/close-order'
-import { roundChf } from '@/lib/members/credit'
+import { closeMemberOrders } from '@/lib/orders/close-member-orders'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -30,30 +28,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profil membre introuvable.' }, { status: 400 })
     }
 
-    const deliveredOrders = await fetchMemberDeliveredOrders(admin, memberId)
-    if (deliveredOrders.length === 0) {
-      return NextResponse.json(
-        { error: 'Aucune commande livrée à clôturer pour ce membre.' },
-        { status: 400 },
-      )
-    }
+    const { closedGroups, globalGrossTotal, globalCreditApplied, globalTotal } =
+      await closeMemberOrders(admin, memberId)
 
-    const closedGroups = []
-    for (const order of deliveredOrders) {
-      const result = await closeOrder(admin, order.id)
-      closedGroups.push({
-        orderId: order.id,
-        supplierName: result.supplierName,
-        items: result.items,
-        grossTotal: result.grossTotal,
-        creditApplied: result.creditApplied,
-        total: result.total,
-      })
-    }
-
-    const globalGrossTotal = roundChf(closedGroups.reduce((s, g) => s + g.grossTotal, 0))
-    const globalCreditApplied = roundChf(closedGroups.reduce((s, g) => s + g.creditApplied, 0))
-    const globalTotal = roundChf(closedGroups.reduce((s, g) => s + g.total, 0))
+    const ordersResponse = closedGroups.map(g => ({
+      orderId: g.orderId,
+      supplierName: g.supplierName,
+      items: g.items,
+      grossTotal: g.grossTotal,
+      creditApplied: g.creditApplied,
+      total: g.total,
+    }))
 
     let emailSent = false
     if (profile.email) {
@@ -61,7 +46,7 @@ export async function POST(request: NextRequest) {
         await sendOrderClosed({
           memberEmail: profile.email,
           memberName: memberDisplayName(profile),
-          orders: closedGroups.map(g => ({
+          orders: ordersResponse.map(g => ({
             supplierName: g.supplierName,
             items: g.items,
             grossTotal: g.grossTotal,
@@ -81,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       closedCount: closedGroups.length,
-      orders: closedGroups,
+      orders: ordersResponse,
       globalGrossTotal,
       globalCreditApplied,
       globalTotal,

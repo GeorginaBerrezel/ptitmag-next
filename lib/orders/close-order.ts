@@ -11,6 +11,7 @@ export type OrderLineForEmail = {
 }
 
 export type CloseOrderResult = {
+  orderId: string
   grossTotal: number
   creditApplied: number
   total: number
@@ -21,9 +22,17 @@ export type CloseOrderResult = {
   memberName: string | null
 }
 
+export type CloseOrderOptions = {
+  /** Avoir pré-calculé (clôture groupée membre). */
+  presetCreditApplied?: number
+  /** Ne pas modifier profiles.credit_balance (mis à jour en batch). */
+  skipCreditBalanceUpdate?: boolean
+}
+
 export async function closeOrder(
   admin: SupabaseClient,
   orderId: string,
+  options?: CloseOrderOptions,
 ): Promise<CloseOrderResult> {
   const { data: order, error: orderErr } = await admin
     .from('orders')
@@ -75,11 +84,13 @@ export async function closeOrder(
   let balance = roundChf(Number(profile.credit_balance) || 0)
   let creditApplied: number
 
-  if (storedCredit > 0) {
+  if (options?.presetCreditApplied !== undefined) {
+    creditApplied = roundChf(Math.min(options.presetCreditApplied, grossTotal))
+  } else if (storedCredit > 0) {
     // Anciennes commandes : avoir déjà déduit à la confirmation — ajuster si le panier a diminué
     creditApplied = roundChf(Math.min(storedCredit, grossTotal))
     const excess = roundChf(storedCredit - creditApplied)
-    if (excess > 0) {
+    if (excess > 0 && !options?.skipCreditBalanceUpdate) {
       balance = roundChf(balance + excess)
       const { error: creditErr } = await admin
         .from('profiles')
@@ -89,7 +100,7 @@ export async function closeOrder(
     }
   } else {
     creditApplied = roundChf(Math.min(balance, grossTotal))
-    if (creditApplied > 0) {
+    if (creditApplied > 0 && !options?.skipCreditBalanceUpdate) {
       balance = roundChf(balance - creditApplied)
       const { error: creditErr } = await admin
         .from('profiles')
@@ -133,6 +144,7 @@ export async function closeOrder(
     null
 
   return {
+    orderId,
     grossTotal,
     creditApplied,
     total,

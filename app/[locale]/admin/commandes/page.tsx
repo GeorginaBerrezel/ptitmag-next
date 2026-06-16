@@ -11,6 +11,8 @@ import {
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import { getMemberDisplayName, groupOrdersByMember, sumOrderTotals } from '@/lib/admin/member-display'
+import { computeMemberCloseCredits } from '@/lib/orders/compute-member-close-credits'
+import { orderCreditApplied, orderGrossTotal } from '@/lib/orders/order-totals-display'
 import lineStyles from '@/components/orders/order-lines.module.css'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
@@ -35,7 +37,12 @@ type AdminOrder = {
   credit_applied?: number
   created_at: string
   archived_at?: string | null
-  member: { full_name: string | null; email: string | null; username: string | null } | null
+  member: {
+    full_name: string | null
+    email: string | null
+    username: string | null
+    credit_balance?: number
+  } | null
   supplier: { name: string; type: string } | null
   order_items: OrderItem[]
 }
@@ -262,7 +269,7 @@ export default function AdminCommandesPage({
   async function closeMemberOrders(memberId: string, memberName: string, deliveredCount: number) {
     const ok = window.confirm(
       `Clôturer toutes les commandes livrées de ${memberName} ?\n\n` +
-        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} — totaux recalculés, avoir déduit si besoin. ` +
+        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} — l'avoir sera déduit une seule fois sur le total membre. ` +
         'Un seul email récapitulatif regroupé sera envoyé.',
     )
     if (!ok) return
@@ -814,6 +821,17 @@ export default function AdminCommandesPage({
             const orderLabel = `${group.orders.length} commande${group.orders.length !== 1 ? 's' : ''}`
             const deliveredInGroup = group.orders.filter(o => o.status === 'delivered')
             const deliveredCount = deliveredInGroup.length
+            const creditBalance = group.orders[0]?.member?.credit_balance ?? 0
+            const closePreview =
+              mode === 'toClose' && deliveredCount > 0 && creditBalance > 0
+                ? computeMemberCloseCredits(
+                    deliveredInGroup.map(o => ({
+                      grossTotal: orderGrossTotal(o.order_items),
+                      storedCredit: orderCreditApplied(o.credit_applied),
+                    })),
+                    creditBalance,
+                  )
+                : null
             const isNotifying = notifyingMemberId === group.memberId
             const isClosingMember = closingMemberId === group.memberId
 
@@ -832,8 +850,15 @@ export default function AdminCommandesPage({
                       <span className="admin-order-group__email">{group.memberEmail}</span>
                     )}
                     <span className="admin-order-group__meta">
-                      {orderLabel} · CHF {groupTotal.toFixed(2)}
+                      {closePreview
+                        ? `${orderLabel} · CHF ${closePreview.totalGross.toFixed(2)} produits · − CHF ${closePreview.totalCreditApplied.toFixed(2)} avoir · CHF ${closePreview.totalPayable.toFixed(2)} à payer`
+                        : `${orderLabel} · CHF ${groupTotal.toFixed(2)}`}
                     </span>
+                    {closePreview && creditBalance > 0 && (
+                      <span className="admin-order-group__credit-hint">
+                        Avoir membre CHF {creditBalance.toFixed(2)} — déduit sur le total à la clôture
+                      </span>
+                    )}
                     <ul className="admin-order-group__chips" aria-label="Fournisseurs">
                       {group.orders.map(order => (
                         <li key={order.id} className="admin-order-group__chip" title={order.supplier?.name ?? undefined}>
