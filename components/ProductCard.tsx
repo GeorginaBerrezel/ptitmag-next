@@ -235,7 +235,8 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
             className={styles.biopartnerInfoLink}
             aria-label={`Allergènes et fiche produit Biopartner pour ${product.name}`}
           >
-            Allergènes &amp; fiche Biopartner ↗
+            Allergènes et fiche Biopartner
+            <span className={styles.externalIcon} aria-hidden>↗</span>
           </a>
         )}
         {deadlineLabel && (

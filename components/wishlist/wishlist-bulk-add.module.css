@@ -1,15 +1,72 @@
 .toolbar {
   margin-bottom: 1.25rem;
-  padding: 1rem 1.1rem;
-  border-radius: 12px;
-  background: #fafbfc;
+  padding: 0.85rem 1.15rem;
+  border-radius: 14px;
+  background: #fff;
   border: 1px solid rgba(16, 24, 40, 0.08);
 }
 
+.toolbarLabel {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(16, 24, 40, 0.5);
+}
+
+.toolbarRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .bulkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
   min-height: 44px;
-  font-size: 0.95rem;
+  padding: 0.45rem 1rem;
+  border: 2px solid #dc7f00;
+  border-radius: 8px;
+  background: #fff;
+  color: #dc7f00;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.15s ease;
+}
+
+.bulkBtn:hover:not(:disabled) {
+  background: rgba(220, 127, 0, 0.06);
+  transform: none;
+  box-shadow: none;
+}
+
+.bulkBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
+}
+
+.bulkBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bulkCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(16, 24, 40, 0.08);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 @media (min-width: 600px) {
