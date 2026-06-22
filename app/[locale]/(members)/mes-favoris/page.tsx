@@ -110,7 +110,7 @@ export default async function MesFavorisPage({
           <div className={styles.sectionEmpty}>
             <p className={styles.sectionEmptyIcon} aria-hidden>♡</p>
             <p className={styles.sectionEmptyText}>
-              Dans le catalogue, cliquez sur <strong>♥</strong> à côté d'un produit pour le retrouver ici.
+              Dans le catalogue, cliquez sur <strong>♥</strong> à côté d&apos;un produit pour le retrouver ici.
             </p>
             <Link href="/commandes" locale={locale as 'fr' | 'en'} className={styles.sectionEmptyLink}>
               Ouvrir le catalogue
@@ -140,7 +140,7 @@ export default async function MesFavorisPage({
         ) : (
           <div className={`${styles.sectionEmpty} ${styles.sectionEmptyHabitual}`}>
             <p className={styles.sectionEmptyText}>
-              Commandez un produit <strong>au moins 2 fois</strong> pour qu'il s'affiche ici automatiquement.
+              Commandez un produit <strong>au moins 2 fois</strong> pour qu&apos;il s&apos;affiche ici automatiquement.
             </p>
             <p className={styles.sectionEmptySubtext}>
               Les quantités reprennent vos dernières commandes lorsque vous les mettez au panier.
