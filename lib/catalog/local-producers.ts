@@ -13,6 +13,8 @@ export type LocalProducer = {
   website?: string
   /** Chemin public sous /images/producers/ (png, jpg…) */
   logo?: string
+  /** Photo produit en attendant un vrai logo → avatar rond (cover). */
+  logoIsPhoto?: boolean
 }
 
 export const LOCAL_PRODUCERS: LocalProducer[] = [
@@ -26,7 +28,7 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     description: 'Œufs, fromages de chèvre et jambon cru — élevage bio valaisan.',
     emoji: '🥚',
     website: 'https://www.lafermetteadidi.com',
-    logo: 'fermette-didi.png',
+    // Logo retiré : fichier 16×16 px trop petit → flou. Réactiver quand Joel envoie un logo HD.
   },
   {
     slug: 'bioterroir',
@@ -106,7 +108,8 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     description: 'Pains et pâtisseries bio, préparés avec des farines locales.',
     emoji: '🥖',
     website: 'https://graines-d-avenir.ch',
-    logo: 'graines-avenir.png',
+    logo: 'graines-avenir.jpg',
+    logoIsPhoto: true,
   },
   {
     slug: 'olivier-stephanie',
@@ -140,6 +143,7 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     description: 'Truffes et moelleux biologiques.',
     emoji: '🍫',
     logo: 'verene-melchior.jpg',
+    logoIsPhoto: true,
   },
   {
     slug: 'evoleina',

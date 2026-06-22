@@ -30,7 +30,7 @@ export default function ProducerCard({ producer }: Props) {
         gap: '0.85rem',
         alignItems: 'flex-start',
       }}>
-        <ProducerAvatar logo={logo} emoji={producer.emoji} name={producer.displayName} size={52} />
+        <ProducerAvatar logo={logo} emoji={producer.emoji} name={producer.displayName} size={52} logoIsPhoto={producer.logoIsPhoto} />
         <div style={{ minWidth: 0 }}>
           <h3 style={{ margin: '0 0 0.35rem', fontSize: '0.95rem', fontWeight: 700, lineHeight: 1.3 }}>
             {producer.displayName}

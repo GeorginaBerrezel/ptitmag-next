@@ -12,6 +12,11 @@ import {
   isVereneMelchiorSupplier,
 } from '@/lib/catalog/verene-melchior-images'
 
+export type ProductImagePresentation = {
+  objectFit: 'contain' | 'cover'
+  objectPosition: string
+}
+
 export const PRODUCT_IMAGE_PLACEHOLDER = '/images/product-placeholder.svg'
 export const PRODUCT_IMAGES_BUCKET = 'product-images'
 
@@ -66,4 +71,27 @@ export function isProductImagePlaceholder(url: string): boolean {
 /** Images statiques /public (Graines d'Avenir, Ayent…) — pas via l'optimiseur Next. */
 export function isLocalCatalogImage(url: string): boolean {
   return url.startsWith('/images/products/')
+}
+
+/** Cadrage vignette produit — cover pour Vérène / Graines d'Avenir ; contain pour Biopartner et autres locaux. */
+export function getProductImagePresentation(
+  product: Product,
+  url: string | null,
+): ProductImagePresentation {
+  if (!url || isProductImagePlaceholder(url)) {
+    return { objectFit: 'cover', objectPosition: 'center' }
+  }
+  if (product.supplier?.type === 'grossiste_bio') {
+    return { objectFit: 'contain', objectPosition: 'center' }
+  }
+  if (isVereneMelchiorSupplier(product.supplier?.name)) {
+    return { objectFit: 'cover', objectPosition: 'center' }
+  }
+  if (isGrainesAvenirSupplier(product.supplier?.name)) {
+    return { objectFit: 'cover', objectPosition: 'center' }
+  }
+  if (isLocalCatalogImage(url)) {
+    return { objectFit: 'contain', objectPosition: 'center' }
+  }
+  return { objectFit: 'cover', objectPosition: 'center' }
 }

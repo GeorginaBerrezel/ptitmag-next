@@ -9,6 +9,7 @@ type Props = {
   description?: string
   emoji?: string
   logo?: string
+  logoIsPhoto?: boolean
   productCount: number
   categoryCount: number
   isOpen: boolean
@@ -23,6 +24,7 @@ export default function SupplierCard({
   description,
   emoji,
   logo,
+  logoIsPhoto,
   productCount,
   categoryCount,
   isOpen,
@@ -34,9 +36,13 @@ export default function SupplierCard({
     <button type="button" onClick={onClick} className={styles.card}>
       <div className={styles.topRow}>
         <div className={styles.identity}>
-          {emoji && (
-            <ProducerAvatar logo={logo} emoji={emoji} name={name} size={44} />
-          )}
+          <ProducerAvatar
+            logo={logo}
+            emoji={emoji ?? '🏬'}
+            name={name}
+            size={44}
+            logoIsPhoto={logoIsPhoto}
+          />
           <div className={styles.textBlock}>
             <p className={styles.name}>{name}</p>
             <p className={styles.typeLabel}>{typeLabel}</p>

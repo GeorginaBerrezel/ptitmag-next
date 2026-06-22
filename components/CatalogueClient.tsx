@@ -13,6 +13,7 @@ import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 import { useChangeCategoryBackNav } from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
+import ProducerAvatar from './ProducerAvatar'
 import CategoryCard from './catalogue/CategoryCard'
 import HorizontalScrollStrip from './catalogue/HorizontalScrollStrip'
 import ProductList from './catalogue/ProductList'
@@ -760,6 +761,7 @@ export default function CatalogueClient({
                               description={display.description}
                               emoji={display.emoji}
                               logo={display.logo}
+                              logoIsPhoto={display.logoIsPhoto}
                               productCount={summary.productCount}
                               categoryCount={summary.categories.length}
                               isOpen={status.isOpen}
@@ -941,9 +943,13 @@ function CompactSupplierMatches({
                 className="catalogue-search-supplier-matches__btn"
                 onClick={() => onOpen(summary.supplier.id)}
               >
-                <span className="catalogue-search-supplier-matches__emoji" aria-hidden="true">
-                  {display.emoji}
-                </span>
+                <ProducerAvatar
+                  logo={display.logo}
+                  emoji={display.emoji}
+                  name={summary.supplier.name}
+                  size={36}
+                  logoIsPhoto={display.logoIsPhoto}
+                />
                 <span className="catalogue-search-supplier-matches__label">
                   <span className="catalogue-search-supplier-matches__name">{summary.supplier.name}</span>
                   <span className="catalogue-search-supplier-matches__meta">
