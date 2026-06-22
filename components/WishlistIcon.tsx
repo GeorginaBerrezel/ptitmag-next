@@ -24,26 +24,38 @@ function HeartSvg() {
   )
 }
 
-export default function WishlistIcon({ locale }: { locale: 'fr' | 'en' }) {
+type Props = {
+  locale: 'fr' | 'en'
+  variant?: 'icon' | 'mobile'
+}
+
+export default function WishlistIcon({ locale, variant = 'icon' }: Props) {
   const { count } = useWishlist()
   const t = useTranslations('nav')
   const pathname = usePathname()
   const isActive = pathname === '/mes-favoris' || pathname.startsWith('/mes-favoris/')
+  const isMobile = variant === 'mobile'
+  const label = t('wishlist')
 
   return (
     <Link
       href="/mes-favoris"
       locale={locale}
-      className={styles.link}
+      className={[styles.link, isMobile ? styles.linkMobile : ''].filter(Boolean).join(' ')}
       aria-label={
-        count > 0
-          ? `${t('wishlist')} : ${count} produit${count > 1 ? 's' : ''}`
-          : t('wishlist')
+        isMobile
+          ? undefined
+          : count > 0
+            ? `${label} : ${count} produit${count > 1 ? 's' : ''}`
+            : label
       }
       aria-current={isActive ? 'page' : undefined}
     >
-      <HeartSvg />
-      {count > 0 && <span className={styles.badge}>{count}</span>}
+      <span className={styles.iconWrap}>
+        <HeartSvg />
+        {count > 0 && <span className={styles.badge}>{count}</span>}
+      </span>
+      {isMobile && <span className={styles.label}>{label}</span>}
     </Link>
   )
 }

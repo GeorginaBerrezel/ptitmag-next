@@ -163,8 +163,8 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
               </ul>
               <div className="nav-mobile-account">
                 <PendingMemberBadge locale={locale} />
-                <MemberWishlistLink locale={locale} />
-                <MemberCartLink locale={locale} />
+                <MemberWishlistLink locale={locale} variant="mobile" />
+                <MemberCartLink locale={locale} variant="mobile" />
                 {showAdminLink ? (
                   <Link
                     href="/admin"
