@@ -5,7 +5,13 @@ import { createClient } from '@/lib/supabase/client'
 import { canAccessCatalog } from '@/lib/members/profile'
 import WishlistIcon from './WishlistIcon'
 
-export default function MemberWishlistLink({ locale }: { locale: 'fr' | 'en' }) {
+export default function MemberWishlistLink({
+  locale,
+  variant = 'icon',
+}: {
+  locale: 'fr' | 'en'
+  variant?: 'icon' | 'mobile'
+}) {
   const [hasAccess, setHasAccess] = useState(false)
 
   useEffect(() => {
@@ -34,5 +40,5 @@ export default function MemberWishlistLink({ locale }: { locale: 'fr' | 'en' }) 
 
   if (!hasAccess) return null
 
-  return <WishlistIcon locale={locale} />
+  return <WishlistIcon locale={locale} variant={variant} />
 }

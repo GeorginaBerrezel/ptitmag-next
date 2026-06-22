@@ -1,9 +1,12 @@
 import { Link } from '@/i18n/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { getWishlistProducts } from '@/lib/supabase/wishlist'
 import { getProfile } from '@/lib/supabase/auth'
 import { canAccessCatalog } from '@/lib/members/profile'
+import { getLastOrderedQuantities } from '@/lib/wishlist/last-ordered-quantities'
 import { redirect } from 'next/navigation'
 import ProductList from '@/components/catalogue/ProductList'
+import WishlistBulkAdd from '@/components/wishlist/WishlistBulkAdd'
 import styles from './mes-favoris.module.css'
 
 export default async function MesFavorisPage({
@@ -19,6 +22,19 @@ export default async function MesFavorisPage({
   }
 
   const products = await getWishlistProducts()
+
+  let lastQuantities: Record<string, number> = {}
+  if (products.length > 0) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      lastQuantities = await getLastOrderedQuantities(
+        supabase,
+        user.id,
+        products.map(p => p.id),
+      )
+    }
+  }
 
   return (
     <div className={`container ${styles.page}`}>
@@ -39,7 +55,7 @@ export default async function MesFavorisPage({
       </nav>
 
       <p className={styles.intro}>
-        Vos produits habituels, à retrouver en un clic.
+        Retrouvez vos produits en un clic.
       </p>
 
       {products.length === 0 ? (
@@ -58,6 +74,11 @@ export default async function MesFavorisPage({
           <p className={styles.countNote}>
             {products.length} produit{products.length > 1 ? 's' : ''} en favori
           </p>
+          <WishlistBulkAdd
+            products={products}
+            lastQuantities={lastQuantities}
+            locale={locale as 'fr' | 'en'}
+          />
           <ProductList products={products} showSupplier />
         </>
       )}
