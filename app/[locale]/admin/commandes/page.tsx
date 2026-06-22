@@ -224,7 +224,18 @@ export default function AdminCommandesPage({
   // ── Mise à jour de statut ─────────────────────────────────────────────────
 
   async function updateStatus(orderId: string, newStatus: string) {
-    const prevStatus = orders.find(o => o.id === orderId)?.status
+    const order = orders.find(o => o.id === orderId)
+    const prevStatus = order?.status
+
+    if (newStatus === 'cancelled' && order && prevStatus !== 'cancelled') {
+      const memberName = getMemberName(order)
+      const supplierName = order.supplier?.name ?? 'ce fournisseur'
+      const ok = window.confirm(
+        `Annuler la commande ${supplierName} de ${memberName} ?\n\nLe membre recevra un email de confirmation.`,
+      )
+      if (!ok) return
+    }
+
     setUpdating(orderId)
 
     // Mise à jour optimiste : on change l'affichage immédiatement
@@ -244,6 +255,11 @@ export default function AdminCommandesPage({
         o.id === orderId ? { ...o, status: prevStatus ?? 'confirmed' } : o
       ))
       alert('Erreur lors de la mise à jour du statut. Réessaie.')
+    } else if (newStatus === 'cancelled') {
+      const data = await res.json() as { emailSent?: boolean }
+      if (data.emailSent === false) {
+        alert('Commande annulée, mais aucun email n\'a pu être envoyé au membre (adresse introuvable).')
+      }
     }
 
     setUpdating(null)
