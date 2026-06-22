@@ -13,7 +13,7 @@ import {
   getProductImagePresentation,
   PRODUCT_IMAGE_PLACEHOLDER,
   showProductImage,
-  isLocalCatalogImage,
+  shouldBypassNextImageOptimizer,
 } from '@/lib/catalog/product-image'
 import { resolveQuantityRules } from '@/lib/catalog/bioterroir-quantity'
 import {
@@ -177,7 +177,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
             src={imageUrl}
             alt=""
             fill
-            unoptimized={isLocalCatalogImage(imageUrl)}
+            unoptimized={shouldBypassNextImageOptimizer(imageUrl)}
             sizes="(max-width: 767px) 96px, 104px"
             style={{
               objectFit: imagePresentation.objectFit,
