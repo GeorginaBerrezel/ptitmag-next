@@ -88,3 +88,26 @@
   font-size: 0.9rem;
   color: rgba(16, 24, 40, 0.6);
 }
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.sectionIntro {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(16, 24, 40, 0.6);
+}
+
+.hintOnlyHabituels {
+  margin: 0 0 2rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(16, 24, 40, 0.55);
+}

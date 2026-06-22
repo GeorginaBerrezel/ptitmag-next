@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
   const { error } = await ctx.supabase
     .from('wishlist_items')
-    .insert({ member_id: ctx.user.id, product_id: productId })
+    .insert({ member_id: ctx.user.id, product_id: productId, source: 'manual' })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
