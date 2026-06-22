@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { getProductImagePresentation } from '@/lib/catalog/product-image'
+import {
+  getProductImagePresentation,
+  shouldBypassNextImageOptimizer,
+} from '@/lib/catalog/product-image'
 import type { Product, Supplier } from '@/lib/supabase/products'
 
 const defaultSupplier: Supplier = {
@@ -30,6 +33,19 @@ function product(partial: Partial<Product> & Pick<Product, 'name'>): Product {
     ...rest,
   }
 }
+
+describe('shouldBypassNextImageOptimizer', () => {
+  it('bypass pour /public et Supabase Storage Biopartner', () => {
+    assert.equal(shouldBypassNextImageOptimizer('/images/products/graines-avenir/pain.avif'), true)
+    assert.equal(
+      shouldBypassNextImageOptimizer(
+        'https://xxx.supabase.co/storage/v1/object/public/product-images/biopartner/200003129.webp',
+      ),
+      true,
+    )
+    assert.equal(shouldBypassNextImageOptimizer('/images/product-placeholder.svg'), false)
+  })
+})
 
 describe('getProductImagePresentation', () => {
   it('Vérène (enrobage) : cover centré comme avant', () => {

@@ -73,6 +73,16 @@ export function isLocalCatalogImage(url: string): boolean {
   return url.startsWith('/images/products/')
 }
 
+/** Photos Biopartner dans Supabase Storage — servies directement (évite l'optimiseur Vercel). */
+export function isSupabaseCatalogImage(url: string): boolean {
+  return url.includes(`/storage/v1/object/public/${PRODUCT_IMAGES_BUCKET}/`)
+}
+
+/** URLs à charger telles quelles dans next/image (pas d'/_next/image sur Vercel). */
+export function shouldBypassNextImageOptimizer(url: string): boolean {
+  return isLocalCatalogImage(url) || isSupabaseCatalogImage(url)
+}
+
 /** Cadrage vignette produit — cover pour Vérène / Graines d'Avenir ; contain pour Biopartner et autres locaux. */
 export function getProductImagePresentation(
   product: Product,
