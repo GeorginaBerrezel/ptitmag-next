@@ -5,7 +5,13 @@ import { createClient } from '@/lib/supabase/client'
 import { canAccessCatalog } from '@/lib/members/profile'
 import CartIcon from './CartIcon'
 
-export default function MemberCartLink({ locale }: { locale: 'fr' | 'en' }) {
+export default function MemberCartLink({
+  locale,
+  variant = 'icon',
+}: {
+  locale: 'fr' | 'en'
+  variant?: 'icon' | 'mobile'
+}) {
   const [hasAccess, setHasAccess] = useState(false)
 
   useEffect(() => {
@@ -34,5 +40,5 @@ export default function MemberCartLink({ locale }: { locale: 'fr' | 'en' }) {
 
   if (!hasAccess) return null
 
-  return <CartIcon locale={locale} />
+  return <CartIcon locale={locale} variant={variant} />
 }
