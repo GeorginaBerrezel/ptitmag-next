@@ -133,10 +133,12 @@
   background: transparent;
   color: var(--text);
   border: 1px solid rgba(14,23,38,0.18);
+  box-shadow: none;
 }
 .btn.btn-outline:hover{
   box-shadow: inset 0 0 0 1px rgba(208,130,42,0.25);
   background: rgba(208,130,42,0.08);
+  transform: none;
 }
 
 /* Footer: cohérent avec le thème UI clair */
