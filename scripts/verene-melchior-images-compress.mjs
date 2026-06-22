@@ -2,26 +2,24 @@
 /**
  * Compresse les photos Vérène Melchior → AVIF dans public/images/products/verene-melchior/
  *
+ * Les fichiers source doivent être nommés {imageId}.png|jpg|jpeg
+ * (ex. enrobage-pistache.png, moelleux-citron.png).
+ *
  * Usage :
  *   node scripts/verene-melchior-images-compress.mjs [dossier-source]
+ *
+ * Dossier par défaut : scripts/sources/verene-melchior/
  */
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
 
-const SOURCE = process.argv[2] ?? path.join(process.env.HOME ?? '', 'Desktop/PTITMAG/photos verene')
+const SOURCE = process.argv[2] ?? path.join(process.cwd(), 'scripts/sources/verene-melchior')
 const OUTPUT = path.join(process.cwd(), 'public/images/products/verene-melchior')
 const LOGO_OUTPUT = path.join(process.cwd(), 'public/images/producers/verene-melchior.jpg')
 const MAX_WIDTH = 600
-
-/** Fichier source → identifiant image catalogue */
-const FILE_TO_ID = new Map([
-  ['IMG_0413.jpeg', 'truffes-assortiment'],
-  ['IMG_1783.jpg', 'truffes-cadeau'],
-  ['IMG_2297.jpeg', 'moelleux-chocolat-pecan'],
-  ['IMG_2303.jpeg', 'moelleux-chocolat'],
-])
+const IMAGE_EXT = /\.(png|jpe?g|webp)$/i
 
 async function compressOne(inputPath, imageId) {
   const outPath = path.join(OUTPUT, `${imageId}.avif`)
@@ -41,8 +39,8 @@ async function main() {
   let count = 0
 
   for (const entry of entries) {
-    const imageId = FILE_TO_ID.get(entry)
-    if (!imageId) continue
+    if (!IMAGE_EXT.test(entry)) continue
+    const imageId = entry.replace(IMAGE_EXT, '')
     await compressOne(path.join(SOURCE, entry), imageId)
     count++
   }
@@ -52,7 +50,7 @@ async function main() {
     process.exit(1)
   }
 
-  const logoSource = path.join(SOURCE, 'IMG_0413.jpeg')
+  const logoSource = path.join(SOURCE, 'truffes-assortiment.png')
   if (await fs.stat(logoSource).then(() => true).catch(() => false)) {
     await sharp(logoSource)
       .rotate()
