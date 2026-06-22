@@ -3,6 +3,7 @@
 import type { CatalogueSupplierSummary } from '@/lib/supabase/catalogue'
 import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
 import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
+import ProducerAvatar from '@/components/ProducerAvatar'
 
 type Props = {
   summaries: CatalogueSupplierSummary[]
@@ -51,9 +52,13 @@ export default function CatalogueSupplierSidebar({
                   className="catalogue-supplier-sidebar__btn catalogue-supplier-sidebar__btn--active"
                   aria-current="page"
                 >
-                  <span className="catalogue-supplier-sidebar__emoji" aria-hidden>
-                    {display.emoji}
-                  </span>
+                  <ProducerAvatar
+                    logo={display.logo}
+                    emoji={display.emoji}
+                    name={summary.supplier.name}
+                    size={32}
+                    logoIsPhoto={display.logoIsPhoto}
+                  />
                   <span className="catalogue-supplier-sidebar__label">
                     <span className="catalogue-supplier-sidebar__name">{summary.supplier.name}</span>
                     <span className="catalogue-supplier-sidebar__meta">
@@ -68,9 +73,13 @@ export default function CatalogueSupplierSidebar({
                   className="catalogue-supplier-sidebar__btn"
                   onClick={() => onSelect(summary.supplier.id)}
                 >
-                  <span className="catalogue-supplier-sidebar__emoji" aria-hidden>
-                    {display.emoji}
-                  </span>
+                  <ProducerAvatar
+                    logo={display.logo}
+                    emoji={display.emoji}
+                    name={summary.supplier.name}
+                    size={32}
+                    logoIsPhoto={display.logoIsPhoto}
+                  />
                   <span className="catalogue-supplier-sidebar__label">
                     <span className="catalogue-supplier-sidebar__name">{summary.supplier.name}</span>
                     <span className="catalogue-supplier-sidebar__meta">

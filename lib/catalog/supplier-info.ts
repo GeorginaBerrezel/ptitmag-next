@@ -11,6 +11,8 @@ export type SupplierDisplay = {
   website?: string
   logo?: string
   displayName?: string
+  /** Photo en attendant un logo graphique → cercle plein. */
+  logoIsPhoto?: boolean
 }
 
 const TYPE_FALLBACK: Record<string, SupplierDisplay> = {
@@ -28,6 +30,7 @@ function fromLocalProducer(producer: LocalProducer): SupplierDisplay {
     certification: producer.certification,
     website: producer.website,
     logo: getProducerLogoPath(producer),
+    logoIsPhoto: producer.logoIsPhoto,
   }
 }
 
