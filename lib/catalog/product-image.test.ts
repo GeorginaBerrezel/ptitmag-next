@@ -1,26 +1,33 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { getProductImagePresentation } from '@/lib/catalog/product-image'
-import type { Product } from '@/lib/supabase/products'
+import type { Product, Supplier } from '@/lib/supabase/products'
+
+const defaultSupplier: Supplier = {
+  id: 's1',
+  name: 'Truffes au chocolat cru',
+  type: 'local',
+  website: null,
+  orders_open: true,
+  order_deadline: null,
+}
 
 function product(partial: Partial<Product> & Pick<Product, 'name'>): Product {
+  const { name, ...rest } = partial
   return {
     id: '1',
-    name: partial.name,
+    name,
     description: null,
     category: 'Chocolats',
     unit: 'pièce',
     unit_price: 3.5,
+    min_quantity: 1,
+    allows_partial_order: true,
+    order_deadline: null,
     supplier_ref: null,
     is_featured: false,
-    supplier: partial.supplier ?? {
-      id: 's1',
-      name: 'Truffes au chocolat cru',
-      type: 'local',
-      orders_open: true,
-      order_deadline: null,
-    },
-    ...partial,
+    supplier: defaultSupplier,
+    ...rest,
   }
 }
 
@@ -42,6 +49,7 @@ describe('getProductImagePresentation', () => {
           id: 'ga',
           name: "Graines d'Avenir",
           type: 'local',
+          website: null,
           orders_open: true,
           order_deadline: null,
         },
@@ -60,6 +68,7 @@ describe('getProductImagePresentation', () => {
           id: 'bp',
           name: 'Biopartner Général',
           type: 'grossiste_bio',
+          website: null,
           orders_open: true,
           order_deadline: null,
         },
