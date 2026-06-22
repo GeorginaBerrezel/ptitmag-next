@@ -8,7 +8,13 @@ import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { getBiopartnerProductInfoUrl } from '@/lib/catalog/biopartner-product-url'
-import { getProductImageUrl, PRODUCT_IMAGE_PLACEHOLDER, showProductImage, isLocalCatalogImage } from '@/lib/catalog/product-image'
+import {
+  getProductImageUrl,
+  getProductImagePresentation,
+  PRODUCT_IMAGE_PLACEHOLDER,
+  showProductImage,
+  shouldBypassNextImageOptimizer,
+} from '@/lib/catalog/product-image'
 import { resolveQuantityRules } from '@/lib/catalog/bioterroir-quantity'
 import {
   decrementQuantity,
@@ -71,7 +77,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
     ? (imageSrc ?? PRODUCT_IMAGE_PLACEHOLDER)
     : null
   const hasImage = supportsProductImage && imageUrl != null
-  const imageObjectFit = product.supplier?.type === 'grossiste_bio' ? 'contain' : 'cover'
+  const imagePresentation = getProductImagePresentation(product, imageUrl)
 
   const minAllowed = getMinAllowedQuantity(qtyRules)
 
@@ -171,9 +177,12 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
             src={imageUrl}
             alt=""
             fill
-            unoptimized={isLocalCatalogImage(imageUrl)}
+            unoptimized={shouldBypassNextImageOptimizer(imageUrl)}
             sizes="(max-width: 767px) 96px, 104px"
-            style={{ objectFit: imageObjectFit, objectPosition: 'center' }}
+            style={{
+              objectFit: imagePresentation.objectFit,
+              objectPosition: imagePresentation.objectPosition,
+            }}
             onError={() => {
               if (imageUrl !== PRODUCT_IMAGE_PLACEHOLDER) {
                 setImageSrc(PRODUCT_IMAGE_PLACEHOLDER)

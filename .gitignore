@@ -37,3 +37,6 @@ node_modules/
 # Biopartner import local (WebP générés)
 biopartner-webp/
 biopartner-webp-test/
+
+# Photos sources producteurs (AVIF compressés dans public/)
+scripts/sources/
