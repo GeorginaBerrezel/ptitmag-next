@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
 import { countEligibleForArchive } from '@/lib/admin/order-archive'
+import { sendOrderCancelledByAdmin } from '@/lib/email/sendOrderCancelledByAdmin'
 import { roundChf } from '@/lib/members/credit'
 
 const VALID_STATUSES = ['confirmed', 'delivered', 'cancelled']
@@ -146,7 +147,14 @@ export async function PATCH(request: NextRequest) {
 
   const { data: existingOrder, error: fetchErr } = await admin
     .from('orders')
-    .select('id, status, member_id, credit_applied')
+    .select(`
+      id, status, member_id, credit_applied, total,
+      supplier:suppliers(name),
+      order_items(
+        quantity, unit_price, cancelled_at,
+        product:products(name, unit)
+      )
+    `)
     .eq('id', orderId)
     .single()
 
@@ -188,7 +196,65 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  // v2.0-a : pas d'email automatique par fournisseur — utiliser notify-delivery par membre.
+  let emailSent = false
+  if (status === 'cancelled' && previousStatus !== 'cancelled' && existingOrder.member_id) {
+    const rawItems = (existingOrder.order_items as unknown as Array<{
+      quantity: number
+      unit_price: number
+      cancelled_at: string | null
+      product: { name: string; unit: string } | null
+    }> | null) ?? []
 
-  return NextResponse.json({ success: true })
+    const activeItems = rawItems
+      .filter(i => !i.cancelled_at)
+      .map(i => {
+        const qty = i.quantity
+        const unitPrice = i.unit_price
+        const p = i.product as { name: string; unit: string } | null
+        return {
+          productName: p?.name ?? 'Produit',
+          quantity: qty,
+          unit: p?.unit ?? '',
+          lineTotal: roundChf(qty * unitPrice),
+        }
+      })
+
+    const supplier = existingOrder.supplier as unknown as { name: string } | null
+    const supplierName = supplier?.name ?? 'Fournisseur'
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('email, full_name, username')
+      .eq('id', existingOrder.member_id as string)
+      .single()
+
+    let memberEmail = (profile?.email as string | null)?.trim() || null
+    if (!memberEmail) {
+      const { data: authUser } = await admin.auth.admin.getUserById(existingOrder.member_id as string)
+      memberEmail = authUser?.user?.email?.trim() || null
+    }
+
+    if (memberEmail) {
+      const memberName =
+        (profile?.full_name as string | null) ||
+        (profile?.username as string | null) ||
+        null
+
+      try {
+        await sendOrderCancelledByAdmin({
+          memberEmail,
+          memberName,
+          supplierName,
+          items: activeItems,
+        })
+        emailSent = true
+      } catch (err) {
+        console.error('[admin/orders PATCH] Email annulation failed:', err)
+      }
+    } else {
+      console.warn('[admin/orders PATCH] Aucun email membre pour annulation', existingOrder.member_id)
+    }
+  }
+
+  return NextResponse.json({ success: true, emailSent })
 }
