@@ -7,6 +7,7 @@ import { getLastOrderedQuantities } from '@/lib/wishlist/last-ordered-quantities
 import { redirect } from 'next/navigation'
 import ProductList from '@/components/catalogue/ProductList'
 import WishlistBulkAdd from '@/components/wishlist/WishlistBulkAdd'
+import WishlistSectionNav from '@/components/wishlist/WishlistSectionNav'
 import styles from './mes-favoris.module.css'
 
 export default async function MesFavorisPage({
@@ -39,7 +40,6 @@ export default async function MesFavorisPage({
 
   const hasManual = manualProducts.length > 0
   const hasSuggestions = suggestionProducts.length > 0
-  const isEmpty = !hasManual && !hasSuggestions
 
   return (
     <div className={`container ${styles.page}`}>
@@ -60,62 +60,94 @@ export default async function MesFavorisPage({
       </nav>
 
       <p className={styles.intro}>
-        Vos produits choisis et vos habitudes de commande, à retrouver en un clic.
+        Vos favoris et vos achats récurrents, prêts à recomposer en un clic.
       </p>
 
-      {isEmpty ? (
-        <div className={styles.emptyCard}>
-          <p className={styles.emptyIcon} aria-hidden>♡</p>
-          <h2 className={styles.emptyTitle}>Aucun favori pour le moment</h2>
-          <p className={styles.emptyText}>
-            Parcourez le catalogue et cliquez sur le cœur d&apos;un produit pour le retrouver ici.
-            Vos produits les plus commandés apparaîtront aussi dans « Vos habituels ».
+      <details className={styles.help}>
+        <summary className={styles.helpSummary}>Comment ça marche ?</summary>
+        <div className={styles.helpBody}>
+          <p>
+            <strong>Favoris</strong> — vous cliquez sur ♥ dans le catalogue : le produit apparaît ici.
           </p>
-          <Link href="/commandes" locale={locale as 'fr' | 'en'} className={styles.ctaPrimary}>
-            Parcourir le catalogue
-          </Link>
+          <p>
+            <strong>Vos habituels</strong> — le site propose des produits que vous avez déjà commandés au moins 2 fois. Vous pouvez les épingler en favori avec ♥.
+          </p>
         </div>
-      ) : (
-        <>
-          {!isEmpty && allProducts.length > 0 && (
-            <WishlistBulkAdd
-              products={allProducts}
-              lastQuantities={lastQuantities}
-              locale={locale as 'fr' | 'en'}
-            />
-          )}
+      </details>
 
-          {hasManual && (
-            <section className={styles.section} aria-labelledby="favoris-manuels">
-              <h2 id="favoris-manuels" className={styles.sectionTitle}>
-                Mes favoris
-              </h2>
-              <p className={styles.sectionIntro}>
-                {manualProducts.length} produit{manualProducts.length > 1 ? 's' : ''} que vous avez choisi{manualProducts.length > 1 ? 's' : ''} avec le cœur.
-              </p>
-              <ProductList products={manualProducts} showSupplier />
-            </section>
-          )}
-
-          {hasSuggestions && (
-            <section className={styles.section} aria-labelledby="favoris-habituels">
-              <h2 id="favoris-habituels" className={styles.sectionTitle}>
-                Vos habituels
-              </h2>
-              <p className={styles.sectionIntro}>
-                {suggestionProducts.length} produit{suggestionProducts.length > 1 ? 's' : ''} issu{suggestionProducts.length > 1 ? 's' : ''} de votre historique de commandes.
-              </p>
-              <ProductList products={suggestionProducts} showSupplier />
-            </section>
-          )}
-
-          {!hasManual && hasSuggestions && (
-            <p className={styles.hintOnlyHabituels}>
-              Cliquez sur le cœur d&apos;un produit pour l&apos;ajouter à « Mes favoris ».
-            </p>
-          )}
-        </>
+      {allProducts.length > 0 && (
+        <WishlistBulkAdd
+          products={allProducts}
+          lastQuantities={lastQuantities}
+          locale={locale as 'fr' | 'en'}
+        />
       )}
+
+      <WishlistSectionNav
+        manualCount={manualProducts.length}
+        habitualCount={suggestionProducts.length}
+      />
+
+      <section
+        id="favoris-manuels"
+        className={styles.section}
+        aria-labelledby="favoris-manuels-title"
+      >
+        <div className={styles.sectionHead}>
+          <h2 id="favoris-manuels-title" className={styles.sectionTitle}>
+            Favoris
+          </h2>
+        </div>
+        <p className={styles.sectionIntro}>
+          {hasManual
+            ? `${manualProducts.length} produit${manualProducts.length > 1 ? 's' : ''} ajouté${manualProducts.length > 1 ? 's' : ''} avec ♥ dans le catalogue.`
+            : 'Aucun favori pour le moment.'}
+        </p>
+
+        {hasManual ? (
+          <ProductList products={manualProducts} showSupplier />
+        ) : (
+          <div className={styles.sectionEmpty}>
+            <p className={styles.sectionEmptyIcon} aria-hidden>♡</p>
+            <p className={styles.sectionEmptyText}>
+              Dans le catalogue, cliquez sur <strong>♥</strong> à côté d'un produit pour le retrouver ici.
+            </p>
+            <Link href="/commandes" locale={locale as 'fr' | 'en'} className={styles.sectionEmptyLink}>
+              Ouvrir le catalogue
+            </Link>
+          </div>
+        )}
+      </section>
+
+      <section
+        id="favoris-habituels"
+        className={styles.section}
+        aria-labelledby="favoris-habituels-title"
+      >
+        <div className={styles.sectionHead}>
+          <h2 id="favoris-habituels-title" className={styles.sectionTitle}>
+            Vos habituels
+          </h2>
+        </div>
+        <p className={styles.sectionIntro}>
+          {hasSuggestions
+            ? `${suggestionProducts.length} produit${suggestionProducts.length > 1 ? 's' : ''} proposé${suggestionProducts.length > 1 ? 's' : ''} d'après vos commandes passées. Cliquez sur ♥ pour les garder en favori.`
+            : 'Aucun produit habituel pour le moment.'}
+        </p>
+
+        {hasSuggestions ? (
+          <ProductList products={suggestionProducts} showSupplier />
+        ) : (
+          <div className={`${styles.sectionEmpty} ${styles.sectionEmptyHabitual}`}>
+            <p className={styles.sectionEmptyText}>
+              Commandez un produit <strong>au moins 2 fois</strong> pour qu'il s'affiche ici automatiquement.
+            </p>
+            <p className={styles.sectionEmptySubtext}>
+              Les quantités reprennent vos dernières commandes lorsque vous les mettez au panier.
+            </p>
+          </div>
+        )}
+      </section>
     </div>
   )
 }

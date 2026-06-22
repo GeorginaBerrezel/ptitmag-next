@@ -168,6 +168,9 @@
 }
 
 .biopartnerInfoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.75rem;
   font-weight: 600;
   color: #2e7d32;
@@ -175,6 +178,13 @@
   border-bottom: 1px solid rgba(46, 125, 50, 0.35);
   line-height: 1.35;
   word-break: break-word;
+}
+
+.externalIcon {
+  flex-shrink: 0;
+  font-size: 0.85em;
+  line-height: 1;
+  opacity: 0.85;
 }
 
 .biopartnerInfoLink:hover {

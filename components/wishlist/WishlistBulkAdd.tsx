@@ -106,26 +106,39 @@ export default function WishlistBulkAdd({ products, lastQuantities, locale }: Pr
 
   if (products.length === 0) return null
 
+  const orderableLabel =
+    orderable.length === 1
+      ? '1 produit disponible'
+      : `${orderable.length} produits disponibles`
+
   return (
     <div className={styles.toolbar}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className={`btn btn-outline ${styles.bulkBtn}`}
-        onClick={openModal}
-        disabled={orderable.length === 0}
-      >
-        Ajouter tout au panier
-      </button>
+      <p className={styles.toolbarLabel}>Raccourci commande</p>
+      <div className={styles.toolbarRow}>
+        <button
+          ref={triggerRef}
+          type="button"
+          className={styles.bulkBtn}
+          onClick={openModal}
+          disabled={orderable.length === 0}
+        >
+          Tout mettre au panier
+          {orderable.length > 0 && (
+            <span className={styles.bulkCount}>{orderable.length}</span>
+          )}
+        </button>
+      </div>
       <p className={styles.hint}>
-        Vous pourrez modifier les quantités dans le panier.
+        {orderable.length > 0
+          ? `${orderableLabel} — quantités selon votre dernière commande. Modifiables dans le panier.`
+          : 'Aucun produit disponible à la commande pour le moment (fournisseurs fermés).'}
       </p>
 
       {done != null && done.added > 0 && (
         <p className={styles.success} role="status">
           {done.added} produit{done.added > 1 ? 's' : ''} ajouté{done.added > 1 ? 's' : ''} au panier.{' '}
           <Link href="/panier" locale={locale} className={styles.cartLink}>
-            Voir mon panier
+            Voir le panier
           </Link>
         </p>
       )}
@@ -133,7 +146,7 @@ export default function WishlistBulkAdd({ products, lastQuantities, locale }: Pr
       {done != null && done.skipped.length > 0 && (
         <p className={styles.skippedNote}>
           {done.skipped.length} produit{done.skipped.length > 1 ? 's' : ''} non ajouté
-          {done.skipped.length > 1 ? 's' : ''} (commandes fermées ou indisponibles).
+          {done.skipped.length > 1 ? 's' : ''} — commandes fermées ou produit indisponible.
         </p>
       )}
 
@@ -149,18 +162,18 @@ export default function WishlistBulkAdd({ products, lastQuantities, locale }: Pr
             onClick={e => e.stopPropagation()}
           >
             <h2 id={titleId} className={styles.dialogTitle}>
-              Ajouter tout au panier ?
+              Mettre ces produits au panier ?
             </h2>
             <p id={descId} className={styles.dialogText}>
               {orderable.length === 1
-                ? '1 produit sera ajouté avec la quantité habituelle (ou le minimum du produit). Vous pourrez tout ajuster dans le panier.'
-                : `${orderable.length} produits seront ajoutés avec les quantités habituelles (ou le minimum de chaque produit). Vous pourrez tout ajuster dans le panier.`}
+                ? '1 produit avec la quantité de votre dernière commande (ou le minimum indiqué). Vous pourrez ajuster chaque ligne dans le panier.'
+                : `${orderable.length} produits avec les quantités de vos dernières commandes (ou le minimum de chaque article). Vous pourrez ajuster chaque ligne dans le panier.`}
             </p>
 
             {skipped.length > 0 && (
               <div className={styles.skippedBox}>
                 <p className={styles.skippedTitle}>
-                  {skipped.length} produit{skipped.length > 1 ? 's' : ''} ignoré{skipped.length > 1 ? 's' : ''} :
+                  {skipped.length} produit{skipped.length > 1 ? 's' : ''} non inclus{skipped.length > 1 ? '' : ''} :
                 </p>
                 <ul className={styles.skippedList}>
                   {skipped.slice(0, 5).map(p => (
@@ -183,7 +196,7 @@ export default function WishlistBulkAdd({ products, lastQuantities, locale }: Pr
                 onClick={handleConfirm}
                 disabled={orderable.length === 0}
               >
-                Continuer
+                Ajouter au panier
               </button>
             </div>
           </div>
