@@ -13,6 +13,10 @@ import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import { getMemberDisplayName, groupOrdersByMember, sumOrderTotals } from '@/lib/admin/member-display'
 import { computeMemberCloseCredits } from '@/lib/orders/compute-member-close-credits'
 import { CLOSURE_ADD_LINE_LABEL } from '@/lib/orders/closure-add-label'
+import {
+  adminOrdersModeAllowsItemRemoval,
+  canAdminRemoveOrderItem,
+} from '@/lib/orders/lifecycle'
 import { orderCreditApplied, orderGrossTotal } from '@/lib/orders/order-totals-display'
 import lineStyles from '@/components/orders/order-lines.module.css'
 import AccordionChevron from '@/components/ui/AccordionChevron'
@@ -193,7 +197,7 @@ export default function AdminCommandesPage({
     [aggregatedSummary],
   )
 
-  const canRemoveFromRecap = mode === 'action' || mode === 'toClose'
+  const canRemoveFromRecap = adminOrdersModeAllowsItemRemoval(mode)
 
   function switchMode(next: 'action' | 'toClose' | 'closed' | 'history') {
     setMode(next)
@@ -1039,7 +1043,7 @@ export default function AdminCommandesPage({
                     </p>
                   )}
 
-                  {(order.status === 'confirmed' || order.status === 'delivered') && order.order_items.length > 0 && (
+                  {canAdminRemoveOrderItem(mode, order.status) && order.order_items.length > 0 && (
                     <p style={{
                       margin: '0 0 0.85rem',
                       padding: '0.55rem 0.75rem',
@@ -1063,7 +1067,7 @@ export default function AdminCommandesPage({
                     {order.order_items.map(item => {
                       const lineTotal = item.quantity * item.unit_price
                       const isRemoving = removingItemId === item.id
-                      const canRemove = order.status === 'confirmed' || order.status === 'delivered'
+                      const canRemove = canAdminRemoveOrderItem(mode, order.status)
                       const canEditClosureLine = mode === 'toClose' && order.status === 'delivered'
 
                       return (
