@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { parseGenericCatalogCsv } from '@/lib/import/generic-catalog-csv'
 import { readUploadAsGrid } from '@/lib/import/spreadsheet-file'
+import { upsertSupplierCatalog } from '@/lib/import/upsert-local'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
 
@@ -434,29 +435,46 @@ export async function POST(request: NextRequest) {
       else totalUpserted += batch.length
     }
   } else {
-    // ── Pas de référence article → supprimer les anciens, insérer les nouveaux
-    // Adapté aux listes hebdomadaires (Cave à levain, Novoma, Les Dailles…)
-    const { error: delErr } = await supabaseAdmin
-      .from('products')
-      .delete()
-      .eq('supplier_id', supplierId)
+    // ── Pas de référence sur toutes les lignes → upsert par nom, masquer les absents
+    // (ne supprime jamais : les produits déjà commandés restent liés aux commandes)
+    const result = await upsertSupplierCatalog(
+      supabaseAdmin,
+      supplierId,
+      parsed.map(p => ({
+        supplierRef: p.supplierRef,
+        name: p.name,
+        description: p.description,
+        category: p.category,
+        unit: p.unit,
+        unitPrice: p.unitPrice,
+        minQuantity: p.minQuantity,
+        allowsPartialOrder: p.allowsPartialOrder,
+      })),
+      { orderDeadline: dateLimite, deactivateMissing: true },
+    )
 
-    if (delErr) {
-      return NextResponse.json(
-        { error: `Impossible de supprimer les anciens produits : ${delErr.message}` },
-        { status: 500 }
-      )
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 })
     }
 
-    for (let i = 0; i < allProducts.length; i += BATCH) {
-      const batch = allProducts.slice(i, i + BATCH)
-      const { error: insErr } = await supabaseAdmin
-        .from('products')
-        .insert(batch)
+    totalUpserted = result.count
+    const deactivatedNote =
+      result.deactivated && result.deactivated > 0
+        ? ` ${result.deactivated} ancien${result.deactivated > 1 ? 's' : ''} produit${result.deactivated > 1 ? 's' : ''} masqué${result.deactivated > 1 ? 's' : ''} (absents du fichier).`
+        : ''
 
-      if (insErr) errors.push(`Lot ${Math.floor(i / BATCH) + 1} : ${insErr.message}`)
-      else totalUpserted += batch.length
-    }
+    return NextResponse.json({
+      success: true,
+      stats: {
+        productsCreated: result.inserted,
+        productsUpdated: result.updated,
+        productsDeactivated: result.deactivated ?? 0,
+        errors: errors.length,
+        importStrategy: 'upsert' as const,
+      },
+      errors,
+      message: `${config.name} — ${totalUpserted} produit(s) synchronisé(s) (${result.inserted} nouveau${result.inserted > 1 ? 'x' : ''}, ${result.updated} mis à jour).${deactivatedNote}`,
+    })
   }
 
   return NextResponse.json({
