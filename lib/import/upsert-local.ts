@@ -9,8 +9,29 @@ export type LocalUpsertResult = {
   updated: number
   /** Lignes en double dans le fichier (même référence) — la dernière est gardée. */
   duplicatesMerged: number
+  /** Produits retirés du fichier et masqués (active = false), jamais supprimés. */
+  deactivated?: number
   error: string | null
 }
+
+export type CatalogProductInput = {
+  supplierRef: string | null
+  name: string
+  description: string | null
+  category: string | null
+  unit: string
+  unitPrice: number | null
+  minQuantity: number
+  allowsPartialOrder: boolean
+}
+
+export type CatalogUpsertOptions = {
+  orderDeadline?: string | null
+  /** Masque les produits absents du fichier au lieu de les supprimer (safe si commandes existantes). */
+  deactivateMissing?: boolean
+}
+
+type RefResolvable = { name: string; supplierRef?: string | null }
 
 /** Référence stable pour upsert local (contrainte supplier_id + supplier_ref). */
 export function localProductRef(name: string): string {
@@ -26,7 +47,7 @@ function refFromArticleId(articleId: string): string {
 }
 
 function resolveSupplierRef(
-  p: ParsedProduct,
+  p: RefResolvable,
   byRef: Map<string, string>,
   byName: Map<string, string>,
 ): string {
@@ -48,8 +69,8 @@ function resolveSupplierRef(
 }
 
 /** Fusionne les lignes au même nom dans le fichier (garde la dernière, ou celle avec n° article). */
-function dedupeParsed(parsed: ParsedProduct[]): { items: ParsedProduct[]; merged: number } {
-  const byName = new Map<string, ParsedProduct>()
+function dedupeCatalogRows<T extends RefResolvable>(parsed: T[]): { items: T[]; merged: number } {
+  const byName = new Map<string, T>()
   let merged = 0
   for (const p of parsed) {
     const key = normalizeSearch(p.name)
@@ -66,36 +87,16 @@ function dedupeParsed(parsed: ParsedProduct[]): { items: ParsedProduct[]; merged
 }
 
 /**
- * Import local : upsert par nom (via supplier_ref), sans effacer le catalogue.
- * Produits absents du fichier restent en base — Joel les masque manuellement si besoin.
+ * Upsert catalogue fournisseur par supplier_ref (explicite ou dérivé du nom).
+ * Ne supprime jamais les produits — optionnellement les masque s'ils ne sont plus dans le fichier.
  */
-export async function upsertLocalSupplier(
+export async function upsertSupplierCatalog(
   admin: SupabaseClient,
-  config: LocalSupplierConfig,
-  parsed: ParsedProduct[],
-  _deadline: string | null,
+  supplierId: string,
+  parsed: CatalogProductInput[],
+  options: CatalogUpsertOptions = {},
 ): Promise<LocalUpsertResult> {
-  let supplierId: string
-  const { data: existing } = await admin
-    .from('suppliers')
-    .select('id')
-    .eq('name', config.supplierName)
-    .single()
-
-  if (existing) {
-    supplierId = existing.id
-    await admin.from('suppliers').update({ active: true }).eq('id', supplierId)
-  } else {
-    const { data: created, error: sErr } = await admin
-      .from('suppliers')
-      .insert({ name: config.supplierName, type: config.supplierType, active: true })
-      .select('id')
-      .single()
-    if (sErr || !created) {
-      return { count: 0, inserted: 0, updated: 0, duplicatesMerged: 0, error: `Impossible de créer le fournisseur : ${sErr?.message}` }
-    }
-    supplierId = created.id
-  }
+  const { orderDeadline = null, deactivateMissing = false } = options
 
   const { data: existingProducts, error: fetchErr } = await admin
     .from('products')
@@ -113,7 +114,6 @@ export async function upsertLocalSupplier(
     byName.set(normalizeSearch(row.name as string), row.id as string)
   }
 
-  // Rattacher les anciennes lignes sans supplier_ref (premier import après Phase 5)
   for (const row of existingProducts ?? []) {
     if (row.supplier_ref) continue
     const ref = localProductRef(row.name as string)
@@ -128,19 +128,19 @@ export async function upsertLocalSupplier(
     }
   }
 
-  const { items: deduped, merged: duplicatesMerged } = dedupeParsed(parsed)
+  const { items: deduped, merged: duplicatesMerged } = dedupeCatalogRows(parsed)
 
   const toUpsert = deduped.map(p => {
     const ref = resolveSupplierRef(p, byRef, byName)
     return {
       name: p.name,
-      description: null,
+      description: p.description,
       category: p.category,
       unit: p.unit,
       unit_price: p.unitPrice,
-      min_quantity: localImportMinQuantity(config.supplierName, p.unit),
-      allows_partial_order: false,
-      order_deadline: null,
+      min_quantity: p.minQuantity,
+      allows_partial_order: p.allowsPartialOrder,
+      order_deadline: orderDeadline,
       supplier_id: supplierId,
       supplier_ref: ref,
       active: true,
@@ -177,5 +177,104 @@ export async function upsertLocalSupplier(
     totalUpserted += batch.length
   }
 
-  return { count: totalUpserted, inserted, updated, duplicatesMerged, error: null }
+  let deactivated = 0
+  if (deactivateMissing && toUpsert.length > 0) {
+    const importedRefs = new Set(toUpsert.map(p => p.supplier_ref))
+    const importedNames = new Set(deduped.map(p => normalizeSearch(p.name)))
+
+    const { data: currentProducts, error: listErr } = await admin
+      .from('products')
+      .select('id, name, supplier_ref')
+      .eq('supplier_id', supplierId)
+
+    if (listErr) {
+      return {
+        count: totalUpserted,
+        inserted,
+        updated,
+        duplicatesMerged,
+        deactivated,
+        error: `Produits importés, mais lecture du catalogue impossible : ${listErr.message}`,
+      }
+    }
+
+    const toHide = (currentProducts ?? [])
+      .filter(row => {
+        const ref = row.supplier_ref as string | null
+        const nameInImport = importedNames.has(normalizeSearch(row.name as string))
+        if (ref) return !importedRefs.has(ref)
+        return !nameInImport
+      })
+      .map(row => row.id as string)
+
+    if (toHide.length > 0) {
+      const { error: hideErr } = await admin
+        .from('products')
+        .update({ active: false })
+        .in('id', toHide)
+
+      if (hideErr) {
+        return {
+          count: totalUpserted,
+          inserted,
+          updated,
+          duplicatesMerged,
+          deactivated,
+          error: `Produits importés, mais masquage des anciens produits impossible : ${hideErr.message}`,
+        }
+      }
+      deactivated = toHide.length
+    }
+  }
+
+  return { count: totalUpserted, inserted, updated, duplicatesMerged, deactivated, error: null }
+}
+
+/**
+ * Import local : upsert par nom (via supplier_ref), sans effacer le catalogue.
+ * Produits absents du fichier restent en base — Joel les masque manuellement si besoin.
+ */
+export async function upsertLocalSupplier(
+  admin: SupabaseClient,
+  config: LocalSupplierConfig,
+  parsed: ParsedProduct[],
+  _deadline: string | null,
+): Promise<LocalUpsertResult> {
+  let supplierId: string
+  const { data: existing } = await admin
+    .from('suppliers')
+    .select('id')
+    .eq('name', config.supplierName)
+    .single()
+
+  if (existing) {
+    supplierId = existing.id
+    await admin.from('suppliers').update({ active: true }).eq('id', supplierId)
+  } else {
+    const { data: created, error: sErr } = await admin
+      .from('suppliers')
+      .insert({ name: config.supplierName, type: config.supplierType, active: true })
+      .select('id')
+      .single()
+    if (sErr || !created) {
+      return { count: 0, inserted: 0, updated: 0, duplicatesMerged: 0, error: `Impossible de créer le fournisseur : ${sErr?.message}` }
+    }
+    supplierId = created.id
+  }
+
+  return upsertSupplierCatalog(
+    admin,
+    supplierId,
+    parsed.map(p => ({
+      supplierRef: p.supplierRef ?? null,
+      name: p.name,
+      description: null,
+      category: p.category,
+      unit: p.unit,
+      unitPrice: p.unitPrice,
+      minQuantity: localImportMinQuantity(config.supplierName, p.unit),
+      allowsPartialOrder: false,
+    })),
+    { orderDeadline: null },
+  )
 }
