@@ -19,6 +19,7 @@ import {
 import { Link } from '@/i18n/navigation'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import WishlistButton from '@/components/WishlistButton'
+import ProductDetailTrigger from '@/components/orders/ProductDetailTrigger'
 import styles from './panier.module.css'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -278,7 +279,19 @@ export default function PanierPage({
                       {/* Nom + numéro article */}
                       <div className={styles.lineInfo}>
                         <div className={styles.lineNameRow}>
-                          <span style={{ fontWeight: 500 }}>{item.productName}</span>
+                          <ProductDetailTrigger
+                            preview={{
+                              productId: item.productId,
+                              name: item.productName,
+                              supplierName: item.supplierName,
+                              supplierId: item.supplierId,
+                              supplierType: item.supplierType,
+                              supplierRef: item.supplierRef,
+                              unit: item.unit,
+                              unitPrice: item.unitPrice,
+                              quantity: item.quantity,
+                            }}
+                          />
                           <WishlistButton
                             productId={item.productId}
                             productName={item.productName}

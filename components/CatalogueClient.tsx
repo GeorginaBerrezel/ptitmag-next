@@ -33,6 +33,8 @@ const SEARCH_DEBOUNCE_MS = 300
 type Props = {
   summaries: CatalogueSupplierSummary[]
   initialEphemere?: boolean
+  /** Recherche pré-remplie (lien depuis panier / commande). */
+  initialSearch?: string
   /** Compléter une commande livrée (Mon compte → catalogue). */
   extendOrderId?: string | null
   extendSupplierId?: string | null
@@ -46,12 +48,13 @@ function cacheKey(supplierId: string, featuredOnly: boolean, category?: string |
 export default function CatalogueClient({
   summaries,
   initialEphemere = false,
+  initialSearch = '',
   extendOrderId = null,
   extendSupplierId = null,
 }: Props) {
   const applyCielMarkup = useApplyCielMarkup()
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch.trim())
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [selectedSearchSupplierId, setSelectedSearchSupplierId] = useState<string | null>(null)
   const [selectedSearchCategory, setSelectedSearchCategory] = useState<string | null>(null)
