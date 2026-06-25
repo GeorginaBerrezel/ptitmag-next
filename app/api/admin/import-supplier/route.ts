@@ -339,6 +339,41 @@ const SUPPLIER_CONFIGS: Record<string, SupplierConfig> = {
     type: 'grossiste_bio',
     parse: (rows) => parseGenericCatalogCsv(rows),
   },
+  aromacos: {
+    name: 'Aromacos',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  biopass: {
+    name: 'Bio-pass',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  kingnature: {
+    name: 'Kingnature',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  groen_labo: {
+    name: 'Groen Labo',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  phytolis: {
+    name: 'Phytolis',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  lrk: {
+    name: 'Laboratoires LRK',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
+  algorigin: {
+    name: 'Algorigin',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
