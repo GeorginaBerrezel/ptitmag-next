@@ -192,3 +192,20 @@ export async function searchCatalogueProducts(
 
   return results
 }
+
+/** Fiche produit par id (actif ou masqué — utile panier / commandes passées). */
+export async function getCatalogueProductById(id: string): Promise<Product | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('products')
+    .select(FULL_SELECT)
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) {
+    console.error('getCatalogueProductById error:', error.message)
+    return null
+  }
+
+  return (data as unknown as Product) ?? null
+}

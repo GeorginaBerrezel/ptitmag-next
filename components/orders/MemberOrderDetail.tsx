@@ -1,6 +1,7 @@
 'use client'
 
 import WishlistButton from '@/components/WishlistButton'
+import ProductDetailTrigger from '@/components/orders/ProductDetailTrigger'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import { previewCreditAtClose } from '@/lib/members/credit'
 import { CLOSURE_ADD_LINE_LABEL } from '@/lib/orders/closure-add-label'
@@ -84,9 +85,23 @@ export default function MemberOrderDetail({
                 </label>
               )}
               <div className={lineStyles.lineInfo}>
-                <span className={lineStyles.lineName}>
-                  {item.product?.name ?? '—'}
-                </span>
+                {item.product?.id ? (
+                  <ProductDetailTrigger
+                    className={lineStyles.lineNameTrigger}
+                    preview={{
+                      productId: item.product.id,
+                      name: item.product.name,
+                      unit: item.product.unit,
+                      quantity: item.quantity,
+                      orderUnitPrice: item.unit_price,
+                      supplierName: order.supplier?.name,
+                      supplierId: order.supplier?.id,
+                      supplierType: order.supplier?.type,
+                    }}
+                  />
+                ) : (
+                  <span className={lineStyles.lineName}>—</span>
+                )}
                 {item.added_at_closure && (
                   <span className={lineStyles.closureAddBadge}>{CLOSURE_ADD_LINE_LABEL}</span>
                 )}
