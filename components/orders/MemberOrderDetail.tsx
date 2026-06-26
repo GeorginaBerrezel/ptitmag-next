@@ -87,7 +87,7 @@ export default function MemberOrderDetail({
               <div className={lineStyles.lineInfo}>
                 {item.product?.id ? (
                   <ProductDetailTrigger
-                    className={lineStyles.lineNameTrigger}
+                    variant="row"
                     preview={{
                       productId: item.product.id,
                       name: item.product.name,

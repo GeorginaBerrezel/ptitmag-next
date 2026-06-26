@@ -23,6 +23,8 @@ type Props = {
   preview: ProductDetailPreview
   /** Libellé du bouton (défaut : nom du produit). */
   label?: string
+  /** `row` = nom + pastille « Détails » (panier, commandes). `text` = lien souligné. */
+  variant?: 'row' | 'text'
   className?: string
 }
 
@@ -32,7 +34,7 @@ function catalogueSearchQuery(preview: ProductDetailPreview, product: Product | 
   return preview.name
 }
 
-export default function ProductDetailTrigger({ preview, label, className }: Props) {
+export default function ProductDetailTrigger({ preview, label, variant = 'row', className }: Props) {
   const params = useParams()
   const locale = (params?.locale as string) ?? 'fr'
   const applyCielMarkup = useApplyCielMarkup()
@@ -145,17 +147,33 @@ export default function ProductDetailTrigger({ preview, label, className }: Prop
 
   const searchQ = catalogueSearchQuery(preview, product)
 
+  const displayLabel = label ?? preview.name
+  const triggerClass =
+    className
+    ?? (variant === 'row' ? styles.triggerRow : styles.trigger)
+
   return (
     <>
       <button
         ref={triggerRef}
         type="button"
-        className={className ?? styles.trigger}
+        className={triggerClass}
         onClick={openSheet}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-label={variant === 'row' ? `Voir le détail : ${displayLabel}` : undefined}
       >
-        {label ?? preview.name}
+        {variant === 'row' ? (
+          <>
+            <span className={styles.triggerName}>{displayLabel}</span>
+            <span className={styles.triggerBadge}>
+              Détails
+              <span className={styles.triggerChevron} aria-hidden="true">›</span>
+            </span>
+          </>
+        ) : (
+          displayLabel
+        )}
       </button>
 
       {open && (
@@ -169,14 +187,15 @@ export default function ProductDetailTrigger({ preview, label, className }: Prop
             className={styles.sheet}
             onClick={e => e.stopPropagation()}
           >
-            <div className={styles.handle} aria-hidden="true" />
+            <div className={styles.sheetHeader}>
+              <div className={styles.handle} aria-hidden="true" />
+              <h2 id={titleId} className={styles.title}>{displayName}</h2>
+              {supplierName && (
+                <p className={styles.supplier}>{supplierName}</p>
+              )}
+            </div>
 
-            <h2 id={titleId} className={styles.title}>{displayName}</h2>
-            {supplierName && (
-              <p className={styles.supplier}>{supplierName}</p>
-            )}
-
-            <div id={descId}>
+            <div id={descId} className={styles.sheetBody}>
               {loading && <p className={styles.loading}>Chargement…</p>}
               {fetchError && (
                 <p className={styles.error}>{fetchError}</p>
@@ -247,29 +266,35 @@ export default function ProductDetailTrigger({ preview, label, className }: Prop
               </div>
 
               {applyCielMarkup && catalogueUnitPrice != null && (
-                <CielPriceHint baseUnitPrice={catalogueUnitPrice} />
+                <div className={styles.priceNoteBox}>
+                  <p className={styles.priceNoteTitle}>Tarif membre Ciel</p>
+                  <CielPriceHint baseUnitPrice={catalogueUnitPrice} />
+                </div>
               )}
 
               {product?.description && (
                 <p className={styles.description}>{product.description}</p>
               )}
 
-              <div className={styles.linkStack}>
-                {biopartnerUrl && (
-                  <>
-                    <a
-                      href={biopartnerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.externalLink}
-                    >
-                      Allergènes et fiche Biopartner ↗
-                    </a>
-                    <p className={styles.externalHint}>
-                      Si le lien ne s&apos;ouvre pas, le produit n&apos;est peut-être plus sur le site Biopartner — contactez le magasin.
-                    </p>
-                  </>
-                )}
+              {biopartnerUrl && (
+                <div className={styles.linkStack}>
+                  <a
+                    href={biopartnerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.externalLink}
+                  >
+                    Allergènes et fiche Biopartner ↗
+                  </a>
+                  <p className={styles.externalHint}>
+                    Si le lien ne s&apos;ouvre pas, le produit n&apos;est peut-être plus sur le site Biopartner — contactez le magasin.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.sheetFooter}>
+              <div className={styles.footerActions}>
                 <Link
                   href={`/commandes?q=${encodeURIComponent(searchQ)}`}
                   locale={locale as 'fr' | 'en'}
@@ -278,12 +303,11 @@ export default function ProductDetailTrigger({ preview, label, className }: Prop
                 >
                   Voir dans le catalogue
                 </Link>
+                <button type="button" className={styles.closeBtn} onClick={closeSheet}>
+                  Fermer
+                </button>
               </div>
             </div>
-
-            <button type="button" className={styles.closeBtn} onClick={closeSheet}>
-              Fermer
-            </button>
           </div>
         </div>
       )}
