@@ -280,6 +280,7 @@ export default function PanierPage({
                       <div className={styles.lineInfo}>
                         <div className={styles.lineNameRow}>
                           <ProductDetailTrigger
+                            variant="row"
                             preview={{
                               productId: item.productId,
                               name: item.productName,

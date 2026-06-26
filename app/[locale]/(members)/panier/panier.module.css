@@ -96,6 +96,11 @@
   gap: 0.5rem;
 }
 
+.lineNameRow > button {
+  flex: 1;
+  min-width: 0;
+}
+
 .lineQty {
   display: flex;
   gap: 0.25rem;

@@ -120,24 +120,6 @@
   color: #1a1a2e;
 }
 
-.lineNameTrigger {
-  font-weight: 600;
-  font-size: 0.9rem;
-  line-height: 1.35;
-  color: #1a1a2e;
-  text-decoration: underline;
-  text-decoration-color: rgba(26, 26, 46, 0.22);
-  text-underline-offset: 2px;
-  min-height: auto;
-  padding: 0.15rem 0;
-  display: inline;
-}
-
-.lineNameTrigger:hover {
-  color: #0e1726;
-  text-decoration-color: #dc7f00;
-}
-
 .lineQty {
   font-weight: 600;
   font-size: 0.85rem;
