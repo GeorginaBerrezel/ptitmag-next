@@ -12,7 +12,7 @@ export default async function CommandesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ ephemere?: string }>
+  searchParams: Promise<{ ephemere?: string; q?: string }>
 }) {
   const { locale } = await params
   const profile = await getProfile()
@@ -28,6 +28,7 @@ export default async function CommandesPage({
     <CatalogueClient
       summaries={summaries}
       initialEphemere={sp.ephemere === '1'}
+      initialSearch={sp.q ?? ''}
     />
   )
 }

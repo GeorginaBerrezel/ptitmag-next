@@ -30,6 +30,10 @@ export const LOCAL_SUPPLIER_CONFIG: Record<string, LocalSupplierConfig> = {
   brasseries_ayent: { supplierName: "Brasseries d'Ayent",      supplierType: 'local', category: 'Bières',                  deadlineGroup: 'jeudi'    },
   vins_bio:         { supplierName: 'Vins bio et nature',      supplierType: 'local', category: 'Vins',                    deadlineGroup: 'jeudi'    },
   truffes:          { supplierName: 'Truffes au chocolat cru', supplierType: 'local', category: 'Chocolats & confiseries', deadlineGroup: 'mercredi' },
+  prefecture:       { supplierName: 'Domaine de la Préfecture', supplierType: 'local', category: 'Viande', deadlineGroup: 'jeudi' },
+  gregory_sermier:  { supplierName: 'Grégory Sermier', supplierType: 'local', category: 'Fromages', deadlineGroup: 'jeudi' },
+  evoleina:         { supplierName: 'Evoleina Rhodiola', supplierType: 'local', category: 'Produits à base de rhodiola', deadlineGroup: 'jeudi' },
+  les_devins:       { supplierName: 'Les Devins', supplierType: 'local', category: 'Produits fermiers', deadlineGroup: 'jeudi' },
 }
 
 // Même mapping pour la feuille hebdo (indexé par nom d'onglet Excel)
@@ -40,6 +44,10 @@ export const HEBDO_SHEET_CONFIG: Record<string, LocalSupplierConfig> = {
   "Brasseries d'Ayent": LOCAL_SUPPLIER_CONFIG.brasseries_ayent,
   'Vins bio et nature': LOCAL_SUPPLIER_CONFIG.vins_bio,
   'Truffes':            LOCAL_SUPPLIER_CONFIG.truffes,
+  'Domaine de la Préfecture': LOCAL_SUPPLIER_CONFIG.prefecture,
+  'Grégory Sermier':    LOCAL_SUPPLIER_CONFIG.gregory_sermier,
+  'Evoleina Rhodiola':  LOCAL_SUPPLIER_CONFIG.evoleina,
+  'Les Devins':         LOCAL_SUPPLIER_CONFIG.les_devins,
 }
 
 // ─── Parser commun ────────────────────────────────────────────────────────────

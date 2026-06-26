@@ -156,6 +156,17 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     website: 'https://evoleina-rhodiola.ch',
     logo: 'evoleina.png',
   },
+  {
+    slug: 'les-devins',
+    displayName: 'Les Devins',
+    aliases: ['Les Devins', 'Famille Grünenfelder', 'Les Devins - Famille Grünenfelder'],
+    location: 'Hérémence',
+    products: 'Entreprise agricole bio',
+    certification: 'Bio',
+    description: 'Entreprise agricole bio de la Famille Grünenfelder à Hérémence.',
+    emoji: '🌾',
+    website: 'https://www.lesdevins.ch',
+  },
 ]
 
 function normalizeKey(name: string): string {

@@ -98,6 +98,8 @@ function ProductPanel({
   const [loading, setLoading]       = useState(true)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [togglingActiveId, setTogglingActiveId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -139,6 +141,22 @@ function ProductPanel({
       alert((e as Error).message)
     } finally {
       setTogglingActiveId(null)
+    }
+  }
+
+  async function handleDelete(p: Product) {
+    setDeletingId(p.id)
+    setConfirmDeleteId(null)
+    try {
+      const res = await fetch(`/api/admin/products?id=${p.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur serveur')
+      setProducts(prev => prev.filter(x => x.id !== p.id))
+      onProductsChanged?.()
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -226,6 +244,66 @@ function ProductPanel({
               >
                 {p.active ? 'Masquer' : 'Afficher'}
               </button>
+              {confirmDeleteId === p.id ? (
+                <span style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(p)}
+                    disabled={deletingId === p.id}
+                    style={{
+                      background: '#b91c1c',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '0.2rem 0.55rem',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: deletingId === p.id ? 'not-allowed' : 'pointer',
+                      color: '#fff',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Confirmer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteId(null)}
+                    disabled={deletingId === p.id}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid rgba(16,24,40,0.15)',
+                      borderRadius: 6,
+                      padding: '0.2rem 0.55rem',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Annuler
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteId(p.id)}
+                  disabled={deletingId === p.id}
+                  title="Supprimer ce produit (impossible s'il figure dans une commande)"
+                  style={{
+                    background: '#fff',
+                    border: '1px solid #fecaca',
+                    borderRadius: 6,
+                    padding: '0.2rem 0.55rem',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    cursor: deletingId === p.id ? 'not-allowed' : 'pointer',
+                    color: '#b91c1c',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  Supprimer
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -237,6 +315,8 @@ function ProductPanel({
           {featured.length > 0 && ` (${featured.length} produit${featured.length > 1 ? 's' : ''})`}
           {' · '}
           Masquer = invisible dans le catalogue membre (conservé en base).
+          {' · '}
+          Supprimer = efface le produit (refusé s&apos;il figure dans une commande).
         </p>
       )}
     </div>
