@@ -66,12 +66,16 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
   },
   {
     slug: 'gregory-sermier',
-    displayName: 'Grégory Sermier',
-    aliases: ['Grégory Sermier', 'Gregory Sermier'],
+    displayName: "Alpage de Tsalan — Grégory Sermier",
+    aliases: [
+      "Alpage de Tsalan - Grégory Sermier - Arbaz - Fromages d'Alpage au lait de vache",
+      'Grégory Sermier',
+      'Gregory Sermier',
+    ],
     location: 'Arbaz',
-    products: 'Fromages',
+    products: "Fromages d'alpage au lait de vache",
     certification: 'Bio',
-    description: 'Fromages artisanaux du Valais, affinés avec soin.',
+    description: "Fromages d'alpage au lait de vache, affinés à l'Alpage de Tsalan à Arbaz.",
     emoji: '🧀',
   },
   {
@@ -166,6 +170,16 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     description: 'Entreprise agricole bio de la Famille Grünenfelder à Hérémence.',
     emoji: '🌾',
     website: 'https://www.lesdevins.ch',
+  },
+  {
+    slug: 'michael-rouzeau',
+    displayName: 'Michaël Rouzeau',
+    aliases: ['Michaël Rouzeau - Martigny - Argent colloïdal', 'Michaël Rouzeau', 'Michael Rouzeau'],
+    location: 'Martigny',
+    products: 'Argent colloïdal',
+    certification: 'Local',
+    description: 'Argent colloïdal produit à Martigny.',
+    emoji: '💧',
   },
 ]
 
