@@ -2,6 +2,7 @@
 
 import { use, useId, useState } from 'react'
 import PasswordInput from '@/components/PasswordInput'
+import LocalityCombobox from '@/components/locality/LocalityCombobox'
 import { Link } from '@/i18n/navigation'
 import { emailConfirmationSiteHint } from '@/lib/auth/confirmation-hint'
 import { isPasswordValid } from '@/lib/auth/password-rules'
@@ -19,6 +20,7 @@ export default function InscriptionPage({
   const [email, setEmail] = useState('')
   const [postalCode, setPostalCode] = useState('')
   const [commune, setCommune] = useState('')
+  const [localityTouched, setLocalityTouched] = useState(false)
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -26,12 +28,18 @@ export default function InscriptionPage({
   const [success, setSuccess] = useState(false)
 
   const passwordOk = isPasswordValid(password)
-  const canSubmit = passwordOk && !loading
+  const localityOk = Boolean(postalCode && commune)
+  const canSubmit = passwordOk && localityOk && !loading
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!passwordOk) {
       setError('Le mot de passe doit contenir au moins 8 caractères.')
+      return
+    }
+    if (!localityOk) {
+      setLocalityTouched(true)
+      setError('Sélectionnez votre NPA et localité dans la liste.')
       return
     }
 
@@ -165,41 +173,17 @@ export default function InscriptionPage({
           />
         </div>
 
-        <div className={styles.fieldRowNpa}>
-          <div className={styles.field}>
-            <label htmlFor="postalCode" className={styles.label}>NPA</label>
-            <input
-              id="postalCode"
-              type="text"
-              inputMode="numeric"
-              pattern="\d{4}"
-              maxLength={4}
-              value={postalCode}
-              onChange={e => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              required
-              autoComplete="postal-code"
-              enterKeyHint="next"
-              placeholder="1966"
-              aria-describedby="postalCode-hint"
-              className={styles.input}
-            />
-            <p id="postalCode-hint" className={styles.hint}>4 chiffres</p>
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="commune" className={styles.label}>Commune</label>
-            <input
-              id="commune"
-              type="text"
-              value={commune}
-              onChange={e => setCommune(e.target.value)}
-              required
-              autoComplete="address-level2"
-              enterKeyHint="next"
-              placeholder="St-Romain (Ayent)"
-              className={styles.input}
-            />
-          </div>
-        </div>
+        <LocalityCombobox
+          postalCode={postalCode}
+          commune={commune}
+          onChange={selection => {
+            setLocalityTouched(true)
+            setPostalCode(selection?.postalCode ?? '')
+            setCommune(selection?.commune ?? '')
+          }}
+          required
+          invalid={localityTouched && !localityOk}
+        />
 
         <div className={styles.field}>
           <label htmlFor="phone" className={styles.label}>

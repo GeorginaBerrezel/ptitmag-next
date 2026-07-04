@@ -2,6 +2,8 @@
 
 import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import { getMemberDisplayName, sortByMemberDisplayName } from '@/lib/admin/member-display'
+import { matchesSearch } from '@/lib/catalog/search'
+import { communeFilterMatch, groupCommuneLabels } from '@/lib/localities/search'
 import { ADMIN_MEMBER_STATUSES, MEMBER_STATUS_LABELS, formatCotisation } from '@/lib/members/profile'
 import { ADMIN_MEMBER_STATUS_REMINDER, getCotisationHint } from '@/lib/members/status-guide'
 import AccordionChevron from '@/components/ui/AccordionChevron'
@@ -144,20 +146,15 @@ export default function AdminMembresPage({
   const filtered = useMemo(() => {
     const list = members.filter(m => {
       if (filterStatus && m.status !== filterStatus) return false
-      if (filterCommune && m.commune !== filterCommune) return false
+      if (filterCommune && !communeFilterMatch(m.commune, filterCommune)) return false
       if (search) {
-        const q    = search.toLowerCase()
-        const name  = getMemberName(m).toLowerCase()
-        const email = (m.email ?? '').toLowerCase()
-        const phone = (m.phone ?? '').toLowerCase()
-        const commune = (m.commune ?? '').toLowerCase()
-        const postal = (m.postal_code ?? '').toLowerCase()
+        const name = getMemberName(m)
+        const locationText = [m.postal_code, m.commune].filter(Boolean).join(' ')
         if (
-          !name.includes(q) &&
-          !email.includes(q) &&
-          !phone.includes(q) &&
-          !commune.includes(q) &&
-          !postal.includes(q)
+          !matchesSearch(name, search) &&
+          !matchesSearch(m.email ?? '', search) &&
+          !matchesSearch(m.phone ?? '', search) &&
+          !matchesSearch(locationText, search)
         ) return false
       }
       return true
@@ -165,7 +162,10 @@ export default function AdminMembresPage({
     return sortByMemberDisplayName(list, getMemberName)
   }, [members, filterStatus, filterCommune, search])
 
-  const communeOptions = [...new Set(members.map(m => m.commune).filter(Boolean))].sort() as string[]
+  const communeOptions = useMemo(
+    () => groupCommuneLabels(members.map(m => m.commune).filter(Boolean) as string[]),
+    [members],
+  )
 
   // ── Statistiques ─────────────────────────────────────────────────────────
 
@@ -443,7 +443,9 @@ export default function AdminMembresPage({
           >
             <option value="">Toutes les communes</option>
             {communeOptions.map(c => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c.key} value={c.key}>
+                {c.label}{c.count > 1 ? ` (${c.count})` : ''}
+              </option>
             ))}
           </select>
         )}

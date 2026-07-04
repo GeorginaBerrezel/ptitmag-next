@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AVATAR_MAX_BYTES, avatarTooLargeMessage } from '@/lib/profile/avatar-upload'
+import { validateLocalitySelection } from '@/lib/localities/search'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -15,8 +16,19 @@ export async function POST(request: NextRequest) {
   const username = formData.get('username') as string | null
   const avatarFile = formData.get('avatar') as File | null
   const removeAvatar = formData.get('remove_avatar') === 'true'
+  const postalCode = formData.get('postal_code') as string | null
+  const commune = formData.get('commune') as string | null
 
   const updates: Record<string, string | null> = {}
+
+  if (postalCode !== null && commune !== null) {
+    const localityError = validateLocalitySelection(postalCode, commune)
+    if (localityError) {
+      return NextResponse.json({ error: localityError }, { status: 400 })
+    }
+    updates.postal_code = postalCode.trim()
+    updates.commune = commune.trim()
+  }
 
   if (username !== null) {
     const clean = username.trim().slice(0, 30)
