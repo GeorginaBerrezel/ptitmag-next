@@ -2,6 +2,7 @@ import { getProfile, getMyOrders } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import { Suspense } from 'react'
 import ProfileHeader from './ProfileHeader'
+import ProfileLocationSection from './ProfileLocationSection'
 import AccountSessionSection from './AccountSessionSection'
 import styles from './mon-compte.module.css'
 import CompteConfirmeBanner from '@/components/CompteConfirmeBanner'
@@ -65,6 +66,7 @@ export default async function MonComptePage({
         {/* ── Profil ── */}
         {/* ProfileHeader gère l'avatar + pseudo éditable */}
         <ProfileHeader profile={profile} />
+        <ProfileLocationSection profile={profile} />
 
         {/* Barre d'info compacte : statut + email + bouton commander */}
         <div className={styles.statusBar}>
