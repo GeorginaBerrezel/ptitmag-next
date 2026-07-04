@@ -1,5 +1,7 @@
 /** Validation des champs du formulaire d'inscription. */
 
+import { validateLocalitySelection } from '@/lib/localities/search'
+
 export type RegistrationInput = {
   firstName: string
   lastName: string
@@ -36,7 +38,8 @@ export function validateRegistration(input: RegistrationInput): string | null {
   if (!email || !email.includes('@')) return 'Adresse e-mail invalide.'
   if (input.password.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.'
   if (!SWISS_NPA.test(postalCode)) return 'Le NPA doit comporter 4 chiffres (ex. 1966).'
-  if (commune.length < 2) return 'Indiquez votre commune.'
+  const localityError = validateLocalitySelection(postalCode, commune)
+  if (localityError) return localityError
   if (phone && phone.replace(/\D/g, '').length < 9) {
     return 'Numéro de téléphone invalide (9 chiffres minimum).'
   }
