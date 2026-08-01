@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:biopartner": "node --import tsx --test lib/import/biopartner-import.test.ts",
+    "test:confirm-dialog": "node --import ./scripts/register-css-module-hook.mjs --import tsx --test components/ui/ConfirmDialog.test.tsx && node scripts/verify-panier-clear-wiring.mjs",
     "biopartner:compress": "node scripts/biopartner-images-compress.mjs",
     "biopartner:import": "node scripts/biopartner-images-import.mjs",
     "biopartner:upload": "node --env-file=.env.local scripts/biopartner-images-upload.mjs",
@@ -34,6 +35,7 @@
     "baseline-browser-mapping": "^2.9.18",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "happy-dom": "^18.0.1",
     "sharp": "^0.34.5",
     "tsx": "^4.22.4",
     "typescript": "latest"
