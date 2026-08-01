@@ -1,7 +1,6 @@
 'use client'
 
 import { use, useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { canAccessCatalog } from '@/lib/members/profile'
 import CatalogueAccessPending from '@/components/CatalogueAccessPending'
@@ -37,7 +36,6 @@ export default function PanierPage({
   const { locale } = use(params)
   const { items, updateQuantity, removeItem, clearCart, globalTotal } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
-  const router = useRouter()
   const [catalogAccess, setCatalogAccess] = useState<'loading' | 'allowed' | 'denied'>('loading')
   const [profileEmail, setProfileEmail] = useState<string | null>(null)
   const [profilePhone, setProfilePhone] = useState<string | null>(null)
