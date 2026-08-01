@@ -4,9 +4,8 @@
  */
 import { afterEach, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
+import React, { act, createRef, useState, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { act } from 'react'
-import { createRef, useState, type ReactElement } from 'react'
 import { Window } from 'happy-dom'
 import { ConfirmDialog } from './ConfirmDialog'
 
