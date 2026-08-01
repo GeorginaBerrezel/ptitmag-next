@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect } from 'react'
+import { use, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { canAccessCatalog } from '@/lib/members/profile'
@@ -17,6 +17,7 @@ import {
   incrementQuantity,
 } from '@/lib/catalog/quantity-rules'
 import { Link } from '@/i18n/navigation'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import WishlistButton from '@/components/WishlistButton'
 import ProductDetailTrigger from '@/components/orders/ProductDetailTrigger'
@@ -44,6 +45,8 @@ export default function PanierPage({
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [creditBalance, setCreditBalance] = useState(0)
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false)
+  const clearCartBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -177,10 +180,30 @@ export default function PanierPage({
 
       <div className={styles.pageHead}>
         <h1 style={{ margin: 0 }}>Mon panier</h1>
-        <button type="button" onClick={clearCart} className={styles.clearBtn}>
+        <button
+          ref={clearCartBtnRef}
+          type="button"
+          onClick={() => setClearConfirmOpen(true)}
+          className={styles.clearBtn}
+          aria-haspopup="dialog"
+        >
           Vider le panier
         </button>
       </div>
+
+      <ConfirmDialog
+        open={clearConfirmOpen}
+        title="Vider le panier ?"
+        description="Cette action retire tous les articles du panier. Elle ne peut pas être annulée."
+        confirmLabel="Vider le panier"
+        confirmTone="danger"
+        returnFocusRef={clearCartBtnRef}
+        onClose={() => setClearConfirmOpen(false)}
+        onConfirm={() => {
+          setClearConfirmOpen(false)
+          clearCart()
+        }}
+      />
 
       <section className={styles.recapCard} aria-label="Récapitulatif du panier">
         <h2 className={styles.recapTitle}>Récapitulatif</h2>
