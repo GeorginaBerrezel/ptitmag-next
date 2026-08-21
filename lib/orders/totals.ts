@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { roundChf } from '@/lib/members/credit'
+import { applyCreditDelta } from '@/lib/members/credit-ledger'
 
 export function grossTotalFromItems(
   items: Array<{ quantity: number; unit_price: number }>,
@@ -39,19 +40,13 @@ export async function syncOrderGrossTotal(
 
   if (status !== 'closed') {
     if (legacyCredit > 0) {
-      const { data: profile } = await admin
-        .from('profiles')
-        .select('credit_balance')
-        .eq('id', memberId)
-        .single()
-
-      const restored = roundChf((Number(profile?.credit_balance) || 0) + legacyCredit)
-      const { error: balErr } = await admin
-        .from('profiles')
-        .update({ credit_balance: restored })
-        .eq('id', memberId)
-
-      if (balErr) throw new Error(balErr.message)
+      await applyCreditDelta(admin, {
+        memberId,
+        delta: legacyCredit,
+        kind: 'order_restore',
+        note: 'Avoir recrédité (commande non clôturée)',
+        orderId,
+      })
     }
 
     const { error: updErr } = await admin

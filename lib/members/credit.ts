@@ -11,6 +11,16 @@ export function parseCreditBalance(value: unknown): number | null {
   return roundChf(n)
 }
 
+/** Montant signé pour le carnet (+ dépôt, − correction). */
+export function parseCreditDelta(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const n = typeof value === 'number' ? value : parseFloat(String(value).replace(',', '.'))
+  if (Number.isNaN(n) || n === 0) return null
+  const rounded = roundChf(n)
+  if (Math.abs(rounded) > 10_000) return null
+  return rounded
+}
+
 /** Répartit l'avoir sur plusieurs sous-totaux (une commande par fournisseur). */
 export function allocateCreditAcrossTotals(
   subtotals: number[],

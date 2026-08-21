@@ -7,7 +7,8 @@ import {
   shouldSendMemberStatusEmail,
 } from '@/lib/email/sendMemberStatusNotification'
 import { ADMIN_MEMBER_STATUSES, normalizeMemberStatus } from '@/lib/members/profile'
-import { parseCreditBalance } from '@/lib/members/credit'
+import { parseCreditDelta } from '@/lib/members/credit'
+import { applyCreditDelta, listCreditEventsForMembers } from '@/lib/members/credit-ledger'
 
 type ProfileRow = {
   id: string
@@ -38,12 +39,13 @@ export async function GET() {
 
   const admin = createAdminClient()
 
-  const [profilesResult, ordersResult] = await Promise.all([
+  const [profilesResult, ordersResult, eventsByMember] = await Promise.all([
     admin.from('profiles').select(PROFILE_SELECT).order('created_at', { ascending: false }),
     admin
       .from('orders')
       .select('id, member_id, status, total, credit_applied, created_at, supplier:suppliers(name)')
       .order('created_at', { ascending: false }),
+    listCreditEventsForMembers(admin),
   ])
 
   if (profilesResult.error) {
@@ -117,6 +119,7 @@ export async function GET() {
         orderTotal: ordersByMember[p.id]?.total ?? 0,
         lastOrderDate: ordersByMember[p.id]?.lastDate ?? null,
         recentOrders: ordersByMember[p.id]?.recent ?? [],
+        creditEvents: eventsByMember[p.id] ?? [],
       }
     }),
     m => getMemberDisplayName(m),
@@ -146,12 +149,13 @@ export async function PATCH(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { memberId, status, cotisation_amount, cotisation_active, credit_balance } = body as {
+  const { memberId, status, cotisation_amount, cotisation_active, credit_delta, credit_note } = body as {
     memberId?: string
     status?: string
     cotisation_amount?: number | null
     cotisation_active?: boolean
-    credit_balance?: number | null
+    credit_delta?: number | null
+    credit_note?: string | null
   }
 
   if (!memberId) {
@@ -178,15 +182,15 @@ export async function PATCH(request: NextRequest) {
     updates.cotisation_active = Boolean(cotisation_active)
   }
 
-  if (credit_balance !== undefined) {
-    const parsed = credit_balance === null ? 0 : parseCreditBalance(credit_balance)
-    if (parsed === null) {
-      return NextResponse.json({ error: 'Avoir invalide (montant ≥ 0).' }, { status: 400 })
-    }
-    updates.credit_balance = parsed
+  let creditResult: { balanceAfter: number; event: unknown } | null = null
+  const parsedDelta = credit_delta === undefined || credit_delta === null
+    ? null
+    : parseCreditDelta(credit_delta)
+  if (credit_delta !== undefined && credit_delta !== null && parsedDelta === null) {
+    return NextResponse.json({ error: 'Montant d\'avoir invalide (différent de 0).' }, { status: 400 })
   }
 
-  if (Object.keys(updates).length === 0) {
+  if (Object.keys(updates).length === 0 && parsedDelta === null) {
     return NextResponse.json({ error: 'Aucune modification.' }, { status: 400 })
   }
 
@@ -205,11 +209,28 @@ export async function PATCH(request: NextRequest) {
 
   const oldStatus = normalizeMemberStatus(existing.status as string)
 
-  const { error } = await admin.from('profiles').update(updates).eq('id', memberId)
+  if (Object.keys(updates).length > 0) {
+    const { error } = await admin.from('profiles').update(updates).eq('id', memberId)
 
-  if (error) {
-    console.error('[admin/members PATCH] Supabase error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('[admin/members PATCH] Supabase error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+  }
+
+  if (parsedDelta !== null) {
+    try {
+      creditResult = await applyCreditDelta(admin, {
+        memberId,
+        delta: parsedDelta,
+        kind: parsedDelta > 0 ? 'deposit' : 'adjustment',
+        note: credit_note,
+        createdBy: user.id,
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erreur avoir.'
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
   }
 
   const newStatus = status !== undefined
@@ -247,5 +268,9 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({
+    success: true,
+    credit_balance: creditResult?.balanceAfter,
+    event: creditResult?.event ?? null,
+  })
 }
