@@ -1,6 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { roundChf } from '@/lib/members/credit'
 
+/** Date à partir de laquelle les dépôts sont enregistrés ligne par ligne. */
+export const CREDIT_LEDGER_STARTED_ON = '21 août 2026'
+
 export const CREDIT_EVENT_KINDS = [
   'deposit',
   'adjustment',

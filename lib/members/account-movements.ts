@@ -1,5 +1,6 @@
 import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { formatCreditChf, roundChf } from '@/lib/members/credit'
+import { creditEventTitle, type CreditEvent } from '@/lib/members/credit-ledger'
 import {
   orderCreditApplied,
   orderGrossFromStored,
@@ -95,6 +96,63 @@ export function buildAccountStatement(
     inProgressGross: roundChf(inProgress.reduce((s, m) => s + m.gross, 0)),
     inProgressCount: inProgress.length,
   }
+}
+
+export type CreditHistoryLine = {
+  id: string
+  date: string
+  title: string
+  note: string | null
+  amount: number
+  balanceAfter: number | null
+  fromClosedOrder: boolean
+}
+
+/**
+ * Carnet d’avoir : lignes réelles (dépôt / correction / clôture)
+ * + déductions déjà stockées sur les commandes clôturées d’avant le carnet.
+ * Pas de solde après sur les vieilles déductions (les dépôts d’avant sont inconnus).
+ */
+export function buildCreditHistory(
+  orders: OrderWithItems[],
+  events: CreditEvent[],
+): CreditHistoryLine[] {
+  const orderIdsInLedger = new Set(
+    events
+      .filter(event => event.order_id && (event.kind === 'order_close' || event.kind === 'order_restore'))
+      .map(event => event.order_id as string),
+  )
+
+  const fromLedger: CreditHistoryLine[] = events.map(event => ({
+    id: event.id,
+    date: event.created_at,
+    title: creditEventTitle(event.kind),
+    note: event.note,
+    amount: roundChf(event.amount),
+    balanceAfter: roundChf(event.balance_after),
+    fromClosedOrder: false,
+  }))
+
+  const fromOrders: CreditHistoryLine[] = []
+  for (const order of orders) {
+    if (order.status !== 'closed') continue
+    const applied = orderCreditApplied(order.credit_applied)
+    if (applied <= 0) continue
+    if (orderIdsInLedger.has(order.id)) continue
+    fromOrders.push({
+      id: `order-credit-${order.id}`,
+      date: order.closed_at ?? order.created_at,
+      title: 'Avoir utilisé',
+      note: supplierLabel(order),
+      amount: roundChf(-applied),
+      balanceAfter: null,
+      fromClosedOrder: true,
+    })
+  }
+
+  return [...fromLedger, ...fromOrders].sort(
+    (a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title, 'fr'),
+  )
 }
 
 export function formatMovementAmount(amount: number): string {
