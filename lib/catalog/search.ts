@@ -1,4 +1,5 @@
 import type { Product } from '@/lib/supabase/products'
+import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 
 /** Minuscules sans accents — « bière » et « biere » deviennent « biere ». */
 export function normalizeSearch(text: string): string {
@@ -18,12 +19,17 @@ export function matchesSearch(haystack: string, query: string): boolean {
 }
 
 export function productSearchText(product: Product): string {
+  const supplierName = product.supplier?.name
+  const supplierLabel = supplierName
+    ? getSupplierDisplayName(supplierName, product.supplier?.type)
+    : ''
   return [
     product.name,
     product.description,
     product.category,
     product.supplier_ref,
-    product.supplier?.name,
+    supplierName,
+    supplierLabel !== supplierName ? supplierLabel : '',
   ].filter(Boolean).join(' ')
 }
 
@@ -31,8 +37,10 @@ export function productMatches(product: Product, query: string): boolean {
   return matchesSearch(productSearchText(product), query)
 }
 
-export function supplierMatches(name: string, query: string): boolean {
-  return matchesSearch(name, query)
+export function supplierMatches(name: string, query: string, type?: string | null): boolean {
+  if (matchesSearch(name, query)) return true
+  const label = getSupplierDisplayName(name, type)
+  return label !== name && matchesSearch(label, query)
 }
 
 export function categoryMatches(name: string, query: string): boolean {

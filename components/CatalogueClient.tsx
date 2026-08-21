@@ -8,7 +8,7 @@ import { productOrderableAt } from '@/lib/catalog/orderable'
 import { groupProductsByCategory } from '@/lib/catalog/group-by-category'
 import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
-import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
+import { getSupplierDisplayInfo, getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 import { useChangeCategoryBackNav } from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
@@ -278,7 +278,11 @@ export default function CatalogueClient({
       if (!p.supplier?.id) continue
       const existing = supplierMap.get(p.supplier.id)
       if (existing) existing.count += 1
-      else supplierMap.set(p.supplier.id, { id: p.supplier.id, name: p.supplier.name, count: 1 })
+      else supplierMap.set(p.supplier.id, {
+        id: p.supplier.id,
+        name: getSupplierDisplayName(p.supplier.name, p.supplier.type),
+        count: 1,
+      })
     }
 
     const categoryMap = new Map<string, number>()
@@ -318,7 +322,7 @@ export default function CatalogueClient({
         const hasCategoryProduct = filteredSearchResults.some(p => p.supplier?.id === s.supplier.id)
         if (hasCategoryProduct) return true
       }
-      return supplierMatches(s.supplier.name, search)
+      return supplierMatches(s.supplier.name, search, s.supplier.type)
         || matchingSupplierIds.has(s.supplier.id)
     })
   }, [baseSummaries, selectedType, selectedSearchSupplierId, selectedSearchCategory, search, isSearching, matchingSupplierIds, filteredSearchResults])
@@ -526,7 +530,7 @@ export default function CatalogueClient({
                 onClick={() => { setActiveCategory(null); setSearch('') }}
                 className={`catalogue-breadcrumb-link${activeCategory ? ' catalogue-breadcrumb-link--ancestor' : ''}`}
               >
-                {activeSummary.supplier.name}
+                {getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)}
               </button>
             </>
           )}
@@ -558,7 +562,7 @@ export default function CatalogueClient({
           <div className="catalogue-page-head__text">
             <h1>
               {view === 'suppliers' && 'Catalogue de commande'}
-              {view === 'categories' && activeSummary?.supplier.name}
+              {view === 'categories' && activeSummary && getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)}
               {view === 'products' && activeCategory}
             </h1>
             <p className="catalogue-page-sub">
@@ -566,7 +570,7 @@ export default function CatalogueClient({
               {view === 'suppliers' && isSearching && 'Affinez avec les filtres, puis ajoutez au panier.'}
               {view === 'categories' && 'Choisissez une catégorie pour afficher les produits.'}
               {view === 'products' && activeProducts && !isSearching && (
-                `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeSummary?.supplier.name}`
+                `${displayedProducts.length} produit${displayedProducts.length !== 1 ? 's' : ''} dans ${activeSummary ? getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type) : ''}`
               )}
             </p>
           </div>
@@ -759,7 +763,7 @@ export default function CatalogueClient({
                           return (
                             <SupplierCard
                               key={summary.supplier.id}
-                              name={summary.supplier.name}
+                              name={display.displayName ?? summary.supplier.name}
                               typeLabel={TYPE_LABELS[summary.supplier.type] ?? summary.supplier.type}
                               description={display.description}
                               emoji={display.emoji}
@@ -814,7 +818,7 @@ export default function CatalogueClient({
             {isSearching && inlineSupplierResults.length > 0 && (
               <SearchResultsSection
                 title={`Produits trouvés (${inlineSupplierResults.length})`}
-                subtitle={`Dans ${activeSummary.supplier.name} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
+                subtitle={`Dans ${getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
               >
                 <ProductList products={inlineSupplierResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
               </SearchResultsSection>
@@ -875,7 +879,7 @@ export default function CatalogueClient({
           ) : isSearching ? (
             <SearchResultsSection
               title={`Produits trouvés (${displayedProducts.length})`}
-              subtitle={`Dans ${activeCategory} — ${activeSummary?.supplier.name ?? ''}`}
+              subtitle={`Dans ${activeCategory} — ${activeSummary ? getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type) : ''}`}
             >
               <ProductList
               products={displayedProducts}
@@ -949,12 +953,12 @@ function CompactSupplierMatches({
                 <ProducerAvatar
                   logo={display.logo}
                   emoji={display.emoji}
-                  name={summary.supplier.name}
+                  name={display.displayName ?? summary.supplier.name}
                   size={36}
                   logoIsPhoto={display.logoIsPhoto}
                 />
                 <span className="catalogue-search-supplier-matches__label">
-                  <span className="catalogue-search-supplier-matches__name">{summary.supplier.name}</span>
+                  <span className="catalogue-search-supplier-matches__name">{display.displayName ?? summary.supplier.name}</span>
                   <span className="catalogue-search-supplier-matches__meta">
                     {status.label}
                     {status.detail ? ` · ${status.detail}` : ''}

@@ -12,6 +12,7 @@ import {
   showProductImage,
   shouldBypassNextImageOptimizer,
 } from '@/lib/catalog/product-image'
+import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import CielPriceHint from '@/components/catalog/CielPriceHint'
@@ -105,8 +106,11 @@ export default function ProductDetailTrigger({ preview, label, variant = 'row', 
   }, [open, closeSheet])
 
   const displayName = product?.name ?? preview.name
-  const supplierName = product?.supplier?.name ?? preview.supplierName
+  const rawSupplierName = product?.supplier?.name ?? preview.supplierName
   const supplierType = product?.supplier?.type ?? preview.supplierType
+  const supplierName = rawSupplierName
+    ? getSupplierDisplayName(rawSupplierName, supplierType)
+    : undefined
   const unit = product?.unit ?? preview.unit
   const supplierRef = product?.supplier_ref ?? preview.supplierRef
   const catalogueUnitPrice = product?.unit_price ?? preview.unitPrice

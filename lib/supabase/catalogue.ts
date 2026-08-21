@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Product, Supplier } from '@/lib/supabase/products'
 import { productMatches } from '@/lib/catalog/search'
+import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
 
 const PAGE = 1000
@@ -113,7 +114,10 @@ export async function getCatalogueSummaries(): Promise<CatalogueSupplierSummary[
       hasFeatured: g.hasFeatured,
       hasOpenOrders: g.hasOpenOrders,
     }))
-    .sort((a, b) => a.supplier.name.localeCompare(b.supplier.name))
+    .sort((a, b) =>
+      getSupplierDisplayName(a.supplier.name, a.supplier.type)
+        .localeCompare(getSupplierDisplayName(b.supplier.name, b.supplier.type), 'fr'),
+    )
 }
 
 /** Produits actifs d'un fournisseur (chargement à la demande). */
