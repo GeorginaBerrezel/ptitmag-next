@@ -1,7 +1,7 @@
 'use client'
 
 import type { CatalogueSupplierSummary } from '@/lib/supabase/catalogue'
-import { getSupplierDisplayInfo } from '@/lib/catalog/supplier-info'
+import { getSupplierDisplayInfo, getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import ProducerAvatar from '@/components/ProducerAvatar'
 
@@ -29,7 +29,10 @@ export default function CatalogueSupplierSidebar({
       const orderA = ta >= 0 ? ta : TYPE_ORDER.length
       const orderB = tb >= 0 ? tb : TYPE_ORDER.length
       if (orderA !== orderB) return orderA - orderB
-      return a.supplier.name.localeCompare(b.supplier.name, 'fr')
+      return getSupplierDisplayName(a.supplier.name, a.supplier.type).localeCompare(
+        getSupplierDisplayName(b.supplier.name, b.supplier.type),
+        'fr',
+      )
     })
 
   if (openSuppliers.length < 2) return null
@@ -44,6 +47,10 @@ export default function CatalogueSupplierSidebar({
             summary.supplier.name,
             summary.supplier.type,
           )
+          const displayName = getSupplierDisplayName(
+            summary.supplier.name,
+            summary.supplier.type,
+          )
           const status = supplierOrderStatusLabel(summary.supplier, catalogNow)
           return (
             <li key={summary.supplier.id}>
@@ -55,12 +62,12 @@ export default function CatalogueSupplierSidebar({
                   <ProducerAvatar
                     logo={display.logo}
                     emoji={display.emoji}
-                    name={summary.supplier.name}
+                    name={displayName}
                     size={32}
                     logoIsPhoto={display.logoIsPhoto}
                   />
                   <span className="catalogue-supplier-sidebar__label">
-                    <span className="catalogue-supplier-sidebar__name">{summary.supplier.name}</span>
+                    <span className="catalogue-supplier-sidebar__name">{displayName}</span>
                     <span className="catalogue-supplier-sidebar__meta">
                       {status.label}
                       {status.detail ? ` — ${status.detail}` : ''}
@@ -76,12 +83,12 @@ export default function CatalogueSupplierSidebar({
                   <ProducerAvatar
                     logo={display.logo}
                     emoji={display.emoji}
-                    name={summary.supplier.name}
+                    name={displayName}
                     size={32}
                     logoIsPhoto={display.logoIsPhoto}
                   />
                   <span className="catalogue-supplier-sidebar__label">
-                    <span className="catalogue-supplier-sidebar__name">{summary.supplier.name}</span>
+                    <span className="catalogue-supplier-sidebar__name">{displayName}</span>
                     <span className="catalogue-supplier-sidebar__meta">
                       {status.label}
                       {status.detail ? ` — ${status.detail}` : ''}

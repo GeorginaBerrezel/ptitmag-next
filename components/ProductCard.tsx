@@ -8,6 +8,7 @@ import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { getBiopartnerProductInfoUrl } from '@/lib/catalog/biopartner-product-url'
+import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import {
   getProductImageUrl,
   getProductImagePresentation,
@@ -215,7 +216,9 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
           <p className={styles.description}>{product.description}</p>
         )}
         {showSupplier && product.supplier?.name && (
-          <p className={styles.supplierName}>{product.supplier.name}</p>
+          <p className={styles.supplierName}>
+            {getSupplierDisplayName(product.supplier.name, product.supplier.type)}
+          </p>
         )}
         {(product.category || product.supplier_ref) && (
           <div className={styles.metaTags}>

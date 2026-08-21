@@ -56,3 +56,8 @@ export function getSupplierDisplayInfo(
 
   return TYPE_FALLBACK[type] ?? TYPE_FALLBACK.autre
 }
+
+/** Nom affiché sur le catalogue (ex. Vérène Melchior, pas le nom d’import). */
+export function getSupplierDisplayName(name: string, type?: string | null): string {
+  return getSupplierDisplayInfo(name, type ?? '').displayName ?? name
+}
