@@ -1,4 +1,4 @@
-import { getProfile, getMyOrders } from '@/lib/supabase/auth'
+import { getProfile, getMyOrders, getMyCreditEvents } from '@/lib/supabase/auth'
 import { Link } from '@/i18n/navigation'
 import { Suspense } from 'react'
 import ProfileHeader from './ProfileHeader'
@@ -7,19 +7,26 @@ import AccountSessionSection from './AccountSessionSection'
 import styles from './mon-compte.module.css'
 import CompteConfirmeBanner from '@/components/CompteConfirmeBanner'
 import MyOrdersSection from './MyOrdersSection'
+import AccountMovementsSection from './AccountMovementsSection'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
 import { formatCotisation, applyCielMarkup, canAccessCatalog, getMemberStatusDisplay, hasTerrePricing } from '@/lib/members/profile'
-import { formatCreditChf } from '@/lib/members/credit'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function MonComptePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ apercu?: string }>
 }) {
   const { locale } = await params
-  const [profile, orders] = await Promise.all([getProfile(), getMyOrders()])
+  const { apercu } = await searchParams
+  const [profile, orders, creditEvents] = await Promise.all([
+    getProfile(),
+    getMyOrders(),
+    getMyCreditEvents(),
+  ])
 
   const memberStatus = getMemberStatusDisplay(profile?.status)
   const hasCatalogAccess = profile ? canAccessCatalog(profile) : false
@@ -114,21 +121,13 @@ export default async function MonComptePage({
           )}
         </div>
 
-        {creditBalance > 0 ? (
-          <div className={styles.creditPositive}>
-            <strong>Avoir disponible :</strong> {formatCreditChf(creditBalance)}
-            <span className={styles.creditSub}>
-              Déduit à la <strong>clôture</strong> de chaque commande — pas de paiement en ligne.
-            </span>
-          </div>
-        ) : (
-          <div className={styles.creditNeutral}>
-            <strong>Pas d&apos;avoir</strong> sur votre compte pour le moment.
-            <span className={styles.creditSub}>
-              L&apos;équipe du magasin peut en ajouter un si besoin (remboursement, geste commercial…).
-            </span>
-          </div>
-        )}
+        <AccountMovementsSection
+          orders={orders}
+          creditBalance={creditBalance}
+          events={creditEvents}
+          locale={locale}
+          previewMode={process.env.NODE_ENV === 'development' ? apercu : undefined}
+        />
 
         {/* ── Mes commandes ── */}
         <MyOrdersSection
