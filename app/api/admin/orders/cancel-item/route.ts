@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminUser } from '@/lib/admin/auth'
 import { sendOrderItemCancelled } from '@/lib/email/sendOrderItemCancelled'
 import { roundChf } from '@/lib/members/credit'
+import { applyCreditDelta } from '@/lib/members/credit-ledger'
 import { orderIsModifiable } from '@/lib/orders/lifecycle'
 import { syncOrderGrossTotal } from '@/lib/orders/totals'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -125,19 +126,13 @@ export async function POST(request: NextRequest) {
   }
 
   if (orderFullyCancelled && creditApplied > 0) {
-    const { data: profile } = await admin
-      .from('profiles')
-      .select('credit_balance')
-      .eq('id', order.member_id)
-      .single()
-
-    if (profile) {
-      const restored = roundChf((Number(profile.credit_balance) || 0) + creditApplied)
-      await admin
-        .from('profiles')
-        .update({ credit_balance: restored })
-        .eq('id', order.member_id)
-    }
+    await applyCreditDelta(admin, {
+      memberId: order.member_id,
+      delta: creditApplied,
+      kind: 'order_restore',
+      note: 'Commande annulée',
+      orderId: order.id,
+    })
   }
 
   const { data: profile } = await admin

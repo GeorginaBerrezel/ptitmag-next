@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import type { CreditEvent } from '@/lib/members/credit-ledger'
 
 /**
  * Retourne l'utilisateur connecté côté serveur, ou null.
@@ -51,6 +52,7 @@ export type OrderWithItems = {
   credit_applied?: number
   created_via_complement?: boolean
   created_at: string
+  closed_at?: string | null
   supplier: { id: string; name: string; type: string } | null
   order_items: {
     id: string
@@ -74,7 +76,7 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
   const { data, error } = await supabase
     .from('orders')
     .select(`
-      id, status, total, credit_applied, created_via_complement, created_at,
+      id, status, total, credit_applied, created_via_complement, created_at, closed_at,
       supplier:suppliers(id, name, type),
       order_items(
         id, quantity, unit_price, cancelled_at, added_at_closure,
@@ -96,4 +98,30 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
       order_items: raw.order_items.filter(i => !i.cancelled_at),
     }
   })
+}
+
+export async function getMyCreditEvents(): Promise<CreditEvent[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('member_credit_events')
+    .select('id, member_id, amount, balance_after, kind, note, order_id, created_at')
+    .eq('member_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  if (error) {
+    console.warn('[getMyCreditEvents]', error.message)
+    return []
+  }
+
+  return (data ?? []).map(row => ({
+    ...row,
+    amount: Number(row.amount) || 0,
+    balance_after: Number(row.balance_after) || 0,
+    note: row.note ?? null,
+    order_id: row.order_id ?? null,
+  })) as CreditEvent[]
 }

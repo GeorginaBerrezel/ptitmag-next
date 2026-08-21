@@ -4,6 +4,7 @@ import { ORDER_STATUS } from '@/lib/orders/lifecycle'
 import { grossTotalFromItems } from '@/lib/orders/totals'
 import { closeOrder, type CloseOrderResult } from '@/lib/orders/close-order'
 import { computeMemberCloseCredits } from '@/lib/orders/compute-member-close-credits'
+import { insertCreditEvent } from '@/lib/members/credit-ledger'
 
 export type CloseMemberOrdersResult = {
   closedGroups: CloseOrderResult[]
@@ -88,6 +89,20 @@ export async function closeMemberOrders(
       skipCreditBalanceUpdate: true,
     })
     closedGroups.push(result)
+  }
+
+  let running = initialBalance
+  for (const result of closedGroups) {
+    if (result.creditApplied <= 0) continue
+    running = roundChf(running - result.creditApplied)
+    await insertCreditEvent(admin, {
+      memberId,
+      amount: -result.creditApplied,
+      balanceAfter: running,
+      kind: 'order_close',
+      note: result.supplierName,
+      orderId: result.orderId,
+    })
   }
 
   return {

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { roundChf } from '@/lib/members/credit'
+import { applyCreditDelta } from '@/lib/members/credit-ledger'
 import { ORDER_STATUS } from '@/lib/orders/lifecycle'
 import { grossTotalFromItems } from '@/lib/orders/totals'
 
@@ -91,22 +92,26 @@ export async function closeOrder(
     creditApplied = roundChf(Math.min(storedCredit, grossTotal))
     const excess = roundChf(storedCredit - creditApplied)
     if (excess > 0 && !options?.skipCreditBalanceUpdate) {
-      balance = roundChf(balance + excess)
-      const { error: creditErr } = await admin
-        .from('profiles')
-        .update({ credit_balance: balance })
-        .eq('id', memberId)
-      if (creditErr) throw new Error(`Erreur avoir : ${creditErr.message}`)
+      const result = await applyCreditDelta(admin, {
+        memberId,
+        delta: excess,
+        kind: 'order_restore',
+        note: 'Ajustement clôture (avoir trop déduit)',
+        orderId,
+      })
+      balance = result.balanceAfter
     }
   } else {
     creditApplied = roundChf(Math.min(balance, grossTotal))
     if (creditApplied > 0 && !options?.skipCreditBalanceUpdate) {
-      balance = roundChf(balance - creditApplied)
-      const { error: creditErr } = await admin
-        .from('profiles')
-        .update({ credit_balance: balance })
-        .eq('id', memberId)
-      if (creditErr) throw new Error(`Erreur avoir : ${creditErr.message}`)
+      const result = await applyCreditDelta(admin, {
+        memberId,
+        delta: -creditApplied,
+        kind: 'order_close',
+        note: (order.supplier as unknown as { name: string } | null)?.name ?? 'Commande clôturée',
+        orderId,
+      })
+      balance = result.balanceAfter
     }
   }
 

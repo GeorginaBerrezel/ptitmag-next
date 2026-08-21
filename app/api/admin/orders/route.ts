@@ -4,6 +4,7 @@ import { requireAdminUser } from '@/lib/admin/auth'
 import { countEligibleForArchive } from '@/lib/admin/order-archive'
 import { sendOrderCancelledByAdmin } from '@/lib/email/sendOrderCancelledByAdmin'
 import { roundChf } from '@/lib/members/credit'
+import { applyCreditDelta } from '@/lib/members/credit-ledger'
 
 const VALID_STATUSES = ['confirmed', 'delivered', 'cancelled']
 
@@ -181,19 +182,13 @@ export async function PATCH(request: NextRequest) {
     creditApplied > 0 &&
     existingOrder.member_id
   ) {
-    const { data: profile } = await admin
-      .from('profiles')
-      .select('credit_balance')
-      .eq('id', existingOrder.member_id as string)
-      .single()
-
-    if (profile) {
-      const restored = roundChf((Number(profile.credit_balance) || 0) + creditApplied)
-      await admin
-        .from('profiles')
-        .update({ credit_balance: restored })
-        .eq('id', existingOrder.member_id as string)
-    }
+    await applyCreditDelta(admin, {
+      memberId: existingOrder.member_id as string,
+      delta: creditApplied,
+      kind: 'order_restore',
+      note: 'Commande annulée',
+      orderId,
+    })
   }
 
   let emailSent = false

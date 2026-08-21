@@ -13,6 +13,7 @@ import { InlineStatus } from '@/components/ui/InlineStatus'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
 import { orderGrossFromStored } from '@/lib/orders/order-totals-display'
+import { creditEventTitle, type CreditEvent } from '@/lib/members/credit-ledger'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ type Member = {
   orderTotal: number
   lastOrderDate: string | null
   recentOrders: RecentOrder[]
+  creditEvents?: CreditEvent[]
 }
 
 type ApiStats = {
@@ -121,6 +123,7 @@ export default function AdminMembresPage({
   const [updating, setUpdating]       = useState<string | null>(null)
   const [cotisationDraft, setCotisationDraft] = useState<Record<string, { amount: string; active: boolean }>>({})
   const [creditDraft, setCreditDraft] = useState<Record<string, string>>({})
+  const [creditNoteDraft, setCreditNoteDraft] = useState<Record<string, string>>({})
 
   // ── Chargement ───────────────────────────────────────────────────────────
 
@@ -216,40 +219,58 @@ export default function AdminMembresPage({
   }
 
   function getCreditDraft(member: Member) {
-    if (creditDraft[member.id] !== undefined) return creditDraft[member.id]
-    return member.credit_balance > 0 ? String(member.credit_balance) : ''
+    return creditDraft[member.id] ?? ''
   }
 
-  async function saveCredit(memberId: string) {
+  function getCreditNote(member: Member) {
+    return creditNoteDraft[member.id] ?? ''
+  }
+
+  async function saveCredit(memberId: string, direction: 'add' | 'remove') {
     const member = members.find(m => m.id === memberId)
     if (!member) return
 
     const raw = getCreditDraft(member).trim()
-    const parsed = raw === '' ? 0 : parseFloat(raw.replace(',', '.'))
-    if (Number.isNaN(parsed) || parsed < 0) {
-      alert('Montant d\'avoir invalide.')
+    const parsed = raw === '' ? NaN : parseFloat(raw.replace(',', '.'))
+    if (Number.isNaN(parsed) || parsed <= 0) {
+      alert('Indique un montant en CHF (ex. 20).')
       return
     }
+
+    const delta = direction === 'add' ? parsed : -parsed
+    const note = getCreditNote(member).trim()
 
     setUpdating(memberId)
     const res = await fetch('/api/admin/members', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ memberId, credit_balance: parsed }),
+      body: JSON.stringify({ memberId, credit_delta: delta, credit_note: note || null }),
     })
 
+    const payload = await res.json().catch(() => ({})) as {
+      error?: string
+      credit_balance?: number
+      event?: CreditEvent | null
+    }
+
     if (!res.ok) {
-      alert('Erreur lors de l\'enregistrement de l\'avoir.')
+      alert(payload.error ?? 'Erreur lors de l\'enregistrement de l\'avoir.')
     } else {
-      setMembers(prev => prev.map(m =>
-        m.id === memberId ? { ...m, credit_balance: parsed } : m,
-      ))
+      const nextBalance = payload.credit_balance ?? (member.credit_balance + delta)
+      setMembers(prev => prev.map(m => {
+        if (m.id !== memberId) return m
+        const events = payload.event
+          ? [payload.event, ...(m.creditEvents ?? [])].slice(0, 8)
+          : m.creditEvents
+        return { ...m, credit_balance: nextBalance, creditEvents: events }
+      }))
       setCreditDraft(d => {
         const next = { ...d }
         delete next[memberId]
         return next
       })
     }
+
     setUpdating(null)
   }
 
@@ -599,7 +620,7 @@ export default function AdminMembresPage({
                         ? `${member.orderCount} cmd · CHF ${member.orderTotal.toFixed(2)}`
                         : 'Aucune commande'}
                     </span>
-                    {member.credit_balance > 0 && (
+                    {member.credit_balance !== 0 && (
                       <span className="admin-member-credit">
                         Avoir CHF {member.credit_balance.toFixed(2)}
                       </span>
@@ -684,24 +705,34 @@ export default function AdminMembresPage({
                     paddingBottom: '1rem',
                     borderBottom: '1px solid rgba(16,24,40,0.06)',
                   }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Avoir (CHF)</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Carnet d&apos;avoir (CHF)</span>
                     <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.55, lineHeight: 1.4 }}>
-                      Montant déduit automatiquement à la prochaine commande de l&apos;adhérent.
+                      Solde actuel : <strong>CHF {member.credit_balance.toFixed(2)}</strong>.
+                      Tu ajoutes un dépôt (+20) ou tu corriges une erreur (−). Déduit à la <strong>clôture</strong> des commandes, pas au panier.
                     </p>
                     <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <label style={{ fontSize: '0.8rem', opacity: 0.6 }}>Solde</label>
+                      <label style={{ fontSize: '0.8rem', opacity: 0.6 }}>Montant</label>
                       <input
                         type="text"
                         inputMode="decimal"
-                        placeholder="0"
+                        placeholder="ex. 20"
                         value={getCreditDraft(member)}
                         onChange={e => setCreditDraft(d => ({ ...d, [member.id]: e.target.value }))}
                         style={{ ...controlStyle, width: 100 }}
                         disabled={isUpdating}
                       />
+                      <label style={{ fontSize: '0.8rem', opacity: 0.6 }}>Note</label>
+                      <input
+                        type="text"
+                        placeholder="espèces, virement…"
+                        value={getCreditNote(member)}
+                        onChange={e => setCreditNoteDraft(d => ({ ...d, [member.id]: e.target.value }))}
+                        style={{ ...controlStyle, width: 160 }}
+                        disabled={isUpdating}
+                      />
                       <button
                         type="button"
-                        onClick={() => saveCredit(member.id)}
+                        onClick={() => saveCredit(member.id, 'add')}
                         disabled={isUpdating}
                         style={{
                           ...controlStyle,
@@ -712,9 +743,35 @@ export default function AdminMembresPage({
                           fontWeight: 600,
                         }}
                       >
-                        Enregistrer l&apos;avoir
+                        + Dépôt
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => saveCredit(member.id, 'remove')}
+                        disabled={isUpdating}
+                        style={{
+                          ...controlStyle,
+                          cursor: isUpdating ? 'default' : 'pointer',
+                          background: '#fff',
+                          color: '#9a5b00',
+                          border: '1px solid #f5c76a',
+                          fontWeight: 600,
+                        }}
+                      >
+                        − Correction
                       </button>
                     </div>
+                    {(member.creditEvents ?? []).length > 0 && (
+                      <ul style={{ margin: '0.35rem 0 0', padding: 0, listStyle: 'none', fontSize: '0.75rem', lineHeight: 1.45 }}>
+                        {(member.creditEvents ?? []).slice(0, 6).map(ev => (
+                          <li key={ev.id} style={{ opacity: 0.7 }}>
+                            {new Date(ev.created_at).toLocaleDateString('fr-CH')} · {creditEventTitle(ev.kind)}
+                            {ev.note ? ` · ${ev.note}` : ''} · {ev.amount >= 0 ? '+' : '−'}
+                            CHF {Math.abs(ev.amount).toFixed(2)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
 
                   {/* Changer le statut */}
