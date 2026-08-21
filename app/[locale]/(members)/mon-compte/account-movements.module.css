@@ -2,7 +2,13 @@
   background: #fff;
   border: 1px solid rgba(16, 24, 40, 0.08);
   border-radius: 16px;
-  padding: 1.25rem;
+  padding: 1rem;
+}
+
+@media (min-width: 560px) {
+  .section {
+    padding: 1.25rem;
+  }
 }
 
 .header {
@@ -137,6 +143,17 @@
   color: #2e7d32;
 }
 
+.legacyNotice {
+  margin: 0 0 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #3d4450;
+  background: #f4f7fb;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+}
+
 .empty {
   margin: 0;
   font-size: 0.9rem;
@@ -191,50 +208,59 @@
 
 .row {
   display: grid;
-  gap: 0.2rem 0.65rem;
-  padding: 0.55rem 0;
+  grid-template-columns: 1fr auto;
+  gap: 0.12rem 0.75rem;
+  padding: 0.7rem 0;
   border-bottom: 1px solid rgba(16, 24, 40, 0.06);
-  align-items: baseline;
-}
-
-.rowMain {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 0;
+  align-items: start;
 }
 
 .date {
-  font-size: 0.75rem;
-  color: rgba(16, 24, 40, 0.5);
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 0.8rem;
+  color: #5c616c;
   white-space: nowrap;
 }
 
-.supplier {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #1a1a2e;
+.amounts {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 0.1rem;
+}
+
+.rowMain {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
   min-width: 0;
 }
 
-.amounts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 0.6rem;
+.supplier {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  min-width: 0;
 }
 
 @media (min-width: 560px) {
   .row {
     grid-template-columns: 6.5rem 1fr auto;
     align-items: center;
+    padding: 0.55rem 0;
   }
 
+  .date,
+  .rowMain,
   .amounts {
-    justify-content: flex-end;
-    text-align: right;
-    flex-direction: column;
-    align-items: flex-end;
+    grid-column: auto;
+    grid-row: auto;
   }
 }
 
@@ -245,8 +271,8 @@
 }
 
 .creditLine {
-  font-size: 0.75rem;
-  color: rgba(16, 24, 40, 0.55);
+  font-size: 0.8rem;
+  color: #5c616c;
 }
 
 .creditIn {

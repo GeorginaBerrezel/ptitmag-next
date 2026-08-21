@@ -1,12 +1,15 @@
 import { Link } from '@/i18n/navigation'
-import { buildAccountStatement } from '@/lib/members/account-movements'
+import {
+  buildAccountStatement,
+  buildCreditHistory,
+} from '@/lib/members/account-movements'
 import {
   getAccountPreview,
   isAccountPreviewMode,
   type AccountPreviewMode,
 } from '@/lib/members/account-preview'
 import { formatCreditChf } from '@/lib/members/credit'
-import { creditEventTitle, type CreditEvent } from '@/lib/members/credit-ledger'
+import { CREDIT_LEDGER_STARTED_ON, type CreditEvent } from '@/lib/members/credit-ledger'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import styles from './account-movements.module.css'
 
@@ -43,7 +46,11 @@ export default function AccountMovementsSection({
     preview?.orders ?? orders,
     preview?.creditBalance ?? creditBalance,
   )
-  const ledger = preview?.events ?? events
+  const history = buildCreditHistory(
+    preview?.orders ?? orders,
+    preview?.events ?? events,
+  )
+  const hasLegacyUsages = history.some(line => line.fromClosedOrder)
   const loc = locale as 'fr' | 'en'
 
   return (
@@ -63,6 +70,7 @@ export default function AccountMovementsSection({
             <PreviewLink locale={loc} mode="avoir" current={previewMode} label="Avec avoir" />
             <PreviewLink locale={loc} mode="encours" current={previewMode} label="En cours" />
             <PreviewLink locale={loc} mode="complet" current={previewMode} label="Complet" />
+            <PreviewLink locale={loc} mode="deductions" current={previewMode} label="Déductions d’avant" />
             <PreviewLink locale={loc} mode="vide" current={previewMode} label="Vide" />
           </span>
         </div>
@@ -76,6 +84,8 @@ export default function AccountMovementsSection({
           <PreviewLink locale={loc} mode="encours" current={previewMode} label="commande en cours" />
           {' · '}
           <PreviewLink locale={loc} mode="complet" current={previewMode} label="les deux" />
+          {' · '}
+          <PreviewLink locale={loc} mode="deductions" current={previewMode} label="déductions d’avant" />
           {' · '}
           <PreviewLink locale={loc} mode="vide" current={previewMode} label="compte vide" />
         </p>
@@ -106,32 +116,41 @@ export default function AccountMovementsSection({
         )}
       </div>
 
-      {ledger.length === 0 ? (
+      {hasLegacyUsages && (
+        <p className={styles.legacyNotice}>
+          Avant le {CREDIT_LEDGER_STARTED_ON}, le détail des dépôts n&apos;apparaît pas ici.
+          Vous voyez uniquement l&apos;avoir déjà utilisé sur vos commandes clôturées.
+        </p>
+      )}
+
+      {history.length === 0 ? (
         <p className={styles.empty}>
           Pas encore de mouvement d&apos;avoir. Le solde ci-dessus, s&apos;il y en a un,
           vient des saisies précédentes.
         </p>
       ) : (
-        <details className={styles.details} open={Boolean(preview) || ledger.length <= 6}>
+        <details className={styles.details} open={Boolean(preview) || history.length <= 6}>
           <summary className={styles.summaryToggle}>
             Historique de l&apos;avoir
-            <span className={styles.summaryToggleMeta}>{ledger.length}</span>
+            <span className={styles.summaryToggleMeta}>{history.length}</span>
           </summary>
           <ul className={styles.list}>
-            {ledger.map(item => (
+            {history.map(item => (
               <li key={item.id} className={styles.row}>
-                <span className={styles.date}>{formatDate(item.created_at)}</span>
+                <span className={styles.date}>{formatDate(item.date)}</span>
                 <div className={styles.rowMain}>
-                  <span className={styles.supplier}>{creditEventTitle(item.kind)}</span>
+                  <span className={styles.supplier}>{item.title}</span>
                   {item.note && <span className={styles.creditLine}>{item.note}</span>}
                 </div>
                 <span className={styles.amounts}>
                   <span className={item.amount >= 0 ? styles.creditIn : styles.payable}>
                     {formatSigned(item.amount)}
                   </span>
-                  <span className={styles.creditLine}>
-                    solde {formatCreditChf(item.balance_after)}
-                  </span>
+                  {item.balanceAfter != null ? (
+                    <span className={styles.creditLine}>
+                      solde {formatCreditChf(item.balanceAfter)}
+                    </span>
+                  ) : null}
                 </span>
               </li>
             ))}

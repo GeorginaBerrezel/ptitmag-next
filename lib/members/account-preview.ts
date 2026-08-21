@@ -1,7 +1,7 @@
 import type { CreditEvent } from '@/lib/members/credit-ledger'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 
-export const ACCOUNT_PREVIEW_MODES = ['vide', 'avoir', 'encours', 'complet'] as const
+export const ACCOUNT_PREVIEW_MODES = ['vide', 'avoir', 'encours', 'complet', 'deductions'] as const
 export type AccountPreviewMode = (typeof ACCOUNT_PREVIEW_MODES)[number]
 
 export function isAccountPreviewMode(value: string | undefined): value is AccountPreviewMode {
@@ -80,6 +80,64 @@ export function getAccountPreview(mode: AccountPreviewMode): {
     }
   }
 
+  if (mode === 'deductions') {
+    return {
+      label: 'Déductions d’avant (sans dépôt inventé)',
+      creditBalance: 97.61,
+      events: [],
+      orders: [
+        {
+          id: 'demo-confirmee',
+          status: 'confirmed',
+          total: 100.41,
+          created_at: '2026-08-18T10:00:00.000Z',
+          supplier: { id: 's-viandes', name: 'Biopartner – Viandes fraîches', type: 'grossiste_bio' },
+          order_items: [line('i-viande', 'Viande', 100.41)],
+        },
+        {
+          id: 'demo-c1',
+          status: 'closed',
+          total: 0,
+          credit_applied: 222.62,
+          created_at: '2026-08-04T10:00:00.000Z',
+          closed_at: '2026-08-04T16:00:00.000Z',
+          supplier: { id: 's-bio', name: 'Biopartner – Général', type: 'grossiste_bio' },
+          order_items: [line('i-c1', 'Commande générale', 222.62)],
+        },
+        {
+          id: 'demo-c2',
+          status: 'closed',
+          total: 0,
+          credit_applied: 15.39,
+          created_at: '2026-06-24T10:00:00.000Z',
+          closed_at: '2026-06-24T16:00:00.000Z',
+          supplier: { id: 's-emb', name: 'Biopartner – Grands emballages', type: 'grossiste_bio' },
+          order_items: [line('i-c2', 'Grands emballages', 15.39)],
+        },
+        {
+          id: 'demo-c3',
+          status: 'closed',
+          total: 0,
+          credit_applied: 72.08,
+          created_at: '2026-06-24T11:00:00.000Z',
+          closed_at: '2026-06-24T17:00:00.000Z',
+          supplier: { id: 's-bio', name: 'Biopartner – Général', type: 'grossiste_bio' },
+          order_items: [line('i-c3', 'Commande générale', 72.08)],
+        },
+        {
+          id: 'demo-c4',
+          status: 'closed',
+          total: 176.54,
+          credit_applied: 5.8,
+          created_at: '2026-06-11T10:00:00.000Z',
+          closed_at: '2026-06-11T16:00:00.000Z',
+          supplier: { id: 's-bio', name: 'Biopartner – Général', type: 'grossiste_bio' },
+          order_items: [line('i-c4', 'Commande générale', 182.34)],
+        },
+      ],
+    }
+  }
+
   return {
     label: 'Avoir + dépôt + clôture + en cours',
     creditBalance: 15,
@@ -91,6 +149,16 @@ export function getAccountPreview(mode: AccountPreviewMode): {
         created_at: '2026-08-18T10:00:00.000Z',
         supplier: { id: 's-graines', name: "Graines d'Avenir", type: 'local' },
         order_items: [line('i-pain', 'Craquants noisettes', 15)],
+      },
+      {
+        id: 'demo-old-close',
+        status: 'closed',
+        total: 0,
+        credit_applied: 22.62,
+        created_at: '2026-07-02T10:00:00.000Z',
+        closed_at: '2026-07-05T16:00:00.000Z',
+        supplier: { id: 's-bio', name: 'Biopartner – Général', type: 'grossiste_bio' },
+        order_items: [line('i-old', 'Aliments pour chat', 22.62)],
       },
     ],
     events: [
