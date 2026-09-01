@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type AnimationEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type AnimationEvent } from 'react';
 import { Menu, X } from 'lucide-react';
 import { APP_SCROLL_ID } from '@/lib/scroll'
 import {Link, usePathname} from '@/i18n/navigation';
@@ -43,6 +43,27 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
     if (scrollRoot) scrollRoot.style.overflow = '';
   }, [pathname]);
 
+  const openMenu = useCallback(() => {
+    setRendered(true);
+    setOpen(true);
+  }, []);
+
+  const closeMenu = useCallback(({ instant = false }: { instant?: boolean } = {}) => {
+    if (!open && !rendered) return;
+    burgerRef.current?.focus();
+    if (instant || prefersReducedMotion()) {
+      setOpen(false);
+      setRendered(false);
+      return;
+    }
+    setOpen(false);
+  }, [open, rendered]);
+
+  function toggleMenu() {
+    if (open) closeMenu();
+    else openMenu();
+  }
+
   useEffect(() => {
     if (!open) return;
 
@@ -74,28 +95,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [open]);
-
-  function openMenu() {
-    setRendered(true);
-    setOpen(true);
-  }
-
-  function closeMenu({ instant = false }: { instant?: boolean } = {}) {
-    if (!open && !rendered) return;
-    burgerRef.current?.focus();
-    if (instant || prefersReducedMotion()) {
-      setOpen(false);
-      setRendered(false);
-      return;
-    }
-    setOpen(false);
-  }
-
-  function toggleMenu() {
-    if (open) closeMenu();
-    else openMenu();
-  }
+  }, [open, closeMenu]);
 
   function onOverlayAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
     if (e.target !== e.currentTarget) return;
