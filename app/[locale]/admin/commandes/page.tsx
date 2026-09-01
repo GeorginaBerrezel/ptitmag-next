@@ -13,6 +13,7 @@ import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
 import { getMemberDisplayName, groupOrdersByMember, sumOrderTotals } from '@/lib/admin/member-display'
 import { computeMemberCloseCredits } from '@/lib/orders/compute-member-close-credits'
 import { CLOSURE_ADD_LINE_LABEL } from '@/lib/orders/closure-add-label'
+import { filterLatestClosedBatch } from '@/lib/admin/member-order-notifications'
 import {
   adminOrdersModeAllowsItemRemoval,
   canAdminRemoveOrderItem,
@@ -46,6 +47,7 @@ type AdminOrder = {
   total: number
   credit_applied?: number
   created_at: string
+  closed_at?: string | null
   archived_at?: string | null
   member: {
     full_name: string | null
@@ -115,6 +117,7 @@ export default function AdminCommandesPage({
   const [removingAggregateKey, setRemovingAggregateKey] = useState<string | null>(null)
   const [closingMemberId, setClosingMemberId] = useState<string | null>(null)
   const [notifyingMemberId, setNotifyingMemberId] = useState<string | null>(null)
+  const [resendingClosureMemberId, setResendingClosureMemberId] = useState<string | null>(null)
   const [addingProductMemberId, setAddingProductMemberId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivableCount, setArchivableCount] = useState(0)
@@ -330,12 +333,40 @@ export default function AdminCommandesPage({
       ))
 
       if (data.emailSent === false) {
-        alert('Commandes clôturées, mais l\'email n\'a pas pu être envoyé.')
+        alert('Commandes clôturées, mais l\'email n\'a pas pu être envoyé.\n\nTu peux le renvoyer depuis l\'onglet Clôturées → « Renvoyer email ».')
       }
     } catch (e) {
       alert((e as Error).message)
     } finally {
       setClosingMemberId(null)
+    }
+  }
+
+  async function resendMemberClosureEmail(memberId: string, memberName: string, orderIds: string[]) {
+    const ok = window.confirm(
+      `Renvoyer l'email de clôture à ${memberName} ?\n\n` +
+        `${orderIds.length} commande${orderIds.length > 1 ? 's' : ''} du dernier lot. ` +
+        'Même récapitulatif qu\'à la clôture (totaux et avoir inchangés).',
+    )
+    if (!ok) return
+
+    setResendingClosureMemberId(memberId)
+    try {
+      const res = await fetch('/api/admin/orders/resend-closure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, orderIds }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de l\'envoi.')
+
+      if (data.emailSent === false) {
+        alert('Email non envoyé (SMTP ou adresse introuvable). Réessaie dans un moment.')
+      }
+    } catch (e) {
+      alert((e as Error).message)
+    } finally {
+      setResendingClosureMemberId(null)
     }
   }
 
@@ -556,7 +587,7 @@ export default function AdminCommandesPage({
             {mode === 'toClose' &&
               'Livrées : ajuster qté ou prix si besoin, puis « Clôturer tout ». L\'avoir est déduit une seule fois sur le total membre.'}
             {mode === 'closed' &&
-              'Commandes finalisées. Montant et avoir définitifs. Utilise « Historique » pour les filtres avancés.'}
+              'Commandes finalisées. Montant et avoir définitifs. Si l\'email a échoué : « Renvoyer email » sur la fiche. « Historique » pour les filtres avancés.'}
             {mode === 'history' &&
               'Historique complet. Filtre par statut (dont Clôturées) pour retrouver une commande.'}
           </p>
@@ -833,7 +864,7 @@ export default function AdminCommandesPage({
         </div>
       )}
 
-      {!loading && !error && (mode === 'toClose' || mode === 'action') && filtered.length > 0 && (
+      {!loading && !error && (mode === 'toClose' || mode === 'action' || mode === 'closed') && filtered.length > 0 && (
         <p className="admin-order-groups__hint">
           {mode === 'action' && (
             <>
@@ -845,6 +876,12 @@ export default function AdminCommandesPage({
             <>
               <strong>✉ Email retrait</strong> puis <strong>✓ Clôturer tout</strong> : un seul email par membre,
               tous fournisseurs regroupés.
+            </>
+          )}
+          {mode === 'closed' && (
+            <>
+              <strong>✉ Renvoyer email</strong> : si l&apos;envoi a échoué à la clôture, le membre n&apos;a pas reçu
+              le récap (commandes déjà clôturées, totaux inchangés).
             </>
           )}
         </p>
@@ -890,6 +927,16 @@ export default function AdminCommandesPage({
                 : null
             const isNotifying = notifyingMemberId === group.memberId
             const isClosingMember = closingMemberId === group.memberId
+            const isResendingClosure = resendingClosureMemberId === group.memberId
+            const showClosureResend =
+              mode === 'closed' || (mode === 'history' && filterStatus === 'closed')
+            const latestClosedIds = showClosureResend
+              ? filterLatestClosedBatch(
+                  group.orders
+                    .filter(o => o.status === 'closed')
+                    .map(o => ({ id: o.id, closed_at: o.closed_at, created_at: o.created_at })),
+                ).map(o => o.id)
+              : []
 
             return (
               <details
@@ -965,6 +1012,21 @@ export default function AdminCommandesPage({
                             {isClosingMember ? 'Clôture…' : `✓ Clôturer tout (${deliveredCount})`}
                           </button>
                         )}
+                      </div>
+                    )}
+                    {showClosureResend && latestClosedIds.length > 0 && (
+                      <div className="admin-order-group__actions">
+                        <button
+                          type="button"
+                          className="admin-btn admin-order-group__btn admin-order-group__btn--notify"
+                          disabled={isResendingClosure}
+                          onClick={e => {
+                            e.preventDefault()
+                            void resendMemberClosureEmail(group.memberId, group.memberName, latestClosedIds)
+                          }}
+                        >
+                          {isResendingClosure ? 'Envoi…' : '✉ Renvoyer email'}
+                        </button>
                       </div>
                     )}
                   </div>

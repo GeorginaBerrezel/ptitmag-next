@@ -17,11 +17,13 @@ export type MemberDeliveredOrder = {
 }
 
 export type MemberClosedOrderGroup = {
+  orderId: string
   supplierName: string
   items: OrderLineForEmail[]
   grossTotal: number
   creditApplied: number
   total: number
+  closed_at: string | null
 }
 
 const ORDER_SELECT = `
@@ -106,4 +108,75 @@ export async function fetchMemberDeliveredOrders(
       }
     })
     .filter((o): o is MemberDeliveredOrder => o != null)
+}
+
+const CLOSED_ORDER_SELECT = `
+  id, status, total, credit_applied, closed_at, created_at, member_id,
+  supplier:suppliers(name),
+  order_items(
+    quantity, unit_price, cancelled_at,
+    product:products(name, unit)
+  )
+`
+
+/** Jour calendaire à St-Romain (pour regrouper un lot de clôture). */
+export function zurichCalendarDay(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Europe/Zurich' })
+}
+
+/** Dernier lot clôturé : mêmes commandes que Joel a clôturées le même jour (Zurich). */
+export function filterLatestClosedBatch<T extends { closed_at?: string | null; created_at?: string | null }>(
+  orders: T[],
+): T[] {
+  if (orders.length === 0) return []
+  const withDay = orders.map(order => ({
+    order,
+    day: zurichCalendarDay(order.closed_at || order.created_at || ''),
+  }))
+  const latestDay = withDay.reduce((max, row) => (row.day > max ? row.day : max), '')
+  return withDay.filter(row => row.day === latestDay).map(row => row.order)
+}
+
+export async function fetchMemberClosedOrdersForResend(
+  admin: SupabaseClient,
+  memberId: string,
+  orderIds?: string[],
+): Promise<MemberClosedOrderGroup[]> {
+  let query = admin
+    .from('orders')
+    .select(CLOSED_ORDER_SELECT)
+    .eq('member_id', memberId)
+    .eq('status', ORDER_STATUS.closed)
+    .is('archived_at', null)
+    .order('closed_at', { ascending: true })
+
+  const uniqueIds = [...new Set((orderIds ?? []).map(id => id.trim()).filter(Boolean))]
+  if (uniqueIds.length > 0) {
+    query = query.in('id', uniqueIds)
+  }
+
+  const { data: orders, error } = await query
+  if (error) throw new Error(error.message)
+
+  const mapped = (orders ?? [])
+    .map(order => {
+      const items = mapActiveItems(order.order_items as unknown as RawOrderItem[] | null)
+      if (items.length === 0) return null
+      const creditApplied = Number(order.credit_applied) || 0
+      const total = Number(order.total) || 0
+      return {
+        orderId: order.id as string,
+        supplierName:
+          (order.supplier as unknown as { name: string } | null)?.name ?? 'Fournisseur',
+        items,
+        grossTotal: total + creditApplied,
+        creditApplied,
+        total,
+        closed_at: (order.closed_at as string | null) ?? null,
+      } satisfies MemberClosedOrderGroup
+    })
+    .filter((o): o is MemberClosedOrderGroup => o != null)
+
+  if (uniqueIds.length > 0) return mapped
+  return filterLatestClosedBatch(mapped)
 }
