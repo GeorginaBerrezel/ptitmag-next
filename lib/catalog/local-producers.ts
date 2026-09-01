@@ -25,7 +25,7 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     location: 'Icôgne',
     products: 'Œufs, fromages de chèvre, jambon cru',
     certification: 'Bio Suisse',
-    description: 'Œufs, fromages de chèvre et jambon cru — élevage bio valaisan.',
+    description: 'Œufs, fromages de chèvre et jambon cru. Élevage bio valaisan.',
     emoji: '🥚',
     website: 'https://www.lafermetteadidi.com',
     // Logo retiré : fichier 16×16 px trop petit → flou. Réactiver quand Joel envoie un logo HD.
@@ -66,7 +66,7 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
   },
   {
     slug: 'gregory-sermier',
-    displayName: "Alpage de Tsalan — Grégory Sermier",
+    displayName: "Alpage de Tsalan · Grégory Sermier",
     aliases: [
       "Alpage de Tsalan - Grégory Sermier - Arbaz - Fromages d'Alpage au lait de vache",
       'Grégory Sermier',

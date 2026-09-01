@@ -60,7 +60,7 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
         href="/mon-compte"
         locale={locale}
         className="nav-account-chip"
-        aria-label={`${t('monCompte')} — ${displayName}`}
+        aria-label={`${t('monCompte')} : ${displayName}`}
         aria-current={isAccountPage ? 'page' : undefined}
       >
         <Avatar

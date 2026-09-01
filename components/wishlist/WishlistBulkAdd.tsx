@@ -130,7 +130,7 @@ export default function WishlistBulkAdd({ products, lastQuantities, locale }: Pr
       </div>
       <p className={styles.hint}>
         {orderable.length > 0
-          ? `${orderableLabel} — quantités selon votre dernière commande. Modifiables dans le panier.`
+          ? `${orderableLabel}. Quantités selon votre dernière commande, modifiables dans le panier.`
           : 'Aucun produit disponible à la commande pour le moment (fournisseurs fermés).'}
       </p>
 
@@ -146,7 +146,7 @@ export default function WishlistBulkAdd({ products, lastQuantities, locale }: Pr
       {done != null && done.skipped.length > 0 && (
         <p className={styles.skippedNote}>
           {done.skipped.length} produit{done.skipped.length > 1 ? 's' : ''} non ajouté
-          {done.skipped.length > 1 ? 's' : ''} — commandes fermées ou produit indisponible.
+          {done.skipped.length > 1 ? 's' : ''} (commandes fermées ou produit indisponible).
         </p>
       )}
 

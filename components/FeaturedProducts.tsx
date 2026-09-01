@@ -1,3 +1,4 @@
+import { Clock, LogIn, ShoppingCart } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -95,7 +96,11 @@ export default async function FeaturedProducts({ locale }: Props) {
             fontWeight: 800,
             color: '#0E1726',
             whiteSpace: 'nowrap',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
           }}>
+            <Clock size={18} strokeWidth={2} aria-hidden="true" />
             {t('title')}
           </h2>
           <p style={{
@@ -127,7 +132,8 @@ export default async function FeaturedProducts({ locale }: Props) {
                 flexShrink: 0,
               }}
             >
-              🛒 {t('order_btn')}
+              <ShoppingCart size={16} strokeWidth={2} aria-hidden="true" />
+              {t('order_btn')}
             </Link>
           ) : isLoggedIn ? (
             <Link
@@ -169,7 +175,8 @@ export default async function FeaturedProducts({ locale }: Props) {
                 flexShrink: 0,
               }}
             >
-              🔐 {t('login_btn')}
+              <LogIn size={16} strokeWidth={2} aria-hidden="true" />
+              {t('login_btn')}
             </Link>
           )}
         </div>
@@ -200,10 +207,14 @@ export default async function FeaturedProducts({ locale }: Props) {
                   padding: '0.25rem 0.75rem',
                   fontSize: '0.68rem',
                   fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
+                  letterSpacing: '0.01em',
+                  textTransform: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
                 }}>
-                  ⏳ {first.supplier_name}
+                  <Clock size={12} strokeWidth={2.5} aria-hidden="true" />
+                  {first.supplier_name}
                 </div>
 
                 <div style={{ padding: '0.75rem 0.9rem', display: 'flex', flexDirection: 'column', gap: '0.45rem', flex: 1 }}>

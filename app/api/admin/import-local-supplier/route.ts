@@ -87,12 +87,12 @@ export async function POST(request: NextRequest) {
 
   const dupNote =
     duplicatesMerged > 0
-      ? ` ${duplicatesMerged} ligne${duplicatesMerged > 1 ? 's' : ''} en double dans le fichier (même nom) — la dernière a été gardée.`
+      ? ` ${duplicatesMerged} ligne${duplicatesMerged > 1 ? 's' : ''} en double dans le fichier (même nom). La dernière a été gardée.`
       : ''
 
   return NextResponse.json({
     success: true,
-    message: `${config.supplierName} — ${count} produit${count > 1 ? 's' : ''} synchronisé${count > 1 ? 's' : ''} (${inserted} nouveau${inserted > 1 ? 'x' : ''}, ${updated} mis à jour).${dupNote} Les produits absents du fichier restent en base — masquez-les dans Fournisseurs si besoin.`,
+    message: `${config.supplierName} : ${count} produit${count > 1 ? 's' : ''} synchronisé${count > 1 ? 's' : ''} (${inserted} nouveau${inserted > 1 ? 'x' : ''}, ${updated} mis à jour).${dupNote} Les produits absents du fichier restent en base. Masquez-les dans Fournisseurs si besoin.`,
     stats: {
       productsCreated: inserted,
       productsUpdated: updated,

@@ -205,8 +205,8 @@
 }
 
 .stepEmoji {
-  font-size: 1.25rem;
-  line-height: 1;
+  display: block;
+  color: var(--header-bg, #486B47);
 }
 
 .stepTitle {

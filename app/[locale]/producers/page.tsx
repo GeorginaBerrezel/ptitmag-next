@@ -42,14 +42,7 @@ export default async function ProducersPage({
         color: '#fff',
         marginBottom: '3rem',
       }}>
-        <p className="page-hero-kicker" style={{
-          margin: '0 0 0.5rem',
-          fontSize: '0.78rem',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-          opacity: 0.9,
-        }}>
+        <p className="page-hero-kicker">
           Le p&apos;tit mag · St-Romain (Ayent)
         </p>
         <h1 style={{ margin: '0 0 1rem', fontSize: 'clamp(1.5rem, 4vw, 2.1rem)', fontWeight: 800 }}>

@@ -914,9 +914,9 @@ time {
 
 .home-menu-preview-item h3 {
   margin: 0 0 0.25rem;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .home-menu-preview-name {

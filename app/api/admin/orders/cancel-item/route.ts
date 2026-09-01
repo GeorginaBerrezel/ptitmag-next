@@ -192,10 +192,10 @@ export async function POST(request: NextRequest) {
     remainingItems: remaining,
     message: orderFullyCancelled
       ? emailSent
-        ? 'Dernier produit retiré — commande annulée. Email envoyé au membre.'
-        : 'Dernier produit retiré — commande annulée. Email non envoyé (adresse introuvable).'
+        ? 'Dernier produit retiré. Commande annulée. Email envoyé au membre.'
+        : 'Dernier produit retiré. Commande annulée. Email non envoyé (adresse introuvable).'
       : emailSent
-        ? 'Produit retiré — total recalculé. Email envoyé au membre.'
-        : 'Produit retiré — total recalculé. Email non envoyé (adresse introuvable).',
+        ? 'Produit retiré. Total recalculé. Email envoyé au membre.'
+        : 'Produit retiré. Total recalculé. Email non envoyé (adresse introuvable).',
   })
 }

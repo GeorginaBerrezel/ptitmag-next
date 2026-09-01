@@ -40,8 +40,8 @@ export async function PATCH(request: NextRequest) {
       success: true,
       ...result,
       message: body.reset
-        ? `Ligne rétablie — total commande CHF ${result.newTotal.toFixed(2)}.`
-        : `Ligne mise à jour — total commande CHF ${result.newTotal.toFixed(2)}.`,
+        ? `Ligne rétablie. Total commande CHF ${result.newTotal.toFixed(2)}.`
+        : `Ligne mise à jour. Total commande CHF ${result.newTotal.toFixed(2)}.`,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue.'

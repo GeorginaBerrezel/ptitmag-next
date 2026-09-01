@@ -1,9 +1,10 @@
 import { Link } from '@/i18n/navigation';
+import { ClipboardList, Package, Search, ShoppingCart } from 'lucide-react';
 import { SHOP_IMAGES } from '@/lib/site-images';
 import styles from './Hero.module.css';
 import type { StepDetail, TrialContent } from '@/app/[locale]/page';
 
-const STEP_EMOJIS = ['🔍', '📝', '🛒', '📦'];
+const STEP_ICONS = [Search, ClipboardList, ShoppingCart, Package] as const;
 
 type HeroProps = {
   locale: 'fr' | 'en';
@@ -80,16 +81,21 @@ export function Hero({ locale, t, stepsDetail, trialContent }: HeroProps) {
         <h2 className={styles.howTitle}>{t('home.how_title')}</h2>
 
         <div className={styles.stepsGrid}>
-          {stepsDetail.map((step, i) => (
+          {stepsDetail.map((step, i) => {
+            const StepIcon = STEP_ICONS[i]
+            return (
             <div key={i} className={styles.stepCard}>
               <div className={styles.stepHeader}>
                 <div className={styles.stepNumber}>{i + 1}</div>
-                <span className={styles.stepEmoji}>{STEP_EMOJIS[i] ?? '→'}</span>
+                {StepIcon ? (
+                  <StepIcon className={styles.stepEmoji} size={20} strokeWidth={2} aria-hidden="true" />
+                ) : null}
               </div>
               <h3 className={styles.stepTitle}>{step.title}</h3>
               <p className={styles.stepDesc}>{step.desc}</p>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* ── Bannière CTA essai gratuit ── */}

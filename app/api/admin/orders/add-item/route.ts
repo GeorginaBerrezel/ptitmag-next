@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       memberId,
     })
 
-    let message = `« ${result.productName} » ajouté (1 ${result.unit}) — CHF ${result.unitPrice.toFixed(2)} / unité, sans majoration.`
+    let message = `« ${result.productName} » ajouté (1 ${result.unit}). CHF ${result.unitPrice.toFixed(2)} / unité, sans majoration.`
     if (result.createdOrder) {
       message += ` Nouvelle commande livrée pour ${result.supplierName}.`
     } else if (!result.sameSupplierAsContext) {

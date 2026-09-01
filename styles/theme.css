@@ -219,8 +219,22 @@
   margin-top: 3rem;
   padding-block: 2rem;
   background: var(--surface-solid);
-  border-top: 1px solid var(--border);
+  border-top: 3px solid var(--header-bg);
   color: var(--text);
+}
+.footer-brand{
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-size: 1.28rem;
+  line-height: 1.15;
+  color: var(--header-bg);
+}
+.footer-brand-sub{
+  margin: 0.2rem 0 0.65rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--muted);
 }
 .footer .footer-inner{
   display: grid;

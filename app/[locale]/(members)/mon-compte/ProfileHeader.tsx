@@ -145,7 +145,7 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
           )}
           {saving && <LoadingOverlay message={savingMessage} live="assertive" />}
           <span className="sr-only">
-            Choisir une photo de profil — JPEG, PNG ou WebP, maximum {AVATAR_MAX_MB} Mo
+            Choisir une photo de profil (JPEG, PNG ou WebP, maximum {AVATAR_MAX_MB} Mo)
           </span>
         </label>
         <input
@@ -182,7 +182,7 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
         )}
         {removeAvatar && (
           <p className={styles.removePending} role="status">
-            Photo retirée — cliquez sur Enregistrer pour confirmer.
+            Photo retirée. Cliquez sur Enregistrer pour confirmer.
           </p>
         )}
       </div>
@@ -248,7 +248,7 @@ export default function ProfileHeader({ profile }: { profile: Profile | null }) 
       {success && <p role="status" className={styles.success}>✓ Profil mis à jour !</p>}
 
       <p className={styles.hint}>
-        Formats acceptés : JPEG, PNG, WebP — taille max. {AVATAR_MAX_MB} Mo.
+        Formats acceptés : JPEG, PNG, WebP. Taille max. {AVATAR_MAX_MB} Mo.
         {hasPhoto
           ? ' Rien n\'est modifié tant que vous n\'avez pas cliqué sur Enregistrer.'
           : ' Cliquez sur l\'avatar ou « Changer la photo » pour en ajouter une.'}

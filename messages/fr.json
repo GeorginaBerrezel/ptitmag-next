@@ -1,6 +1,6 @@
 {
   "seo": {
-    "title": "Le p’tit mag — Magasin associatif à St-Romain (Ayent), Valais",
+    "title": "Le p’tit mag : magasin associatif à St-Romain (Ayent), Valais",
     "description": "Magasin associatif sans but lucratif à St-Romain (Ayent), Valais. Produits locaux et bio au prix revendeur, sans marge. Ouvert vendredi et samedi.",
     "ogAlt": "Le p’tit mag, magasin associatif bio à St-Romain (Ayent)"
   },
@@ -18,7 +18,7 @@
     "cart": "Panier",
     "wishlist": "Mes favoris",
     "pendingActivation": "Activation en cours",
-    "pendingTitle": "Votre adhésion est en cours de validation — le catalogue sera accessible très bientôt",
+    "pendingTitle": "Votre adhésion est en cours de validation. Le catalogue sera accessible très bientôt.",
     "menuOpen": "Ouvrir le menu",
     "menuClose": "Fermer le menu",
     "menu": "Menu",
@@ -37,11 +37,11 @@
   "home": {
     "title": "Le p’tit mag : Consommer autrement, ensemble",
     "subtitle": "Commandes groupées, prix revendeur, sans marge.",
-    "subtitle_hint": "Vous payez ce que le magasin paie à ses fournisseurs — pas de marge commerciale.",
+    "subtitle_hint": "Vous payez ce que le magasin paie à ses fournisseurs, sans marge commerciale.",
     "objective": "Objectif : faciliter une consommation locale et éthique, hors logique marchande, en favorisant circuits courts, transparence et entraide.",
     "block1_title": "Magasin associatif sans but lucratif permettant à ses membres de faire l’entier de leur approvisionnement en produits alimentaires et ménagers :",
     "block1_text": "Auprès de producteurs locaux → de grossistes bio → au prix revendeur, sans marge → dans une ambiance conviviale.",
-    "block2_text": "Commandez depuis chez vous et retirez vos achats dans notre local à St-Romain. On se retrouve, on discute, on joue aux cartes — un vrai moment de vie associative !",
+    "block2_text": "Commandez depuis chez vous et retirez vos achats dans notre local à St-Romain. On se retrouve, on discute, on joue aux cartes. Un vrai moment de vie associative !",
     "block3_title": "Envie d’en savoir plus ?",
     "block3_text": "Rue de l’Église 2, St-Romain (vendredi 16h30–18h30, samedi 9h–12h) | Joël : 078 866 42 43 | info@leptitmag.org",
     "how_title": "Comment ça marche",
@@ -61,11 +61,11 @@
       },
       {
         "title": "Retirez au local",
-        "desc": "Venez chercher vos achats à St-Romain (vendredi 16h30–18h30, samedi 9h–12h). On se retrouve, on discute, on joue aux cartes — bien plus qu'un simple retrait !"
+        "desc": "Venez chercher vos achats à St-Romain (vendredi 16h30–18h30, samedi 9h–12h). On se retrouve, on discute, on joue aux cartes. Bien plus qu'un simple retrait !"
       }
     ],
     "trial_title": "Créez votre compte et commandez",
-    "trial_text": "Inscrivez-vous gratuitement, parcourez le catalogue et passez vos commandes. Si ça vous plaît, vous adhérez à l'association et cotisez. Sinon, vous supprimez votre compte en un clic — sans prise de tête.",
+    "trial_text": "Inscrivez-vous gratuitement, parcourez le catalogue et passez vos commandes. Si ça vous plaît, vous adhérez à l'association et cotisez. Sinon, vous supprimez votre compte en un clic, sans prise de tête.",
     "trial_cta": "Je crée mon compte →",
     "trial_note": "✓ Inscription gratuite  ·  ✓ Catalogue complet  ·  ✓ Adhésion quand vous le souhaitez"
   },
@@ -77,9 +77,9 @@
     "feesTitle": "Cotisations indicatives",
     "feesIntro": "Les montants ci-dessous sont des repères pour le statut Terre (prix juste, sans marge). La cotisation retenue est adaptée à votre situation et enregistrée dans votre fiche membre après validation de l’adhésion.",
     "regularTitle": "Cotisation ordinaire",
-    "regularText": "Par adulte — statut Terre : prix juste (sans marge) sur le catalogue.",
+    "regularText": "Par adulte, statut Terre : prix juste (sans marge) sur le catalogue.",
     "softTitle": "Cotisation douce",
-    "softText": "Tarif solidaire — même statut Terre, mêmes droits d’accès.",
+    "softText": "Tarif solidaire : même statut Terre, mêmes droits d’accès.",
     "regular": "Cotisation ordinaire : CHF 30.- par mois et par adulte",
     "soft": "Cotisation douce : CHF 15.- par mois et par adulte",
     "don": "Don récurrent possible",
@@ -100,7 +100,7 @@
         "text": "Convaincu·e ? Adhère à l’association en nous transmettant le PDF complété (ou via un formulaire). Tu recevras un e-mail de notre part avec la suite."
       }
     ],
-    "seoTitle": "Adhésion — Le p’tit mag",
+    "seoTitle": "Adhésion · Le p’tit mag",
     "seoDescription": "Rejoindre l’association Le p’tit mag: cotisation, fonctionnement et objectifs.",
     "whyTitle": "Pourquoi adhérer ?",
     "why": {
@@ -122,7 +122,7 @@
       "communityText": "Créer du lien au village: échanges, entraide, moments conviviaux au local."
     },
     "cta_title": "Commencez dès maintenant",
-    "cta_text": "Créez votre compte gratuitement, parcourez le catalogue et passez vos commandes. Si ça vous convient, vous adhérez à l'association et cotisez. Sinon, vous supprimez votre compte — aucune obligation.",
+    "cta_text": "Créez votre compte gratuitement, parcourez le catalogue et passez vos commandes. Si ça vous convient, vous adhérez à l'association et cotisez. Sinon, vous supprimez votre compte. Aucune obligation.",
     "cta_button": "Créer mon compte →"
   },
   "producers": {
@@ -130,7 +130,7 @@
     "intro": "Nos produits proviennent en priorité de producteurs locaux, complétés par des grossistes en produits bio.",
     "local_title": "Producteurs locaux",
     "wholesale_title": "Grossistes / fournisseurs bio",
-    "seoTitle": "Fournisseurs — Le p’tit mag",
+    "seoTitle": "Fournisseurs · Le p’tit mag",
     "seoDescription": "Informations pour les producteurs et fournisseurs du p’tit mag (Ayent).",
     "howTitle": "Comment proposer vos produits",
     "how1": "Contactez-nous via la page Contact (téléphone ou e-mail).",
@@ -153,7 +153,7 @@
     },
     "signal_info": "Un groupe Signal existe pour les membres. Laissez votre téléphone si vous souhaitez être ajouté ultérieurement.",
     "consent": "J’accepte d’être contacté·e via Signal dans le cadre des activités de l’association.",
-    "seoTitle": "Contact — Le p’tit mag",
+    "seoTitle": "Contact · Le p’tit mag",
     "seoDescription": "Contactez l’association Le p’tit mag (St-Romain, Ayent).",
     "intro": "Passez au local aux horaires d’ouverture, appelez-nous ou écrivez-nous.",
     "formNote": "Le formulaire arrivera ensuite. Pour l’instant, contactez-nous par téléphone ou par e-mail."
@@ -178,7 +178,7 @@
     "hoursNote": "Horaires habituels (susceptibles d’évoluer)."
   },
   "featured": {
-    "title": "⏳ Produits éphémères",
+    "title": "Produits éphémères",
     "subtitle": "Des produits rares, disponibles pour quelques jours seulement. Commandez vite !",
     "deadline": "Commande jusqu'au",
     "order_btn": "Commander",

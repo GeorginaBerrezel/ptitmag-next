@@ -1,6 +1,6 @@
 {
   "seo": {
-    "title": "Le p’tit mag — Community grocery in St-Romain (Ayent), Valais",
+    "title": "Le p’tit mag: community grocery in St-Romain (Ayent), Valais",
     "description": "Non-profit community grocery in St-Romain (Ayent), Valais. Local and organic products at reseller price, with zero margin. Open Friday and Saturday.",
     "ogAlt": "Le p’tit mag, community grocery in St-Romain (Ayent)"
   },
@@ -18,7 +18,7 @@
     "cart": "Cart",
     "wishlist": "My favorites",
     "pendingActivation": "Activation pending",
-    "pendingTitle": "Your membership is being validated — catalogue access coming soon",
+    "pendingTitle": "Your membership is being validated. Catalogue access is coming soon.",
     "menuOpen": "Open menu",
     "menuClose": "Close menu",
     "menu": "Menu",
@@ -37,11 +37,11 @@
   "home": {
     "title": "Le p’tit mag : consuming differently, together",
     "subtitle": "Group orders, reseller price, no margin.",
-    "subtitle_hint": "You pay what the shop pays its suppliers — no commercial markup.",
+    "subtitle_hint": "You pay what the shop pays its suppliers, with no commercial markup.",
     "objective": "Goal: support ethical, local consumption outside a market-driven logic, focusing on short supply chains, transparency and mutual aid.",
     "block1_title": "A non-profit association shop enabling members to cover their food and household needs:",
     "block1_text": "From local producers → organic wholesalers → at reseller price, without margin → in a friendly atmosphere.",
-    "block2_text": "Order from home and pick up at our St-Romain location. We chat, play cards and share good moments — it's more than just a pick-up point!",
+    "block2_text": "Order from home and pick up at our St-Romain location. We chat, play cards and share good moments. It's more than just a pick-up point!",
     "block3_title": "Want to know more?",
     "block3_text": "Rue de l’Église 2, St-Romain (Fri 16:30–18:30, Sat 9:00–12:00) | Call Joël: 078 866 42 43 | info@leptitmag.org",
     "how_title": "How it works",
@@ -61,11 +61,11 @@
       },
       {
         "title": "Pick up at the store",
-        "desc": "Come pick up your purchases in St-Romain (Friday 4:30–6:30 pm, Saturday 9 am–12 pm). We chat, play cards and share good moments — much more than just a pick-up!"
+        "desc": "Come pick up your purchases in St-Romain (Friday 4:30–6:30 pm, Saturday 9 am–12 pm). We chat, play cards and share good moments. Much more than just a pick-up!"
       }
     ],
     "trial_title": "Create your account and order",
-    "trial_text": "Sign up for free, browse the catalogue and place your orders. If you like it, join the association and pay your contribution. If not, delete your account in one click — no hassle.",
+    "trial_text": "Sign up for free, browse the catalogue and place your orders. If you like it, join the association and pay your contribution. If not, delete your account in one click, no hassle.",
     "trial_cta": "Create my account →",
     "trial_note": "✓ Free registration  ·  ✓ Full catalogue  ·  ✓ Join whenever you want"
   },
@@ -78,9 +78,9 @@
     "feesTitle": "Indicative contributions",
     "feesIntro": "The amounts below are guidelines for Earth status (fair price, no markup). Your contribution is adapted to your situation and recorded in your profile after membership is validated.",
     "regularTitle": "Standard contribution",
-    "regularText": "Per adult — Earth status: fair price (no markup) on the catalogue.",
+    "regularText": "Per adult, Earth status: fair price (no markup) on the catalogue.",
     "softTitle": "Reduced contribution",
-    "softText": "Solidarity rate — same Earth status, same access rights.",
+    "softText": "Solidarity rate: same Earth status, same access rights.",
     "soft": "Reduced contribution: CHF 15.- per month and per adult",
     "don": "Recurring donation possible",
     "charges": "Monthly charges are approximately CHF 2000.- (local and order management).",
@@ -100,7 +100,7 @@
         "text": "Convinced? Join the association by sending us the completed PDF (or via a form). You’ll receive an email from us with the next steps."
       }
     ],
-    "seoTitle": "Membership — Le p’tit mag",
+    "seoTitle": "Membership · Le p’tit mag",
     "seoDescription": "Join Le p’tit mag: contributions, how it works, and purpose.",
     "whyTitle": "Why join?",
     "why": {
@@ -122,7 +122,7 @@
       "communityText": "Build local ties: help each other and enjoy a friendly atmosphere at the shop."
     },
     "cta_title": "Start right now",
-    "cta_text": "Create your account for free, browse the catalogue and place your orders. If it suits you, join the association and pay your contribution. If not, delete your account — no obligation.",
+    "cta_text": "Create your account for free, browse the catalogue and place your orders. If it suits you, join the association and pay your contribution. If not, delete your account. No obligation.",
     "cta_button": "Create my account →"
   },
   "producers": {
@@ -130,7 +130,7 @@
     "intro": "Our products come primarily from local producers, complemented by organic wholesalers.",
     "local_title": "Local producers",
     "wholesale_title": "Organic wholesalers / suppliers",
-    "seoTitle": "Suppliers — Le p’tit mag",
+    "seoTitle": "Suppliers · Le p’tit mag",
     "seoDescription": "Information for producers and suppliers of Le p’tit mag (Ayent).",
     "howTitle": "How to propose your products",
     "how1": "Contact us via the Contact page (phone or email).",
@@ -153,7 +153,7 @@
     },
     "signal_info": "A Signal group exists for members. Leave your phone number if you wish to be added later.",
     "consent": "I agree to be contacted via Signal within the context of the association.",
-    "seoTitle": "Contact — Le p’tit mag",
+    "seoTitle": "Contact · Le p’tit mag",
     "seoDescription": "Contact Le p’tit mag association (St-Romain, Ayent).",
     "intro": "Come during opening hours, call us, or email us.",
     "formNote": "The form will come later. For now, contact us by phone or email."
@@ -178,7 +178,7 @@
     "hoursNote": "Usual opening hours (may change)."
   },
   "featured": {
-    "title": "⏳ Ephemeral products",
+    "title": "Ephemeral products",
     "subtitle": "Rare products, available for a few days only. Order fast!",
     "deadline": "Order by",
     "order_btn": "Order",

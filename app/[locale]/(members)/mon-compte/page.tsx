@@ -124,7 +124,7 @@ export default async function MonComptePage({
 
                 {showTerrePricing && hasCatalogAccess && !showCielMarkup && (
                   <span className={`${styles.badge} ${styles.badgeTerre}`}>
-                    Prix juste — sans marge
+                    Prix juste, sans marge
                   </span>
                 )}
 

@@ -78,7 +78,7 @@ export default function WishlistSectionNav({ manualCount, habitualCount }: Props
           className={[styles.floating, mobileFloatingActive ? styles.floatingVisible : '']
             .filter(Boolean)
             .join(' ')}
-          aria-label="Navigation rapide — favoris et habituels"
+          aria-label="Navigation rapide, favoris et habituels"
           aria-hidden={!mobileFloatingActive || undefined}
           inert={!mobileFloatingActive ? true : undefined}
         >

@@ -106,7 +106,7 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
     }
     if (!orderable) {
       return supplierStatus.detail
-        ? `${supplierStatus.label} — ${supplierStatus.detail}`
+        ? `${supplierStatus.label} : ${supplierStatus.detail}`
         : supplierStatus.label
     }
     return null

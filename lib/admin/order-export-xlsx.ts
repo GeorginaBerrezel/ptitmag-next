@@ -86,7 +86,7 @@ export async function buildOrdersExcelBuffer(options: {
     // Titre fournisseur
     sheet.mergeCells(rowIdx, 1, rowIdx, COL_COUNT)
     const titleRow = sheet.getRow(rowIdx)
-    titleRow.getCell(1).value = `${supplierName} — ${typeLabel}`
+    titleRow.getCell(1).value = `${supplierName} · ${typeLabel}`
     titleRow.height = 24
     applyRowStyle(titleRow, STYLE.sectionFont, STYLE.sectionFill)
     rowIdx += 1
@@ -94,7 +94,7 @@ export async function buildOrdersExcelBuffer(options: {
     // Sous-titre récap
     sheet.mergeCells(rowIdx, 1, rowIdx, AGG_COL_COUNT)
     const recapTitleRow = sheet.getRow(rowIdx)
-    recapTitleRow.getCell(1).value = 'Récapitulatif groupé — à envoyer au fournisseur'
+    recapTitleRow.getCell(1).value = 'Récapitulatif groupé, à envoyer au fournisseur'
     applyRowStyle(recapTitleRow, STYLE.subtitleFont, STYLE.subtitleFill)
     rowIdx += 1
 

@@ -271,7 +271,7 @@ export function buildOrdersCsv(options: {
     const aggregateTotal = aggregated.reduce((s, r) => s + r.totalAmount, 0)
 
     lines.push('')
-    lines.push(csvCell(`═══ ${supplierName} — ${typeLabel} ═══`))
+    lines.push(csvCell(`═══ ${supplierName} · ${typeLabel} ═══`))
     lines.push('')
 
     lines.push('Récapitulatif groupé (à envoyer au fournisseur)')

@@ -75,7 +75,7 @@ export async function DELETE(request: NextRequest) {
   if ((linked ?? []).length > 0) {
     return NextResponse.json(
       {
-        error: 'Ce produit est lié à une ou plusieurs commandes — utilisez « Masquer » plutôt que supprimer.',
+        error: 'Ce produit est lié à une ou plusieurs commandes. Utilisez « Masquer » plutôt que supprimer.',
         canMask: true,
       },
       { status: 409 },

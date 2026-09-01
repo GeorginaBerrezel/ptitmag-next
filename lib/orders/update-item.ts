@@ -126,10 +126,10 @@ export async function updateOrderItemAtClosure(
   const unitPrice = hasUnitPrice ? parseClosureEditUnitPrice(input.unitPrice) : null
 
   if (hasQuantity && quantity === null) {
-    throw new Error('Quantité invalide — doit être supérieure à 0.')
+    throw new Error('Quantité invalide. Elle doit être supérieure à 0.')
   }
   if (hasUnitPrice && unitPrice === null) {
-    throw new Error('Prix unitaire invalide — doit être ≥ 0.')
+    throw new Error('Prix unitaire invalide. Il doit être ≥ 0.')
   }
 
   const item = await fetchModifiableItem(admin, orderItemId)

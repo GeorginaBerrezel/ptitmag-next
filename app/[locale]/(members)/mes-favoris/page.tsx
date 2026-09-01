@@ -67,10 +67,10 @@ export default async function MesFavorisPage({
         <summary className={styles.helpSummary}>Comment ça marche ?</summary>
         <div className={styles.helpBody}>
           <p>
-            <strong>Favoris</strong> — vous cliquez sur ♥ dans le catalogue : le produit apparaît ici.
+            <strong>Favoris.</strong> Vous cliquez sur ♥ dans le catalogue : le produit apparaît ici.
           </p>
           <p>
-            <strong>Vos habituels</strong> — le site propose des produits que vous avez déjà commandés au moins 2 fois. Vous pouvez les épingler en favori avec ♥.
+            <strong>Vos habituels.</strong> Le site propose des produits que vous avez déjà commandés au moins 2 fois. Vous pouvez les épingler en favori avec ♥.
           </p>
         </div>
       </details>

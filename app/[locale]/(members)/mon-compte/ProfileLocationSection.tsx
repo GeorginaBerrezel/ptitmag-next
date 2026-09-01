@@ -95,7 +95,7 @@ export default function ProfileLocationSection({ profile }: Props) {
         <p className={styles.display}>
           {hasSavedLocation
             ? formatLocalityLabel({ postalCode: savedPostal, commune: savedCommune })
-            : 'Non renseignée — ajoutez votre NPA et village pour faciliter le suivi par Joel.'}
+            : 'Non renseignée. Ajoutez votre NPA et village pour faciliter le suivi par Joel.'}
         </p>
       ) : (
         <LocalityCombobox

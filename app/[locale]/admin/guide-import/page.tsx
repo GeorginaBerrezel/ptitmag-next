@@ -16,7 +16,7 @@ export default async function GuideImportPage({
         { label: 'Import catalogue', href: '/admin/import' },
         { label: 'Guide import' },
       ]} />
-      <h1 style={{ marginBottom: '0.35rem' }}>Guide import — formats &amp; colonnes</h1>
+      <h1 style={{ marginBottom: '0.35rem' }}>Guide import : formats et colonnes</h1>
       <p className={styles.intro}>
         Deux façons de structurer un fichier, et deux extensions possibles (<strong>.xlsx</strong> ou <strong>.csv</strong>)
         avec <em>le même contenu</em>. Le site lit les colonnes et remplit le catalogue automatiquement.
@@ -42,7 +42,7 @@ export default async function GuideImportPage({
             <tbody>
               <tr>
                 <td><strong>.xlsx</strong></td>
-                <td>Fichier Excel — recommandé (moins d&apos;erreurs d&apos;export)</td>
+                <td>Fichier Excel, recommandé (moins d&apos;erreurs d&apos;export)</td>
               </tr>
               <tr>
                 <td><strong>.csv</strong></td>
@@ -50,7 +50,7 @@ export default async function GuideImportPage({
               </tr>
               <tr>
                 <td><strong>.pdf</strong></td>
-                <td>❌ Non importable — ouvrir dans Excel puis .xlsx ou .csv</td>
+                <td>❌ Non importable. Ouvrir dans Excel puis .xlsx ou .csv</td>
               </tr>
             </tbody>
           </table>
@@ -62,7 +62,7 @@ export default async function GuideImportPage({
 
       {/* TYPE COMPLEXE */}
       <section className={styles.section}>
-        <span className={`${styles.badge} ${styles.badgeBio}`}>Type complexe — Biopartner uniquement</span>
+        <span className={`${styles.badge} ${styles.badgeBio}`}>Type complexe, Biopartner uniquement</span>
         <h2 className={styles.sectionTitle}>Biopartner (Fruits & légumes, Général, Emballages, Surgelés, Viandes)</h2>
         <p className={styles.sectionSub}>
           Fichier officiel Biopartner avec des dizaines de colonnes. Le site repère la ligne <code>Article</code> en
@@ -102,7 +102,7 @@ export default async function GuideImportPage({
 
       {/* TYPE SIMPLE A */}
       <section className={styles.section}>
-        <span className={`${styles.badge} ${styles.badgeLocal}`}>Type simple A — format Joel (locaux)</span>
+        <span className={`${styles.badge} ${styles.badgeLocal}`}>Type simple A : format Joel (locaux)</span>
         <h2 className={styles.sectionTitle}>Producteurs locaux</h2>
         <p className={styles.sectionSub}>
           Le fichier que Joel prépare déjà : une ligne d&apos;en-tête avec <code>Produit</code>, puis nom, prix et unité.
@@ -133,13 +133,13 @@ export default async function GuideImportPage({
 Truffe noire 75%;;;3,50;pièce
 Truffe blanche 75%;;;3,50;pièce`}</pre>
         <p className={styles.note}>
-          <strong>Bioterroir :</strong> parfois 2 prix (HT + TTC) — le site garde le <strong>TTC</strong>.
+          <strong>Bioterroir :</strong> parfois 2 prix (HT + TTC). Le site garde le <strong>TTC</strong>.
         </p>
       </section>
 
       {/* TYPE SIMPLE B */}
       <section className={styles.section}>
-        <span className={`${styles.badge} ${styles.badgeGeneric}`}>Type simple B — gabarit universel</span>
+        <span className={`${styles.badge} ${styles.badgeGeneric}`}>Type simple B : gabarit universel</span>
         <h2 className={styles.sectionTitle}>Tous les autres fournisseurs (Cave à levain, Novoma, nouveaux…)</h2>
         <p className={styles.sectionSub}>
           Le modèle que Joel peut utiliser pour un <strong>nouveau petit fournisseur</strong> : une ligne d&apos;en-tête,
@@ -173,7 +173,7 @@ Fromage frais;6.80;Produits laitiers;pièce;`}</pre>
         </p>
         <p className={styles.note} style={{ marginTop: '0.5rem' }}>
           <strong>Fournisseurs avec fichier «&nbsp;maison&nbsp;»</strong> (Cave à levain, Novoma, NaturMel…) : garder
-          leur mise en page habituelle en .xlsx ou .csv — le site a un lecteur dédié. Le gabarit ci-dessus sert pour
+          leur mise en page habituelle en .xlsx ou .csv. Le site a un lecteur dédié. Le gabarit ci-dessus sert pour
           un <em>nouveau</em> fournisseur ou si Joel refait un fichier simple.
         </p>
       </section>
@@ -206,7 +206,7 @@ Fromage frais;6.80;Produits laitiers;pièce;`}</pre>
         <ol style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.9rem', lineHeight: 1.75, color: 'rgba(16,24,40,0.75)' }}>
           <li>Produits <strong>créés ou mis à jour</strong> dans la base.</li>
           <li>Biopartner : articles absents du fichier <strong>retirés</strong> de ce catalogue.</li>
-          <li>Locaux : produits absents <strong>restent</strong> — masquer dans Fournisseurs si besoin.</li>
+          <li>Locaux : produits absents <strong>restent</strong>. Masquer dans Fournisseurs si besoin.</li>
           <li>Adhérents Ciel/Terre voient le catalogue ; vérifier date limite dans <strong>Fournisseurs</strong>.</li>
         </ol>
       </section>
