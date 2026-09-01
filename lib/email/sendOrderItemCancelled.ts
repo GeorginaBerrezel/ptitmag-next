@@ -36,11 +36,11 @@ export async function sendOrderItemCancelled(params: Params): Promise<void> {
   })
 
   const memberSubject = params.orderFullyCancelled
-    ? `Commande annulée — ${params.supplierName} — ${site.name}`
-    : `Commande modifiée — ${params.supplierName} — ${site.name}`
+    ? `Commande annulée · ${params.supplierName} · ${site.name}`
+    : `Commande modifiée · ${params.supplierName} · ${site.name}`
   const adminSubject = params.orderFullyCancelled
-    ? `Commande annulée — ${displayName} — ${params.supplierName} — (${now})`
-    : `Commande modifiée — ${displayName} — ${params.supplierName} — (${now})`
+    ? `Commande annulée · ${displayName} · ${params.supplierName} · (${now})`
+    : `Commande modifiée · ${displayName} · ${params.supplierName} · (${now})`
 
   const html = buildHtml({ ...params, displayName, date: now })
   const transporter = createTransporter()
@@ -99,11 +99,11 @@ function buildHtml({
     .join('')
 
   const intro = orderFullyCancelled
-    ? `Nous sommes désolés — le dernier produit de votre commande chez <strong>${supplierName}</strong> a dû être retiré. Votre commande est donc <strong>annulée</strong>.`
+    ? `Nous sommes désolés : le dernier produit de votre commande chez <strong>${supplierName}</strong> a dû être retiré. Votre commande est donc <strong>annulée</strong>.`
     : `Un produit de votre commande chez <strong>${supplierName}</strong> n&apos;est plus disponible et a été retiré par l&apos;équipe du p&apos;tit mag. Voici votre commande mise à jour.`
 
   const totalBlock = orderFullyCancelled
-    ? `<p style="margin:16px 0 0;font-size:15px;font-weight:700;color:#c0392b;">Commande annulée — aucun montant dû.</p>`
+    ? `<p style="margin:16px 0 0;font-size:15px;font-weight:700;color:#c0392b;">Commande annulée. Aucun montant dû.</p>`
     : `<div style="background:#1a1a2e;border-radius:10px;padding:14px 20px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
         <span style="color:#fff;font-size:15px;font-weight:600;">Nouveau total</span>
         <span style="color:#fff;font-size:20px;font-weight:700;">CHF ${newTotal.toFixed(2)}</span>

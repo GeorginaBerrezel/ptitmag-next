@@ -22,7 +22,7 @@ export const BIOPARTNER_CATALOGS: BiopartnerCatalog[] = [
     importKey: 'biopartner_fruits_legumes',
     name: 'Biopartner – Fruits & légumes',
     shortLabel: 'Fruits & légumes',
-    description: 'Fruits et légumes frais — liste mise à jour chaque semaine.',
+    description: 'Fruits et légumes frais, liste mise à jour chaque semaine.',
   },
   {
     key: 'general',

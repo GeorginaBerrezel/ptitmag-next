@@ -268,7 +268,7 @@ export default function AdminCommandesPage({
   async function notifyMemberDelivery(memberId: string, memberName: string, deliveredCount: number) {
     const ok = window.confirm(
       `Envoyer l'email de retrait à ${memberName} ?\n\n` +
-        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} livrée${deliveredCount > 1 ? 's' : ''} — ` +
+        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} livrée${deliveredCount > 1 ? 's' : ''}. ` +
         'un seul email regroupant tous les fournisseurs.',
     )
     if (!ok) return
@@ -296,7 +296,7 @@ export default function AdminCommandesPage({
   async function closeMemberOrders(memberId: string, memberName: string, deliveredCount: number) {
     const ok = window.confirm(
       `Clôturer toutes les commandes livrées de ${memberName} ?\n\n` +
-        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''} — l'avoir sera déduit une seule fois sur le total membre. ` +
+        `${deliveredCount} commande${deliveredCount > 1 ? 's' : ''}. L'avoir sera déduit une seule fois sur le total membre. ` +
         'Un seul email récapitulatif regroupé sera envoyé.',
     )
     if (!ok) return
@@ -554,11 +554,11 @@ export default function AdminCommandesPage({
             {mode === 'action' &&
               'Confirmées : marquer « Livrée » après distribution, ou « Annulée » si besoin.'}
             {mode === 'toClose' &&
-              'Livrées : ajuster qté ou prix si besoin, puis « Clôturer tout » — l\'avoir est déduit une seule fois sur le total membre.'}
+              'Livrées : ajuster qté ou prix si besoin, puis « Clôturer tout ». L\'avoir est déduit une seule fois sur le total membre.'}
             {mode === 'closed' &&
-              'Commandes finalisées — montant et avoir définitifs. Utilise « Historique » pour les filtres avancés.'}
+              'Commandes finalisées. Montant et avoir définitifs. Utilise « Historique » pour les filtres avancés.'}
             {mode === 'history' &&
-              'Historique complet — filtre par statut (dont Clôturées) pour retrouver une commande.'}
+              'Historique complet. Filtre par statut (dont Clôturées) pour retrouver une commande.'}
           </p>
         </div>
         <button
@@ -643,7 +643,7 @@ export default function AdminCommandesPage({
         }}>
           <p style={{ margin: 0, fontSize: '0.85rem', color: '#3730a3', lineHeight: 1.5 }}>
             <strong>{archivableCount} commande{archivableCount > 1 ? 's' : ''} livrée{archivableCount > 1 ? 's' : ''}</strong>
-            {' '}de plus de {ARCHIVE_AFTER_MONTHS} mois peuvent être archivées — elles sortent de cette liste
+            {' '}de plus de {ARCHIVE_AFTER_MONTHS} mois peuvent être archivées. Elles sortent de cette liste
             mais restent comptabilisées dans le bilan annuel.
           </p>
           <button
@@ -675,7 +675,7 @@ export default function AdminCommandesPage({
               Bilan annuel
             </p>
             <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', opacity: 0.65 }}>
-              Synthèse par fournisseur, mois et top produits — pour l&apos;association.
+              Synthèse par fournisseur, mois et top produits, pour l&apos;association.
             </p>
           </div>
           <select
@@ -812,7 +812,7 @@ export default function AdminCommandesPage({
             {mode === 'action' || mode === 'toClose' ? '✓' : '📭'}
           </p>
           <p style={{ opacity: 0.5, margin: '0 0 1rem' }}>
-            {mode === 'action' && 'Aucune commande confirmée en attente — tout est à jour !'}
+            {mode === 'action' && 'Aucune commande confirmée en attente. Tout est à jour !'}
             {mode === 'toClose' && 'Aucune commande livrée à clôturer pour le moment.'}
             {mode === 'closed' && 'Aucune commande clôturée pour le moment.'}
             {mode === 'history' && (
@@ -837,13 +837,13 @@ export default function AdminCommandesPage({
         <p className="admin-order-groups__hint">
           {mode === 'action' && (
             <>
-              <strong>Marquer Livrée</strong> commande par commande — elles passent ensuite dans l&apos;onglet{' '}
+              <strong>Marquer Livrée</strong> commande par commande. Elles passent ensuite dans l&apos;onglet{' '}
               <strong>À clôturer</strong>.
             </>
           )}
           {mode === 'toClose' && (
             <>
-              <strong>✉ Email retrait</strong> puis <strong>✓ Clôturer tout</strong> — un seul email par membre,
+              <strong>✉ Email retrait</strong> puis <strong>✓ Clôturer tout</strong> : un seul email par membre,
               tous fournisseurs regroupés.
             </>
           )}
@@ -864,7 +864,7 @@ export default function AdminCommandesPage({
 
       {!loading && !error && filterSupplier && filtered.length > 0 && (
         <p className="admin-order-groups__hint">
-          <strong>Détail par membre</strong> — commandes <em>{filterSupplier}</em> uniquement
+          <strong>Détail par membre</strong> : commandes <em>{filterSupplier}</em> uniquement
           (le tableau vert ci-dessus additionne les quantités pour passer commande chez ce fournisseur).
         </p>
       )}
@@ -912,7 +912,7 @@ export default function AdminCommandesPage({
                     </span>
                     {closePreview && creditBalance > 0 && (
                       <span className="admin-order-group__credit-hint">
-                        Avoir membre CHF {creditBalance.toFixed(2)} — déduit sur le total à la clôture
+                        Avoir membre CHF {creditBalance.toFixed(2)}, déduit sur le total à la clôture
                       </span>
                     )}
                     <ul className="admin-order-group__chips" aria-label="Fournisseurs">
@@ -1072,9 +1072,9 @@ export default function AdminCommandesPage({
                     }}>
                       {order.status === 'delivered'
                         ? mode === 'toClose'
-                          ? <>Modifiable jusqu&apos;à <strong>Clôturer</strong> — ajuster <strong>qté / prix</strong>, <strong>↩ Rétablir</strong>, <strong>+ Produit</strong> ou <strong>Retirer</strong>. Avoir déduit à la clôture groupée.</>
-                          : <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> — retrait ou <strong>+ Produit</strong> (admin, catalogue entier, 1 unité sans majoration). Avoir déduit à la clôture groupée.</>
-                        : <>Produit indisponible ? <strong>Retirer</strong> — total recalculé, email au membre.</>}
+                          ? <>Modifiable jusqu&apos;à <strong>Clôturer</strong> : ajuster <strong>qté / prix</strong>, <strong>↩ Rétablir</strong>, <strong>+ Produit</strong> ou <strong>Retirer</strong>. Avoir déduit à la clôture groupée.</>
+                          : <>Commande modifiable jusqu&apos;à <strong>Clôturer</strong> : retrait ou <strong>+ Produit</strong> (admin, catalogue entier, 1 unité sans majoration). Avoir déduit à la clôture groupée.</>
+                        : <>Produit indisponible ? <strong>Retirer</strong> : total recalculé, email au membre.</>}
                     </p>
                   )}
 
@@ -1304,7 +1304,7 @@ function AggregatedSummaryPanel({
           <p className="admin-recap-panel__kicker">Récapitulatif groupé</p>
           <h2 className="admin-recap-panel__title">{supplierName}</h2>
           <p className="admin-recap-panel__meta">
-            {orderCount} commande{orderCount > 1 ? 's' : ''} · {lines.length} article{lines.length > 1 ? 's' : ''} — quantités additionnées par n° d&apos;article
+            {orderCount} commande{orderCount > 1 ? 's' : ''} · {lines.length} article{lines.length > 1 ? 's' : ''}. Quantités additionnées par n° d&apos;article
           </p>
         </div>
         <div className="admin-recap-panel__total">
@@ -1316,7 +1316,7 @@ function AggregatedSummaryPanel({
       <div className="admin-recap-panel__body">
         <table className="admin-recap-table">
           <caption className="admin-recap-table__caption">
-            Récapitulatif des articles à commander — prêt à copier-coller
+            Récapitulatif des articles à commander, prêt à copier-coller
           </caption>
           <thead>
             <tr>

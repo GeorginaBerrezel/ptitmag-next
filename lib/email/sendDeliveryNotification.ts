@@ -89,8 +89,8 @@ export async function sendDeliveryNotification({
     : `Votre commande <strong>${orders[0].supplierName}</strong> est disponible et peut être retirée au magasin.`
 
   const subject = multiple
-    ? `✓ Vos commandes sont prêtes à être retirées — ${site.name}`
-    : `✓ Votre commande ${orders[0].supplierName} est prête à être retirée — ${site.name}`
+    ? `✓ Vos commandes sont prêtes à être retirées · ${site.name}`
+    : `✓ Votre commande ${orders[0].supplierName} est prête à être retirée · ${site.name}`
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -153,7 +153,7 @@ export async function sendDeliveryNotification({
                 <a href="mailto:${adminEmail}" style="color:#DC7F00;text-decoration:none;">${adminEmail}</a>.<br/>
                 À très bientôt au magasin !
               </p>
-              <p style="margin:8px 0 0;font-size:14px;color:#555;">— L'équipe du p'tit mag</p>
+              <p style="margin:8px 0 0;font-size:14px;color:#555;">L'équipe du p'tit mag</p>
             </td>
           </tr>
 

@@ -123,7 +123,7 @@ export async function sendMemberStatusNotification({
                 ${locale === 'en' ? 'Questions?' : 'Des questions ?'} ${locale === 'en' ? 'Contact us at' : 'Contactez-nous à'}
                 <a href="mailto:${site.email}" style="color:#DC7F00;text-decoration:none;">${site.email}</a>.
               </p>
-              <p style="margin:8px 0 0;font-size:14px;color:#555;">— ${locale === 'en' ? 'The p\'tit mag team' : 'L\'équipe du p\'tit mag'}</p>
+              <p style="margin:8px 0 0;font-size:14px;color:#555;">${locale === 'en' ? 'The p\'tit mag team' : 'L\'équipe du p\'tit mag'}</p>
             </td>
           </tr>
 
@@ -144,8 +144,8 @@ export async function sendMemberStatusNotification({
 </html>`
 
   const subject = isActivation
-    ? `${statusInfo.emoji} ${locale === 'en' ? 'Membership validated' : 'Adhésion validée'} — ${statusInfo.name} · ${site.name}`
-    : `${statusInfo.emoji} ${locale === 'en' ? 'Status updated' : 'Statut mis à jour'} — ${statusInfo.name} · ${site.name}`
+    ? `${statusInfo.emoji} ${locale === 'en' ? 'Membership validated' : 'Adhésion validée'} · ${statusInfo.name} · ${site.name}`
+    : `${statusInfo.emoji} ${locale === 'en' ? 'Status updated' : 'Statut mis à jour'} · ${statusInfo.name} · ${site.name}`
 
   const transporter = createTransporter()
 

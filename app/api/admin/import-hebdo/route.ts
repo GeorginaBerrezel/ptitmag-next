@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
   const message = globalStats.sheetsProcessed === 0
     ? 'Aucun onglet reconnu dans ce fichier.'
-    : `${globalStats.sheetsProcessed} fournisseur${globalStats.sheetsProcessed > 1 ? 's' : ''} importé${globalStats.sheetsProcessed > 1 ? 's' : ''} — ${globalStats.productsImported} produits au total.`
+    : `${globalStats.sheetsProcessed} fournisseur${globalStats.sheetsProcessed > 1 ? 's' : ''} importé${globalStats.sheetsProcessed > 1 ? 's' : ''} · ${globalStats.productsImported} produits au total.`
 
   return NextResponse.json({
     success: globalStats.sheetsProcessed > 0,

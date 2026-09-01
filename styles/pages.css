@@ -11,7 +11,25 @@
 }
 
 .page-hero .page-hero-kicker {
-  color: #cda867;
+  color: color-mix(in oklab, var(--orange) 38%, white);
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.page-section-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: rgba(16, 24, 40, 0.55);
+  text-transform: none;
+}
+
+.page-lucide {
+  flex-shrink: 0;
 }
 
 .card-title {

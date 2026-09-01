@@ -17,7 +17,7 @@ export type SupplierDisplay = {
 
 const TYPE_FALLBACK: Record<string, SupplierDisplay> = {
   local:         { emoji: '🌾', description: 'Producteur·rice local·e de la région valaisanne.' },
-  grossiste_bio: { emoji: '🏭', description: 'Grossiste bio — sélection de produits certifiés.' },
+  grossiste_bio: { emoji: '🏭', description: 'Grossiste bio, sélection de produits certifiés.' },
   autre:         { emoji: '🤝', description: 'Fournisseur partenaire du p\'tit mag.' },
 }
 

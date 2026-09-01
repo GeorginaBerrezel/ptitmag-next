@@ -35,7 +35,7 @@ export default function CompteConfirmeBanner({ variant = 'mon-compte' }: CompteC
         color: '#1b5e20',
       }}
     >
-      <strong>E-mail confirmé — bienvenue !</strong>
+      <strong>E-mail confirmé. Bienvenue !</strong>
       <br />
       {variant === 'connexion' ? (
         <>

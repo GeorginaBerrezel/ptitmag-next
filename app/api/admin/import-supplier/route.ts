@@ -508,7 +508,7 @@ export async function POST(request: NextRequest) {
         importStrategy: 'upsert' as const,
       },
       errors,
-      message: `${config.name} — ${totalUpserted} produit(s) synchronisé(s) (${result.inserted} nouveau${result.inserted > 1 ? 'x' : ''}, ${result.updated} mis à jour).${deactivatedNote}`,
+      message: `${config.name} : ${totalUpserted} produit(s) synchronisé(s) (${result.inserted} nouveau${result.inserted > 1 ? 'x' : ''}, ${result.updated} mis à jour).${deactivatedNote}`,
     })
   }
 
@@ -516,6 +516,6 @@ export async function POST(request: NextRequest) {
     success: true,
     stats: { productsCreated: totalUpserted, productsUpdated: 0, errors: errors.length },
     errors,
-    message: `${config.name} — ${totalUpserted} produit(s) importé(s).`,
+    message: `${config.name} : ${totalUpserted} produit(s) importé(s).`,
   })
 }

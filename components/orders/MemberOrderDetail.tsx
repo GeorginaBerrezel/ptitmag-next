@@ -11,7 +11,7 @@ import lineStyles from './order-lines.module.css'
 const STATUS_HINT: Record<string, { className: string; text: string } | null> = {
   confirmed: {
     className: lineStyles.hintBannerConfirmed,
-    text: 'Commande enregistrée — en attente de préparation et de livraison au magasin.',
+    text: 'Commande enregistrée. En attente de préparation et de livraison au magasin.',
   },
   delivered: {
     className: lineStyles.hintBannerDelivered,
@@ -19,7 +19,7 @@ const STATUS_HINT: Record<string, { className: string; text: string } | null> = 
   },
   closed: {
     className: lineStyles.hintBannerClosed,
-    text: 'Commande clôturée — montant et avoir définitifs. Plus de modification possible.',
+    text: 'Commande clôturée. Montant et avoir définitifs. Plus de modification possible.',
   },
   cancelled: null,
 }
@@ -52,7 +52,7 @@ export default function MemberOrderDetail({
     : pickupChecklist && order.status === 'closed'
     ? {
         className: lineStyles.hintBannerClosed,
-        text: 'Commande clôturée — montant et avoir définitifs. Cochez les produits récupérés (aide-mémoire perso).',
+        text: 'Commande clôturée. Montant et avoir définitifs. Cochez les produits récupérés (aide-mémoire perso).',
       }
     : STATUS_HINT[order.status]
   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'

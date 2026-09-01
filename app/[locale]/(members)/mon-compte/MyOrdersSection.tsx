@@ -275,7 +275,7 @@ export default function MyOrdersSection({
           {pickupItemCount !== 1 ? 's' : ''} marqué
           {pickupPickedCount !== 1 ? 's' : ''} comme récupéré
           {pickupPickedCount !== 1 ? 's' : ''}
-          {' '}— aide-mémoire perso sur cet appareil.
+          {' '}(aide-mémoire perso sur cet appareil).
         </p>
       )}
 
@@ -288,7 +288,7 @@ export default function MyOrdersSection({
         <div className={styles.empty}>
           {tab === 'confirmed' && 'Aucune commande confirmée en attente.'}
           {tab === 'delivered' && 'Aucune commande livrée à compléter pour le moment.'}
-          {tab === 'closed' && 'Aucune commande clôturée — les commandes finalisées apparaîtront ici.'}
+          {tab === 'closed' && 'Aucune commande clôturée. Les commandes finalisées apparaîtront ici.'}
           {tab === 'cancelled' && 'Aucune commande annulée.'}
         </div>
       ) : (

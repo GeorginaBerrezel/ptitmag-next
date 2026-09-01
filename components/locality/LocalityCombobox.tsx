@@ -224,7 +224,7 @@ export default function LocalityCombobox({
 
       {open && ready && query.trim().length >= 2 && suggestions.length === 0 && (
         <p className={styles.empty} role="status">
-          Aucune localité trouvée — vérifiez l&apos;orthographe ou essayez le NPA.
+          Aucune localité trouvée. Vérifiez l&apos;orthographe ou essayez le NPA.
         </p>
       )}
     </div>

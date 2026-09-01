@@ -104,12 +104,12 @@ export async function sendOrderClosed(params: Params): Promise<void> {
     : `Votre commande <strong>${orders[0].supplierName}</strong> est maintenant <strong>clôturée</strong>. Voici le récapitulatif définitif :`
 
   const subject = multiple
-    ? `Commandes clôturées — ${site.name}`
-    : `Commande clôturée — ${orders[0].supplierName} — ${site.name}`
+    ? `Commandes clôturées · ${site.name}`
+    : `Commande clôturée · ${orders[0].supplierName} · ${site.name}`
 
   const html = `
     <div style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;color:#1a1a2e;">
-      <h2 style="color:#2e7d32;margin:0 0 0.5rem;">Commande${multiple ? 's' : ''} clôturée${multiple ? 's' : ''} — ${site.name}</h2>
+      <h2 style="color:#2e7d32;margin:0 0 0.5rem;">Commande${multiple ? 's' : ''} clôturée${multiple ? 's' : ''} · ${site.name}</h2>
       <p style="margin:0 0 1rem;opacity:0.75;">${now}</p>
       <p>Bonjour ${displayName},</p>
       <p>${intro}</p>

@@ -494,7 +494,7 @@ export default function CatalogueClient({
           fontWeight: 500,
           textAlign: 'center',
         }}>
-          Membre Ciel — les prix affichés incluent une majoration de +20&nbsp;%.
+          Membre Ciel : les prix affichés incluent une majoration de +20&nbsp;%.
         </div>
       )}
       <div className="container" style={{ paddingTop: '1.25rem', paddingBottom: '5rem' }}>
@@ -587,7 +587,7 @@ export default function CatalogueClient({
             color: '#1565c0',
             lineHeight: 1.45,
           }}>
-            <strong>Compléter sur place</strong> — parcourez le catalogue et cliquez{' '}
+            <strong>Compléter sur place.</strong> Parcourez le catalogue et cliquez{' '}
             <strong>Ajouter à ma commande</strong>. Chaque fournisseur garde sa propre commande livrée.
           </div>
         )}
@@ -707,7 +707,7 @@ export default function CatalogueClient({
             padding: '0.65rem 1rem', marginBottom: '1.25rem',
             fontSize: '0.88rem', color: '#92400e', fontWeight: 600,
           }}>
-            ⏳ Produits éphémères — choisissez un fournisseur pour voir les offres limitées.
+            Produits éphémères : choisissez un fournisseur pour voir les offres limitées.
           </div>
         )}
 
@@ -818,7 +818,7 @@ export default function CatalogueClient({
             {isSearching && inlineSupplierResults.length > 0 && (
               <SearchResultsSection
                 title={`Produits trouvés (${inlineSupplierResults.length})`}
-                subtitle={`Dans ${getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)} — ajoutez au panier ou choisissez une catégorie ci-dessous.`}
+                subtitle={`Dans ${getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)}. Ajoutez au panier ou choisissez une catégorie ci-dessous.`}
               >
                 <ProductList products={inlineSupplierResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
               </SearchResultsSection>
@@ -828,7 +828,7 @@ export default function CatalogueClient({
               <>
                 <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem' }}>
                   {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''}
-                  {' — cliquez pour voir les produits'}
+                  {' '}(cliquez pour voir les produits)
                 </p>
                 {renderCategoryPicker(filteredCategories, (name, count) => {
                   if (activeProducts && activeSummary) {
@@ -879,7 +879,7 @@ export default function CatalogueClient({
           ) : isSearching ? (
             <SearchResultsSection
               title={`Produits trouvés (${displayedProducts.length})`}
-              subtitle={`Dans ${activeCategory} — ${activeSummary ? getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type) : ''}`}
+              subtitle={`Dans ${activeCategory}${activeSummary ? ` · ${getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)}` : ''}`}
             >
               <ProductList
               products={displayedProducts}
@@ -914,10 +914,10 @@ function formatSearchResultsSubtitle(
   selectedSearchCategory: string | null,
 ): string {
   if (capped) {
-    return 'Beaucoup de résultats — affinez avec les filtres ci-dessus.'
+    return 'Beaucoup de résultats. Affinez avec les filtres ci-dessus.'
   }
   if (selectedSearchSupplierId || selectedSearchCategory) {
-    return 'Filtres actifs — « Toutes » ou recliquez un filtre pour élargir.'
+    return 'Filtres actifs. « Toutes » ou recliquez un filtre pour élargir.'
   }
   return 'Le fournisseur est indiqué sur chaque fiche · ajoutez directement au panier.'
 }
@@ -937,7 +937,7 @@ function CompactSupplierMatches({
         {summaries.length === 1 ? 'Fournisseur correspondant' : 'Fournisseurs correspondants'}
       </h2>
       <p className="catalogue-search-supplier-matches__sub">
-        Aucun produit dans les premiers résultats — ouvrez le catalogue du fournisseur.
+        Aucun produit dans les premiers résultats. Ouvrez le catalogue du fournisseur.
       </p>
       <ul className="catalogue-search-supplier-matches__list">
         {summaries.map(summary => {

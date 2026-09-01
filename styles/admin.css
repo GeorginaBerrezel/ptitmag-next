@@ -541,6 +541,23 @@
   outline-offset: 2px;
 }
 
+.admin-shortcut-link--quiet {
+  font-size: 0.75rem;
+  font-weight: 500;
+  min-height: 40px;
+  padding: 0.25rem 0.65rem;
+  margin-top: 0.85rem;
+  align-self: flex-start;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.admin-shortcut-link--quiet:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* ─── Carte admin (Mon compte) ─── */
 .admin-account-card {
   display: flex;

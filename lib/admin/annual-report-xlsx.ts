@@ -51,7 +51,7 @@ export async function buildAnnualReportExcelBuffer(summary: AnnualSummary): Prom
   let rowIdx = 1
 
   const titleRow = sheet.getRow(rowIdx++)
-  titleRow.getCell(1).value = `Bilan annuel ${summary.year} — Le p'tit mag`
+  titleRow.getCell(1).value = `Bilan annuel ${summary.year} · Le p'tit mag`
   styleRow(titleRow, STYLE.titleFont)
   rowIdx++
 
