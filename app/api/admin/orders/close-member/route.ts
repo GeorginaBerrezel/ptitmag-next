@@ -59,7 +59,12 @@ export async function POST(request: NextRequest) {
         })
         emailSent = true
       } catch (err) {
-        console.error('[admin/orders/close-member] Email failed:', err)
+        console.error('[admin/orders/close-member] Email failed', {
+          memberId,
+          orderIds: closedGroups.map(g => g.orderId),
+          orderCount: closedGroups.length,
+          message: err instanceof Error ? err.message : String(err),
+        })
       }
     }
 
