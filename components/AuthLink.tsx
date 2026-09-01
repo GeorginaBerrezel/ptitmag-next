@@ -59,27 +59,18 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
       <Link
         href="/mon-compte"
         locale={locale}
+        className="nav-account-chip"
         aria-label={`${t('monCompte')} — ${displayName}`}
         aria-current={isAccountPage ? 'page' : undefined}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.45rem',
-          textDecoration: 'none',
-          fontWeight: 600,
-          color: 'inherit',
-          verticalAlign: 'middle',
-          lineHeight: 1,
-        }}
       >
         <Avatar
           src={profile.avatar_url}
           name={profile.full_name ?? profile.username}
           email={profile.email}
           userId={profile.id}
-          size={26}
+          size={28}
         />
-        <span className="nav-account-name" style={{ verticalAlign: 'middle' }}>{displayName}</span>
+        <span className="nav-account-name">{displayName}</span>
       </Link>
     )
   }

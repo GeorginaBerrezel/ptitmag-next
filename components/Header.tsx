@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type AnimationEvent } from 'react';
+import { Menu, X } from 'lucide-react';
 import { APP_SCROLL_ID } from '@/lib/scroll'
 import {Link, usePathname} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
@@ -10,11 +11,17 @@ import MemberCartLink from '@/components/MemberCartLink';
 import MemberWishlistLink from '@/components/MemberWishlistLink';
 import PendingMemberBadge from '@/components/PendingMemberBadge';
 
+function prefersReducedMotion() {
+  return typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 'en'; showAdminLink?: boolean}) {
   const t = useTranslations('nav');
   const pathname = usePathname();
 
   const [open, setOpen] = useState(false);
+  const [rendered, setRendered] = useState(false);
   const dialogId = useId();
   const burgerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
@@ -31,6 +38,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
 
   useEffect(() => {
     setOpen(false);
+    setRendered(false);
     const scrollRoot = document.getElementById(APP_SCROLL_ID);
     if (scrollRoot) scrollRoot.style.overflow = '';
   }, [pathname]);
@@ -50,8 +58,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        setOpen(false);
-        burgerRef.current?.focus();
+        closeMenu();
         return;
       }
       if (e.key !== 'Tab' || focusable.length === 0) return;
@@ -69,16 +76,37 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open]);
 
-  function close() {
-    setOpen(false);
+  function openMenu() {
+    setRendered(true);
+    setOpen(true);
+  }
+
+  function closeMenu({ instant = false }: { instant?: boolean } = {}) {
+    if (!open && !rendered) return;
     burgerRef.current?.focus();
+    if (instant || prefersReducedMotion()) {
+      setOpen(false);
+      setRendered(false);
+      return;
+    }
+    setOpen(false);
+  }
+
+  function toggleMenu() {
+    if (open) closeMenu();
+    else openMenu();
+  }
+
+  function onOverlayAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
+    if (e.target !== e.currentTarget) return;
+    if (!open) setRendered(false);
   }
 
   const navCurrent = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`) ? 'page' as const : undefined;
 
   return (
-    <header className="header" role="banner">
+    <header className={rendered ? 'header header--nav-open' : 'header'} role="banner">
       <a className="skip-link" href="#main">{t('skip')}</a>
 
       <div className="container header-inner">
@@ -90,7 +118,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
           </div>
         </div>
 
-        <Link href="/" aria-label={t('homeAria')} className="header-brand" onClick={close}>
+        <Link href="/" aria-label={t('homeAria')} className="header-brand" onClick={() => closeMenu({ instant: true })}>
           <span className="brand-text">Le p’tit mag</span>
         </Link>
 
@@ -105,6 +133,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
             <PendingMemberBadge locale={locale} />
             <MemberWishlistLink locale={locale} />
             <MemberCartLink locale={locale} />
+            <AuthLink locale={locale} />
             {showAdminLink ? (
               <Link
                 href="/admin"
@@ -115,7 +144,6 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
                 {t('admin')}
               </Link>
             ) : null}
-            <AuthLink locale={locale} />
           </div>
         </nav>
 
@@ -126,16 +154,18 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
           aria-label={open ? t('menuClose') : t('menuOpen')}
           aria-controls={dialogId}
           aria-expanded={open ? 'true' : 'false'}
-          onClick={() => setOpen(true)}
+          onClick={toggleMenu}
         >
-          <span />
-          <span />
-          <span />
+          <Menu size={22} strokeWidth={2} aria-hidden="true" />
         </button>
       </div>
 
-      {open ? (
-        <div className="nav-overlay" role="presentation" onClick={close}>
+      {rendered ? (
+        <div
+          className={open ? 'nav-overlay' : 'nav-overlay is-closing'}
+          role="presentation"
+          onAnimationEnd={onOverlayAnimationEnd}
+        >
           <nav
             ref={dialogRef}
             id={dialogId}
@@ -143,43 +173,46 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
             role="dialog"
             aria-modal="true"
             aria-label={t('menu')}
-            onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              className="nav-toggle nav-toggle-close"
-              aria-label={t('menuClose')}
-              onClick={close}
-            >
-              ×
-            </button>
+            <div className="nav-mobile-toolbar">
+              <p className="nav-mobile-toolbar-title">{t('menu')}</p>
+              <button
+                type="button"
+                className="nav-toggle-close"
+                aria-label={t('menuClose')}
+                onClick={() => closeMenu()}
+              >
+                <X size={22} strokeWidth={2} aria-hidden="true" />
+              </button>
+            </div>
 
             <div className="nav-mobile-body">
-              <ul>
-                <li><Link href="/producers" locale={locale} onClick={close} aria-current={navCurrent('/producers')}>{t('producers')}</Link></li>
-                <li><Link href="/membership" locale={locale} onClick={close} aria-current={navCurrent('/membership')}>{t('membership')}</Link></li>
-                <li><Link href="/contact" locale={locale} onClick={close} aria-current={navCurrent('/contact')}>{t('contact')}</Link></li>
-                <CatalogueNavLink locale={locale} onNavigate={close} variant="mobile" />
+              <ul className="nav-mobile-pages">
+                <li><Link href="/producers" locale={locale} onClick={() => closeMenu({ instant: true })} aria-current={navCurrent('/producers')}>{t('producers')}</Link></li>
+                <li><Link href="/membership" locale={locale} onClick={() => closeMenu({ instant: true })} aria-current={navCurrent('/membership')}>{t('membership')}</Link></li>
+                <li><Link href="/contact" locale={locale} onClick={() => closeMenu({ instant: true })} aria-current={navCurrent('/contact')}>{t('contact')}</Link></li>
+                <CatalogueNavLink locale={locale} onNavigate={() => closeMenu({ instant: true })} variant="mobile" />
               </ul>
               <div className="nav-mobile-account">
+                <p className="nav-mobile-heading">{t('mySpace')}</p>
                 <PendingMemberBadge locale={locale} />
                 <MemberWishlistLink locale={locale} variant="mobile" />
                 <MemberCartLink locale={locale} variant="mobile" />
-                {showAdminLink ? (
-                  <Link
-                    href="/admin"
-                    locale={locale}
-                    className="admin-shortcut-link"
-                    onClick={close}
-                    aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
-                  >
-                    {t('admin')}
-                  </Link>
-                ) : null}
-                <div onClick={close}>
+                <div className="nav-mobile-chip-wrap" onClick={() => closeMenu({ instant: true })}>
                   <AuthLink locale={locale} />
                 </div>
               </div>
+              {showAdminLink ? (
+                <Link
+                  href="/admin"
+                  locale={locale}
+                  className="admin-shortcut-link admin-shortcut-link--quiet"
+                  onClick={() => closeMenu({ instant: true })}
+                  aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
+                >
+                  {t('admin')}
+                </Link>
+              ) : null}
             </div>
           </nav>
         </div>

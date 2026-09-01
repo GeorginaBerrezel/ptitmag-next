@@ -4,7 +4,7 @@
   /* Vert “verre” mais SOLIDE (pas d'alpha) */
   --header-bg: #486B47;
   --header-fg: #ffffff;
-  --header-fg-muted: #ffffff;
+  --header-fg-muted: rgba(255, 255, 255, 0.62);
 
   /* Orange très partiel (hover/accents) */
   --orange: #d0822a;
@@ -19,8 +19,8 @@
 /* Brand text */
 .header-brand .brand-text{
   font-weight: 800;
-  letter-spacing: -0.02em;
-  font-size: 1.36rem;
+  letter-spacing: -0.03em;
+  font-size: 1.42rem;
   line-height: 1;
   color: var(--header-fg);
   text-decoration: none;
@@ -29,7 +29,7 @@
 
 @media (max-width: 1200px) {
   .header-brand .brand-text{
-    font-size: 1.12rem;
+    font-size: 1.2rem;
   }
 }
 
@@ -49,6 +49,38 @@
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
+.header a.nav-account-chip{
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  width: max-content !important;
+  max-width: 100%;
+  min-height: 36px;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-radius: 999px !important;
+  padding: 0.2rem 0.75rem 0.2rem 0.22rem !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  gap: 0.5rem;
+  line-height: 1;
+}
+
+.header a.nav-catalogue-link{
+  color: color-mix(in oklab, var(--orange) 42%, white);
+}
+
+.header a.nav-catalogue-link:hover{
+  color: color-mix(in oklab, var(--orange) 28%, white);
+  text-decoration-color: var(--orange);
+}
+
+.header a.nav-catalogue-link[aria-current="page"]{
+  color: color-mix(in oklab, var(--orange) 22%, white);
+  text-decoration-color: var(--orange);
+}
+
 .site-nav-desktop a:hover,
 .site-nav-mobile a:hover{
   color: #fff;
@@ -66,11 +98,25 @@
   text-decoration-thickness: 2px;
 }
 
-/* Mobile : liste simple */
-.site-nav-mobile a{
+.header a.nav-account-chip:hover,
+.header a.nav-account-chip[aria-current="page"]{
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.72) !important;
+  text-decoration: none !important;
+}
+
+.header .nav-account-name{
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  padding-top: 0;
+}
+.site-nav-mobile a:not(.nav-account-chip){
   display: block;
-  padding: 0.65rem 0.25rem;
+  padding: 0.55rem 0.1rem;
   white-space: normal;
+  font-size: 1.15rem;
+  text-align: left;
 }
 
 /* Focus clavier */
@@ -83,16 +129,46 @@
 }
 
 .nav-mobile-account{
-  margin-top: 1.25rem;
+  margin-top: 1.1rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255,255,255,0.18);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.35rem;
+}
+
+.nav-mobile-heading{
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.nav-account-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 36px;
+  padding: 0.2rem 0.75rem 0.2rem 0.22rem;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.site-nav-mobile .nav-account-chip{
+  align-self: flex-start;
+  margin-top: 0.2rem;
+  width: max-content;
 }
 
 /* Compte connecté : page courante lisible au clavier */
-.header-account a[aria-current="page"]{
+.header-account a[aria-current="page"]:not(.nav-account-chip){
   color: #fff;
   font-weight: 700;
   text-decoration: underline;
@@ -101,10 +177,7 @@
   text-underline-offset: 3px;
 }
 
-/* Burger lines */
-.nav-toggle span{
-  background: var(--header-fg);
-}
+/* Burger : icône Lucide */
 
 
 .btn:hover{
