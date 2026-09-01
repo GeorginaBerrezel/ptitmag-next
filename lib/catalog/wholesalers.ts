@@ -154,6 +154,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Grossiste bio équitable, épicerie et produits secs.',
     emoji: '🤝',
     website: 'https://www.saldac.ch',
+    logo: 'saldac.png',
+    logoQuality: 'official',
   },
   {
     slug: 'gebana',
@@ -162,6 +164,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Grossiste bio équitable, fruits, légumes et produits transformés.',
     emoji: '🌍',
     website: 'https://gebana.com/ch-fr',
+    logo: 'gebana.png',
+    logoQuality: 'official',
   },
   {
     slug: 'dr-jacobs',
@@ -170,6 +174,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Compléments alimentaires et produits Naturam.',
     emoji: '💊',
     website: 'https://www.naturam.ch',
+    logo: 'dr-jacobs.png',
+    logoQuality: 'official',
   },
   {
     slug: 'kumbha',
@@ -178,6 +184,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Grossiste bio, assortiment Bio-Vitality.',
     emoji: '🌿',
     website: 'https://www.bio-vitality.ch',
+    logo: 'kumbha.png',
+    logoQuality: 'official',
   },
   {
     slug: 'phag',
@@ -186,6 +194,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Grossiste bio et diététique, Walchwil.',
     emoji: '🌿',
     website: 'https://www.phag.bio/',
+    logo: 'phag.png',
+    logoQuality: 'official',
   },
 ]
 
