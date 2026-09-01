@@ -14,6 +14,20 @@ export type Wholesaler = {
 
 export const WHOLESALERS: Wholesaler[] = [
   {
+    slug: 'biopartner-fruits-legumes',
+    displayName: 'Biopartner – Fruits & légumes',
+    aliases: [
+      'Biopartner – Fruits & légumes',
+      'Biopartner - Fruits & légumes',
+      'Biopartner – Fruits et légumes',
+    ],
+    description: 'Fruits et légumes frais, liste mise à jour chaque semaine.',
+    emoji: '🥬',
+    website: 'https://www.biopartner.ch',
+    logo: 'biopartner.jpg',
+    logoQuality: 'fallback',
+  },
+  {
     slug: 'biopartner-general',
     displayName: 'Biopartner – Général',
     aliases: ['Biopartner – Général', 'Biopartner - Général', 'Biopartner'],
@@ -165,6 +179,14 @@ export const WHOLESALERS: Wholesaler[] = [
     emoji: '🌿',
     website: 'https://www.bio-vitality.ch',
   },
+  {
+    slug: 'phag',
+    displayName: 'Phag Sàrl',
+    aliases: ['Phag Sàrl', 'Phag Sarl', 'Phag', 'phag.bio'],
+    description: 'Grossiste bio et diététique, Walchwil.',
+    emoji: '🌿',
+    website: 'https://www.phag.bio/',
+  },
 ]
 
 function normalizeKey(name: string): string {
@@ -173,15 +195,26 @@ function normalizeKey(name: string): string {
 
 export function findWholesaler(name: string): Wholesaler | undefined {
   const key = normalizeKey(name)
+
+  for (const w of WHOLESALERS) {
+    for (const alias of w.aliases) {
+      if (key === normalizeKey(alias)) return w
+    }
+  }
+
+  let best: { wholesaler: Wholesaler; aliasLen: number } | undefined
   for (const w of WHOLESALERS) {
     for (const alias of w.aliases) {
       const aliasKey = normalizeKey(alias)
-      if (key === aliasKey || key.includes(aliasKey) || aliasKey.includes(key)) {
-        return w
+      if (!aliasKey) continue
+      if (key.includes(aliasKey) || aliasKey.includes(key)) {
+        if (!best || aliasKey.length > best.aliasLen) {
+          best = { wholesaler: w, aliasLen: aliasKey.length }
+        }
       }
     }
   }
-  return undefined
+  return best?.wholesaler
 }
 
 export function getWholesalerLogoPath(wholesaler: Wholesaler): string | undefined {
