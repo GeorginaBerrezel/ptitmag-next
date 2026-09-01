@@ -170,6 +170,7 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     description: 'Entreprise agricole bio de la Famille Grünenfelder à Hérémence.',
     emoji: '🌾',
     website: 'https://www.lesdevins.ch',
+    logo: 'les-devins.jpg',
   },
   {
     slug: 'michael-rouzeau',
@@ -180,6 +181,18 @@ export const LOCAL_PRODUCERS: LocalProducer[] = [
     certification: 'Local',
     description: 'Argent colloïdal produit à Martigny.',
     emoji: '💧',
+  },
+  {
+    slug: 'le-sapalet',
+    displayName: 'Le Sapalet',
+    aliases: ['Le Sapalet', 'Sapalet', 'Fromagerie Le Sapalet'],
+    location: 'Rossinière',
+    products: 'Fromages et produits laitiers de brebis, chèvre et vache',
+    certification: 'Bio',
+    description: 'Fromagerie biologique à Rossinière. Spécialités au lait de brebis, chèvre et vache.',
+    emoji: '🧀',
+    website: 'https://sapalet.ch/',
+    logo: 'le-sapalet.png',
   },
 ]
 

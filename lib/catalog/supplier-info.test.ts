@@ -21,6 +21,19 @@ describe('getSupplierDisplayName', () => {
   it('garde le nom d’un fournisseur sans alias', () => {
     assert.equal(getSupplierDisplayName('Fournisseur inconnu', 'autre'), 'Fournisseur inconnu')
   })
+
+  it('distingue les catalogues Biopartner', () => {
+    assert.equal(getSupplierDisplayName('Biopartner – Surgelés', 'grossiste_bio'), 'Biopartner – Surgelés')
+    assert.equal(getSupplierDisplayName('Biopartner – Viandes fraîches', 'grossiste_bio'), 'Biopartner – Viandes fraîches')
+    assert.equal(getSupplierDisplayName('Biopartner – Fruits & légumes', 'grossiste_bio'), 'Biopartner – Fruits & légumes')
+    assert.equal(getSupplierDisplayName('Biopartner – Général', 'grossiste_bio'), 'Biopartner – Général')
+    assert.equal(getSupplierDisplayName('Biopartner', 'grossiste_bio'), 'Biopartner – Général')
+  })
+
+  it('affiche Phag et Le Sapalet', () => {
+    assert.equal(getSupplierDisplayName('Phag Sàrl', 'grossiste_bio'), 'Phag Sàrl')
+    assert.equal(getSupplierDisplayName('Le Sapalet', 'local'), 'Le Sapalet')
+  })
 })
 
 describe('recherche catalogue Vérène', () => {

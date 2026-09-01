@@ -14,6 +14,20 @@ export type Wholesaler = {
 
 export const WHOLESALERS: Wholesaler[] = [
   {
+    slug: 'biopartner-fruits-legumes',
+    displayName: 'Biopartner – Fruits & légumes',
+    aliases: [
+      'Biopartner – Fruits & légumes',
+      'Biopartner - Fruits & légumes',
+      'Biopartner – Fruits et légumes',
+    ],
+    description: 'Fruits et légumes frais, liste mise à jour chaque semaine.',
+    emoji: '🥬',
+    website: 'https://www.biopartner.ch',
+    logo: 'biopartner.jpg',
+    logoQuality: 'fallback',
+  },
+  {
     slug: 'biopartner-general',
     displayName: 'Biopartner – Général',
     aliases: ['Biopartner – Général', 'Biopartner - Général', 'Biopartner'],
@@ -140,6 +154,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Grossiste bio équitable, épicerie et produits secs.',
     emoji: '🤝',
     website: 'https://www.saldac.ch',
+    logo: 'saldac.png',
+    logoQuality: 'official',
   },
   {
     slug: 'gebana',
@@ -148,6 +164,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Grossiste bio équitable, fruits, légumes et produits transformés.',
     emoji: '🌍',
     website: 'https://gebana.com/ch-fr',
+    logo: 'gebana.png',
+    logoQuality: 'official',
   },
   {
     slug: 'dr-jacobs',
@@ -156,6 +174,8 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Compléments alimentaires et produits Naturam.',
     emoji: '💊',
     website: 'https://www.naturam.ch',
+    logo: 'dr-jacobs.png',
+    logoQuality: 'official',
   },
   {
     slug: 'kumbha',
@@ -164,6 +184,18 @@ export const WHOLESALERS: Wholesaler[] = [
     description: 'Grossiste bio, assortiment Bio-Vitality.',
     emoji: '🌿',
     website: 'https://www.bio-vitality.ch',
+    logo: 'kumbha.png',
+    logoQuality: 'official',
+  },
+  {
+    slug: 'phag',
+    displayName: 'Phag Sàrl',
+    aliases: ['Phag Sàrl', 'Phag Sarl', 'Phag', 'phag.bio'],
+    description: 'Grossiste bio et diététique, Walchwil.',
+    emoji: '🌿',
+    website: 'https://www.phag.bio/',
+    logo: 'phag.png',
+    logoQuality: 'official',
   },
 ]
 
@@ -173,15 +205,26 @@ function normalizeKey(name: string): string {
 
 export function findWholesaler(name: string): Wholesaler | undefined {
   const key = normalizeKey(name)
+
+  for (const w of WHOLESALERS) {
+    for (const alias of w.aliases) {
+      if (key === normalizeKey(alias)) return w
+    }
+  }
+
+  let best: { wholesaler: Wholesaler; aliasLen: number } | undefined
   for (const w of WHOLESALERS) {
     for (const alias of w.aliases) {
       const aliasKey = normalizeKey(alias)
-      if (key === aliasKey || key.includes(aliasKey) || aliasKey.includes(key)) {
-        return w
+      if (!aliasKey) continue
+      if (key.includes(aliasKey) || aliasKey.includes(key)) {
+        if (!best || aliasKey.length > best.aliasLen) {
+          best = { wholesaler: w, aliasLen: aliasKey.length }
+        }
       }
     }
   }
-  return undefined
+  return best?.wholesaler
 }
 
 export function getWholesalerLogoPath(wholesaler: Wholesaler): string | undefined {

@@ -374,6 +374,11 @@ const SUPPLIER_CONFIGS: Record<string, SupplierConfig> = {
     type: 'grossiste_bio',
     parse: (rows) => parseGenericCatalogCsv(rows),
   },
+  phag: {
+    name: 'Phag Sàrl',
+    type: 'grossiste_bio',
+    parse: (rows) => parseGenericCatalogCsv(rows),
+  },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
