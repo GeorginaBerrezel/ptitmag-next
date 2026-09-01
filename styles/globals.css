@@ -220,6 +220,13 @@ main {
   text-decoration: none;
 }
 
+.site-nav-desktop .nav-account-name,
+.site-nav-mobile .nav-account-name {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+}
+
 /* États nav desktop/mobile : voir theme.css */
 
 /* Icônes nav */

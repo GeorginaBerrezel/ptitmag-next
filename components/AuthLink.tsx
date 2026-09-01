@@ -79,7 +79,7 @@ export default function AuthLink({ locale }: { locale: 'fr' | 'en' }) {
           userId={profile.id}
           size={26}
         />
-        <span style={{ verticalAlign: 'middle' }}>{displayName}</span>
+        <span className="nav-account-name" style={{ verticalAlign: 'middle' }}>{displayName}</span>
       </Link>
     )
   }
