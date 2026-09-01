@@ -36,6 +36,7 @@ export const LOCAL_SUPPLIER_CONFIG: Record<string, LocalSupplierConfig> = {
   michael_rouzeau:  { supplierName: 'Michaël Rouzeau - Martigny - Argent colloïdal', supplierType: 'local', category: 'Argent colloïdal', deadlineGroup: 'jeudi' },
   evoleina:         { supplierName: 'Evoleina Rhodiola', supplierType: 'local', category: 'Produits à base de rhodiola', deadlineGroup: 'jeudi' },
   les_devins:       { supplierName: 'Les Devins', supplierType: 'local', category: 'Produits fermiers', deadlineGroup: 'jeudi' },
+  le_sapalet:       { supplierName: 'Le Sapalet', supplierType: 'local', category: 'Fromages', deadlineGroup: 'jeudi' },
 }
 
 // Même mapping pour la feuille hebdo (indexé par nom d'onglet Excel)
@@ -55,6 +56,7 @@ export const HEBDO_SHEET_CONFIG: Record<string, LocalSupplierConfig> = {
   'Michaël Rouzeau - Martigny - Argent colloïdal': LOCAL_SUPPLIER_CONFIG.michael_rouzeau,
   'Evoleina Rhodiola':  LOCAL_SUPPLIER_CONFIG.evoleina,
   'Les Devins':         LOCAL_SUPPLIER_CONFIG.les_devins,
+  'Le Sapalet':         LOCAL_SUPPLIER_CONFIG.le_sapalet,
 }
 
 // ─── Parser commun ────────────────────────────────────────────────────────────
