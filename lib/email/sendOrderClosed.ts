@@ -68,8 +68,7 @@ function buildSupplierBlocks(orders: ClosedOrderGroup[]): string {
  */
 export async function sendOrderClosed(params: Params): Promise<void> {
   if (!isSmtpConfigured()) {
-    console.warn('[email] Variables SMTP absentes — email de clôture non envoyé.')
-    return
+    throw new Error('SMTP non configuré — email de clôture non envoyé.')
   }
 
   const {
@@ -81,7 +80,9 @@ export async function sendOrderClosed(params: Params): Promise<void> {
     globalTotal,
   } = params
 
-  if (orders.length === 0) return
+  if (orders.length === 0) {
+    throw new Error('Aucune commande à inclure dans l\'email de clôture.')
+  }
 
   const displayName = memberName ?? memberEmail
   const multiple = orders.length > 1
