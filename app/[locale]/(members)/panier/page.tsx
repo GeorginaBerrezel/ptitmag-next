@@ -233,7 +233,7 @@ export default function PanierPage({
         )}
 
         <p className={styles.recapNote}>
-          Pas de paiement en ligne — la confirmation enregistre votre commande au magasin.
+          Pas de paiement en ligne. La confirmation enregistre votre commande au magasin.
           {creditBalance > 0 && (
             <> Votre avoir sera déduit du solde <strong>à la clôture</strong> de chaque commande (montant définitif après livraison).</>
           )}
@@ -246,7 +246,7 @@ export default function PanierPage({
 
       {applyCielMarkup && (
         <p className={styles.cielBanner}>
-          Membre Ciel — les prix incluent une majoration de +20&nbsp;%.
+          Membre Ciel : les prix incluent une majoration de +20&nbsp;%.
         </p>
       )}
 

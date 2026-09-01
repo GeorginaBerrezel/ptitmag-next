@@ -74,7 +74,7 @@ export function validateLocalitySelection(
   if (!/^\d{4}$/.test(zip)) return 'Le NPA doit comporter 4 chiffres (ex. 1966).'
   if (name.length < 2) return 'Sélectionnez votre localité dans la liste.'
   if (!isValidLocality(zip, name)) {
-    return 'Localité invalide — choisissez une suggestion dans la liste.'
+    return 'Localité invalide. Choisissez une suggestion dans la liste.'
   }
   return null
 }

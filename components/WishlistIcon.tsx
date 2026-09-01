@@ -1,28 +1,10 @@
 'use client'
 
+import { Heart } from 'lucide-react'
 import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { useWishlist } from '@/lib/wishlist/WishlistContext'
 import styles from './cart-icon.module.css'
-
-function HeartSvg() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M12 21s-6.7-4.35-9.33-8.1C.74 10.1 2.1 6.4 5.6 5.2c2-.7 4.1-.1 5.5 1.4L12 8.5l.9-1.9c1.4-1.5 3.5-2.1 5.5-1.4 3.5 1.2 4.85 4.9 2.93 7.7C18.7 16.65 12 21 12 21Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
 
 type Props = {
   locale: 'fr' | 'en'
@@ -52,7 +34,7 @@ export default function WishlistIcon({ locale, variant = 'icon' }: Props) {
       aria-current={isActive ? 'page' : undefined}
     >
       <span className={styles.iconWrap}>
-        <HeartSvg />
+        <Heart className={styles.icon} size={22} strokeWidth={2} aria-hidden="true" />
         {count > 0 && <span className={styles.badge}>{count}</span>}
       </span>
       {isMobile && <span className={styles.label}>{label}</span>}

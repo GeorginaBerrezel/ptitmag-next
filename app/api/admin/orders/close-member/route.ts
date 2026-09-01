@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
       globalTotal,
       emailSent,
       message: emailSent
-        ? `${closedGroups.length} commande${closedGroups.length > 1 ? 's' : ''} clôturée${closedGroups.length > 1 ? 's' : ''} — total CHF ${globalTotal.toFixed(2)}. Email envoyé.`
-        : `${closedGroups.length} commande${closedGroups.length > 1 ? 's' : ''} clôturée${closedGroups.length > 1 ? 's' : ''} — total CHF ${globalTotal.toFixed(2)}. Email non envoyé.`,
+        ? `${closedGroups.length} commande${closedGroups.length > 1 ? 's' : ''} clôturée${closedGroups.length > 1 ? 's' : ''}. Total CHF ${globalTotal.toFixed(2)}. Email envoyé.`
+        : `${closedGroups.length} commande${closedGroups.length > 1 ? 's' : ''} clôturée${closedGroups.length > 1 ? 's' : ''}. Total CHF ${globalTotal.toFixed(2)}. Email non envoyé.`,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue.'

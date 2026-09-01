@@ -29,8 +29,8 @@ export async function sendOrderCancelledByAdmin(params: Params): Promise<void> {
     year: 'numeric',
   })
 
-  const memberSubject = `Commande annulée — ${params.supplierName} — ${site.name}`
-  const adminSubject = `Commande annulée — ${displayName} — ${params.supplierName} — (${now})`
+  const memberSubject = `Commande annulée · ${params.supplierName} · ${site.name}`
+  const adminSubject = `Commande annulée · ${displayName} · ${params.supplierName} · (${now})`
   const html = buildHtml({ ...params, displayName, date: now })
   const transporter = createTransporter()
 
@@ -115,7 +115,7 @@ function buildHtml({
               </table>
             ` : ''}
             <p style="margin:16px 0 0;font-size:15px;font-weight:700;color:#c0392b;">
-              Commande annulée — aucun montant dû.
+              Commande annulée. Aucun montant dû.
             </p>
             <p style="margin:24px 0 0;font-size:14px;color:#555;line-height:1.6;">
               Retrouvez le détail sur <strong>Mon compte</strong> sur le site. Pour toute question : <a href="mailto:${site.email}" style="color:#DC7F00;">${site.email}</a>.

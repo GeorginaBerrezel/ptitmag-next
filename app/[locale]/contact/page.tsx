@@ -4,6 +4,7 @@ import PageHeroWithImage from '@/components/PageHeroWithImage'
 import JsonLdScript from '@/components/seo/JsonLdScript'
 import { SHOP_IMAGES } from '@/lib/site-images'
 import { buildHomeJsonLd, pageMetadata } from '@/lib/seo'
+import { Mail, MapPin, MessageCircle, Navigation, Phone } from 'lucide-react'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -83,7 +84,7 @@ export default async function ContactPage({
           flexDirection: 'column',
           gap: '1rem',
         }}>
-          <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <h2 className="page-section-label" style={{ margin: 0 }}>
             Nous joindre
           </h2>
 
@@ -101,13 +102,13 @@ export default async function ContactPage({
               textDecoration: 'none',
             }}
           >
-            <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0 }}>📞</span>
+            <Phone className="page-lucide" size={24} strokeWidth={2} aria-hidden="true" />
             <div>
               <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, letterSpacing: '0.02em', color: '#fff' }}>
                 {displayPhone}
               </p>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', marginTop: '0.1rem' }}>
-                Joël — appel, SMS ou Signal
+                Joël : appel, SMS ou Signal
               </p>
             </div>
           </a>
@@ -127,7 +128,7 @@ export default async function ContactPage({
               border: '1px solid rgba(16,24,40,0.08)',
             }}
           >
-            <span style={{ fontSize: '1.25rem' }}>✉️</span>
+            <Mail className="page-lucide" size={20} strokeWidth={2} aria-hidden="true" />
             <div>
               <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>
                 {site.email}
@@ -146,8 +147,9 @@ export default async function ContactPage({
             display: 'flex',
             gap: '0.6rem',
             alignItems: 'flex-start',
+            color: '#245c2a',
           }}>
-            <span style={{ fontSize: '1.1rem', flexShrink: 0 }} aria-hidden>💬</span>
+            <MessageCircle className="page-lucide" size={18} strokeWidth={2} aria-hidden="true" />
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#245c2a', lineHeight: 1.55 }}>
               {t('signal_info')}
             </p>
@@ -166,11 +168,11 @@ export default async function ContactPage({
         }}>
           {/* Adresse */}
           <div>
-            <h2 style={{ margin: '0 0 0.6rem', fontSize: '1rem', fontWeight: 700, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <h2 className="page-section-label">
               Adresse
             </h2>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>📍</span>
+              <MapPin className="page-lucide" size={20} strokeWidth={2} aria-hidden="true" />
               <div>
                 <p style={{ margin: 0, fontWeight: 700 }}>{site.address.streetAddress}</p>
                 <p style={{ margin: 0, opacity: 0.65 }}>
@@ -183,7 +185,7 @@ export default async function ContactPage({
 
           {/* Horaires */}
           <div>
-            <h2 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 700, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <h2 className="page-section-label">
               Horaires d&apos;ouverture
             </h2>
             <div style={{ display: 'grid', gap: '0.5rem' }}>
@@ -255,7 +257,8 @@ export default async function ContactPage({
               flexShrink: 0,
             }}
           >
-            🗺️ Itinéraire
+            <Navigation className="page-lucide" size={16} strokeWidth={2} aria-hidden="true" />
+            Itinéraire
           </a>
         ) : (
           <a
@@ -277,7 +280,8 @@ export default async function ContactPage({
               flexShrink: 0,
             }}
           >
-            🗺️ Voir sur Maps
+            <Navigation className="page-lucide" size={16} strokeWidth={2} aria-hidden="true" />
+            Voir sur Maps
           </a>
         )}
       </div>

@@ -64,7 +64,7 @@ export default function AccountMovementsSection({
 
       {preview && (
         <div className={styles.previewBanner} role="status">
-          <strong>Aperçu fictif</strong> — {preview.label}. Rien n&apos;est modifié en base.
+          <strong>Aperçu fictif</strong> : {preview.label}. Rien n&apos;est modifié en base.
           <span className={styles.previewLinks}>
             <PreviewLink locale={loc} mode={undefined} current={previewMode} label="Mes vraies données" />
             <PreviewLink locale={loc} mode="avoir" current={previewMode} label="Avec avoir" />

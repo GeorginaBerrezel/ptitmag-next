@@ -1,23 +1,38 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import {
+  BadgeCheck,
+  Bike,
+  CreditCard,
+  FlaskConical,
+  Handshake,
+  Heart,
+  House,
+  Info,
+  Leaf,
+  MessageCircle,
+  Recycle,
+  Search,
+  Wheat,
+  type LucideIcon,
+} from 'lucide-react'
 import MemberStatusGuide from '@/components/MemberStatusGuide'
 import PageHeroWithImage from '@/components/PageHeroWithImage'
 import { SHOP_IMAGES } from '@/lib/site-images'
 import { pageMetadata } from '@/lib/seo'
 
-// ─── Données statiques ────────────────────────────────────────────────────────
-// Les clés "why" dans l'ordre de la traduction, avec un emoji représentatif
-
-const WHY_ITEMS = [
-  { key: 'sovereignty',   emoji: '🌾', titleKey: 'why.sovereigntyTitle',   textKey: 'why.sovereigntyText' },
-  { key: 'shortCircuits', emoji: '🚲', titleKey: 'why.shortCircuitsTitle',  textKey: 'why.shortCircuitsText' },
-  { key: 'ethical',       emoji: '✅', titleKey: 'why.ethicalTitle',        textKey: 'why.ethicalText' },
-  { key: 'waste',         emoji: '♻️', titleKey: 'why.wasteTitle',          textKey: 'why.wasteText' },
-  { key: 'fairPrice',     emoji: '💚', titleKey: 'why.fairPriceTitle',      textKey: 'why.fairPriceText' },
-  { key: 'transparency',  emoji: '🔍', titleKey: 'why.transparencyTitle',   textKey: 'why.transparencyText' },
-  { key: 'participation', emoji: '🤝', titleKey: 'why.participationTitle',  textKey: 'why.participationText' },
-  { key: 'community',     emoji: '🏘️', titleKey: 'why.communityTitle',      textKey: 'why.communityText' },
+const WHY_ITEMS: { key: string; Icon: LucideIcon; titleKey: string; textKey: string }[] = [
+  { key: 'sovereignty',   Icon: Wheat,        titleKey: 'why.sovereigntyTitle',   textKey: 'why.sovereigntyText' },
+  { key: 'shortCircuits', Icon: Bike,         titleKey: 'why.shortCircuitsTitle',  textKey: 'why.shortCircuitsText' },
+  { key: 'ethical',       Icon: BadgeCheck,   titleKey: 'why.ethicalTitle',        textKey: 'why.ethicalText' },
+  { key: 'waste',         Icon: Recycle,      titleKey: 'why.wasteTitle',          textKey: 'why.wasteText' },
+  { key: 'fairPrice',     Icon: Heart,        titleKey: 'why.fairPriceTitle',      textKey: 'why.fairPriceText' },
+  { key: 'transparency',  Icon: Search,       titleKey: 'why.transparencyTitle',   textKey: 'why.transparencyText' },
+  { key: 'participation', Icon: Handshake,    titleKey: 'why.participationTitle',  textKey: 'why.participationText' },
+  { key: 'community',     Icon: House,        titleKey: 'why.communityTitle',      textKey: 'why.communityText' },
 ]
+
+const TRY_STEP_ICONS = [MessageCircle, FlaskConical, Leaf] as const
 
 // ─── Métadonnées SEO ──────────────────────────────────────────────────────────
 
@@ -44,8 +59,6 @@ export default async function MembershipPage({
 
   type TryCard = { title: string; text: string }
   const tryCards = t.raw('tryCards') as TryCard[]
-
-  const STEP_EMOJIS = ['💬', '🧪', '🌿']
 
   return (
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '5rem' }}>
@@ -154,7 +167,7 @@ export default async function MembershipPage({
               Libre
             </p>
             <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.65, lineHeight: 1.5 }}>
-              {t('don')} — pour soutenir l&apos;association au-delà de la cotisation.
+              {t('don')}, pour soutenir l&apos;association au-delà de la cotisation.
             </p>
           </div>
         </div>
@@ -165,8 +178,14 @@ export default async function MembershipPage({
           border: '1px solid #e8e8e8', fontSize: '0.88rem',
           display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.5rem',
         }}>
-          <span style={{ opacity: 0.7 }}>ℹ️ {t('charges')}</span>
-          <span style={{ opacity: 0.7 }}>💳 {t('payment')}</span>
+          <span style={{ opacity: 0.7, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Info size={16} strokeWidth={2} aria-hidden="true" />
+            {t('charges')}
+          </span>
+          <span style={{ opacity: 0.7, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <CreditCard size={16} strokeWidth={2} aria-hidden="true" />
+            {t('payment')}
+          </span>
         </div>
       </section>
 
@@ -194,9 +213,7 @@ export default async function MembershipPage({
                 alignItems: 'flex-start',
               }}
             >
-              <span style={{ fontSize: '1.35rem', flexShrink: 0, marginTop: '0.05rem' }}>
-                {item.emoji}
-              </span>
+              <item.Icon size={20} strokeWidth={2} aria-hidden="true" style={{ flexShrink: 0, marginTop: '0.1rem', color: 'var(--header-bg)' }} />
               <div>
                 <p style={{ margin: '0 0 0.3rem', fontWeight: 700, fontSize: '0.9rem' }}>
                   {t(item.titleKey)}
@@ -238,7 +255,9 @@ export default async function MembershipPage({
           gap: '1rem',
           marginBottom: '1.75rem',
         }}>
-          {tryCards.map((card, i) => (
+          {tryCards.map((card, i) => {
+            const StepIcon = TRY_STEP_ICONS[i]
+            return (
             <div
               key={i}
               style={{
@@ -253,11 +272,11 @@ export default async function MembershipPage({
             >
               <div style={{
                 width: 30, height: 30, borderRadius: '50%',
-                background: '#0E1726', color: '#cda867',
+                background: '#0E1726', color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.8rem', fontWeight: 800, flexShrink: 0,
+                flexShrink: 0,
               }}>
-                {STEP_EMOJIS[i] ?? i + 1}
+                {StepIcon ? <StepIcon size={15} strokeWidth={2} aria-hidden="true" /> : i + 1}
               </div>
               <div>
                 <p style={{ margin: '0 0 0.3rem', fontWeight: 700, fontSize: '0.9rem' }}>
@@ -268,7 +287,8 @@ export default async function MembershipPage({
                 </p>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Boutons CTA : inscription directe + contact */}

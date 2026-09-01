@@ -65,8 +65,8 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
         <h2 className={styles.sessionTitle}>Session</h2>
         <div className={styles.sessionRow}>
           <p className={styles.sessionHint}>
-            Se déconnecter vous ramène à la page Connexion. Vos commandes et votre profil restent enregistrés —
-            vous pourrez vous reconnecter à tout moment.
+            Se déconnecter vous ramène à la page Connexion. Vos commandes et votre profil restent enregistrés.
+            Vous pourrez vous reconnecter à tout moment.
           </p>
           <button
             type="button"
@@ -100,7 +100,7 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
         ) : (
           <div className={styles.confirmPanel} role="region" aria-label="Confirmation de suppression">
             <p className={styles.confirmLabel}>
-              Étape 2 — tapez <strong>{CONFIRMATION}</strong> pour confirmer :
+              Étape 2 : tapez <strong>{CONFIRMATION}</strong> pour confirmer.
             </p>
             <input
               type="text"
@@ -145,7 +145,7 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
           <Link href="/contact" locale={locale as 'fr' | 'en'} className={styles.contactLink}>
             Contactez-nous
           </Link>
-          {' '}— l&apos;équipe du magasin peut vous aider avant toute suppression.
+          . L&apos;équipe du magasin peut vous aider avant toute suppression.
         </p>
       </section>
     </div>

@@ -39,7 +39,7 @@ export default function CatalogueSupplierSidebar({
 
   return (
     <aside className="catalogue-supplier-sidebar" aria-label="Fournisseurs avec commandes ouvertes">
-      <p className="catalogue-supplier-sidebar__title">Fournisseurs — commandes ouvertes</p>
+      <p className="catalogue-supplier-sidebar__title">Fournisseurs : commandes ouvertes</p>
       <ul className="catalogue-supplier-sidebar__list">
         {openSuppliers.map(summary => {
           const isActive = summary.supplier.id === activeSupplierId
@@ -70,7 +70,7 @@ export default function CatalogueSupplierSidebar({
                     <span className="catalogue-supplier-sidebar__name">{displayName}</span>
                     <span className="catalogue-supplier-sidebar__meta">
                       {status.label}
-                      {status.detail ? ` — ${status.detail}` : ''}
+                      {status.detail ? ` : ${status.detail}` : ''}
                     </span>
                   </span>
                 </div>
@@ -91,7 +91,7 @@ export default function CatalogueSupplierSidebar({
                     <span className="catalogue-supplier-sidebar__name">{displayName}</span>
                     <span className="catalogue-supplier-sidebar__meta">
                       {status.label}
-                      {status.detail ? ` — ${status.detail}` : ''}
+                      {status.detail ? ` : ${status.detail}` : ''}
                     </span>
                   </span>
                 </button>

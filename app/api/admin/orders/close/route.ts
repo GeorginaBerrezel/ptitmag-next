@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       creditApplied: result.creditApplied,
       total: result.total,
       emailSent: false,
-      message: `Commande clôturée — total CHF ${result.total.toFixed(2)}${result.creditApplied > 0 ? ` (avoir −${result.creditApplied.toFixed(2)})` : ''}. Utilise « Clôturer tout » au niveau membre pour envoyer l'email récap.`,
+      message: `Commande clôturée. Total CHF ${result.total.toFixed(2)}${result.creditApplied > 0 ? ` (avoir −${result.creditApplied.toFixed(2)})` : ''}. Utilise « Clôturer tout » au niveau membre pour envoyer l'email récap.`,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue.'

@@ -199,7 +199,7 @@ function ProductPanel({
               <button
                 onClick={() => handleToggleFeatured(p)}
                 disabled={togglingId === p.id || !p.active}
-                title={!p.active ? 'Produit masqué — réactivez-le pour le mettre en avant' : p.is_featured ? 'Retirer de la mise en avant' : 'Mettre en avant sur la page d\'accueil'}
+                title={!p.active ? 'Produit masqué. Réactivez-le pour le mettre en avant' : p.is_featured ? 'Retirer de la mise en avant' : 'Mettre en avant sur la page d\'accueil'}
                 style={{
                   background: 'none', border: 'none', cursor: p.active ? 'pointer' : 'not-allowed',
                   fontSize: '1rem', lineHeight: 1, padding: 0, flexShrink: 0,
@@ -675,7 +675,7 @@ export default function FournisseursPage({ params }: { params: Promise<{ locale:
                     borderTop: '1px solid rgba(16,24,40,0.06)',
                     fontSize: '0.78rem', opacity: 0.55, lineHeight: 1.45,
                   }}>
-                    Catalogue volumineux — gestion produit par produit via import CSV (Admin → Import).
+                    Catalogue volumineux. Gestion produit par produit via import CSV (Admin → Import).
                   </p>
                 )}
               </div>

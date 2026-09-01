@@ -709,7 +709,7 @@ export default function AdminMembresPage({
                     <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.55, lineHeight: 1.4 }}>
                       Solde actuel : <strong>CHF {member.credit_balance.toFixed(2)}</strong>.
                       Tu ajoutes un dépôt (+20) ou tu corriges une erreur (−). Déduit à la <strong>clôture</strong> des commandes, pas au panier.
-                      Les dépôts d&apos;avant le {CREDIT_LEDGER_STARTED_ON} ne sont pas listés ici — les déductions déjà faites sont dans <strong>Commandes récentes</strong>.
+                      Les dépôts d&apos;avant le {CREDIT_LEDGER_STARTED_ON} ne sont pas listés ici. Les déductions déjà faites sont dans <strong>Commandes récentes</strong>.
                     </p>
                     <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
                       <label style={{ fontSize: '0.8rem', opacity: 0.6 }}>Montant</label>

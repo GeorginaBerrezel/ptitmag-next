@@ -10,7 +10,8 @@ export default function Footer({ locale }: { locale: 'fr' | 'en' }) {
     <footer className="footer">
       <div className="container footer-inner">
         <div className="footer-col">
-          <h3>Association Le P&apos;tit Mag</h3>
+          <p className="footer-brand">Le p’tit mag</p>
+          <p className="footer-brand-sub">Association · St-Romain (Ayent)</p>
           <p>
             Rue de l&apos;Église 2<br />
             1966 St-Romain (Ayent)<br />

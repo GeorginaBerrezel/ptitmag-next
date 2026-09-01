@@ -30,7 +30,7 @@ const FR: StatusGuideLocale = {
     terre: {
       emoji: '🌍',
       name: 'Membre Terre',
-      tagline: 'Prix juste — sans marge',
+      tagline: 'Prix juste, sans marge',
       body: 'Accès au catalogue aux prix d\'achat, sans marge commerciale. Statut des adhérent·es qui cotisent mensuellement à l\'association.',
       cotisationHint: 'Cotisation mensuelle adaptée à votre situation (repères CHF 30 ou CHF 15 solidaire), enregistrée dans votre fiche membre.',
     },
@@ -39,7 +39,7 @@ const FR: StatusGuideLocale = {
       name: 'Membre Ciel',
       tagline: '+20 % sur le catalogue',
       body: 'Statut avec cotisation annuelle légère : pour tester notre système ou pour les membres faisant peu de commandes. Accès au catalogue avec une majoration de 20 % sur les produits.',
-      cotisationHint: 'Cotisation annuelle légère — montant convenu avec l\'association.',
+      cotisationHint: 'Cotisation annuelle légère, montant convenu avec l\'association.',
     },
   },
 }
@@ -58,7 +58,7 @@ const EN: StatusGuideLocale = {
     terre: {
       emoji: '🌍',
       name: 'Earth member',
-      tagline: 'Fair price — no markup',
+      tagline: 'Fair price, no markup',
       body: 'Catalogue access at purchase price, with no commercial markup. For members who pay a monthly contribution.',
       cotisationHint: 'Monthly contribution adapted to your situation (guidelines CHF 30 or CHF 15 reduced rate), recorded in your profile.',
     },
@@ -67,7 +67,7 @@ const EN: StatusGuideLocale = {
       name: 'Sky member',
       tagline: '+20% markup on the catalogue',
       body: 'Catalogue access with a 20% markup on products. For members with a light annual contribution, adapted to your situation.',
-      cotisationHint: 'Light annual contribution — amount agreed with the association.',
+      cotisationHint: 'Light annual contribution, amount agreed with the association.',
     },
   },
 }

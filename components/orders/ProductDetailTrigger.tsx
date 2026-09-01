@@ -291,7 +291,7 @@ export default function ProductDetailTrigger({ preview, label, variant = 'row', 
                     Allergènes et fiche Biopartner ↗
                   </a>
                   <p className={styles.externalHint}>
-                    Si le lien ne s&apos;ouvre pas, le produit n&apos;est peut-être plus sur le site Biopartner — contactez le magasin.
+                    Si le lien ne s&apos;ouvre pas, le produit n&apos;est peut-être plus sur le site Biopartner. Contactez le magasin.
                   </p>
                 </div>
               )}

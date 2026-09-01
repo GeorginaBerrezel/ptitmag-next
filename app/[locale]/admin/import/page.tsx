@@ -44,7 +44,7 @@ type SupplierGroup = {
 
 const SUPPLIER_GROUPS: SupplierGroup[] = [
   {
-    label: 'Fournisseurs locaux — fichier par fichier',
+    label: 'Fournisseurs locaux, fichier par fichier',
     suppliers: [
       {
         key: 'bioterroir',
@@ -55,7 +55,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Légumes &amp; fruits — format Joel (Produit/Prix) ou gabarit simple. Voir Guide colonnes.</>,
+        fileInstructions: <>Légumes &amp; fruits, format Joel (Produit/Prix) ou gabarit simple. Voir Guide colonnes.</>,
       },
       {
         key: 'fermette_didi',
@@ -77,7 +77,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'mercredi',
-        fileInstructions: <>Pains & pâtisseries. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> — commander avant les autres.</>,
+        fileInstructions: <>Pains & pâtisseries. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> : commander avant les autres.</>,
       },
       {
         key: 'brasseries_ayent',
@@ -99,7 +99,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Vins nature et bio — Ayent. Prix TTC.</>,
+        fileInstructions: <>Vins nature et bio, Ayent. Prix TTC.</>,
       },
       {
         key: 'olivier_stephanie',
@@ -110,7 +110,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Vins et fruits bio — Itravers. Prix TTC.</>,
+        fileInstructions: <>Vins et fruits bio, Itravers. Prix TTC.</>,
       },
       {
         key: 'truffes',
@@ -121,7 +121,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'mercredi',
-        fileInstructions: <>Truffes au chocolat cru. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> — commander avant les autres.</>,
+        fileInstructions: <>Truffes au chocolat cru. <strong style={{ color: '#b45309' }}>Délai mercredi 18h30</strong> : commander avant les autres.</>,
       },
       {
         key: 'prefecture',
@@ -132,29 +132,29 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Viande bio — gabarit Produit / Prix / Unité ou nom;prix (voir Guide colonnes).</>,
+        fileInstructions: <>Viande bio, gabarit Produit / Prix / Unité ou nom;prix (voir Guide colonnes).</>,
       },
       {
         key: 'gregory_sermier',
-        label: "Alpage de Tsalan — Grégory Sermier",
+        label: "Alpage de Tsalan · Grégory Sermier",
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
         fileHint: 'Alpage de Tsalan (.xlsx ou .csv)',
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Fromages d&apos;alpage au lait de vache — Arbaz. Gabarit Produit / Prix / Unité ou nom;prix.</>,
+        fileInstructions: <>Fromages d&apos;alpage au lait de vache, Arbaz. Gabarit Produit / Prix / Unité ou nom;prix.</>,
       },
       {
         key: 'michael_rouzeau',
-        label: 'Michaël Rouzeau — Martigny',
+        label: 'Michaël Rouzeau · Martigny',
         type: 'local',
         endpoint: '/api/admin/import-local-supplier',
         fileHint: 'Michaël Rouzeau (.xlsx ou .csv)',
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Argent colloïdal — Martigny. Gabarit Produit / Prix / Unité ou nom;prix.</>,
+        fileInstructions: <>Argent colloïdal, Martigny. Gabarit Produit / Prix / Unité ou nom;prix.</>,
       },
       {
         key: 'evoleina',
@@ -165,7 +165,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Produits à base de rhodiola — gabarit Produit / Prix / Unité ou nom;prix.</>,
+        fileInstructions: <>Produits à base de rhodiola, gabarit Produit / Prix / Unité ou nom;prix.</>,
       },
       {
         key: 'les_devins',
@@ -176,12 +176,12 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         deadlineGroup: 'jeudi',
-        fileInstructions: <>Famille Grünenfelder, Hérémence — entreprise agricole bio. Gabarit Produit / Prix / Unité ou nom;prix.</>,
+        fileInstructions: <>Famille Grünenfelder, Hérémence : entreprise agricole bio. Gabarit Produit / Prix / Unité ou nom;prix.</>,
       },
     ],
   },
   {
-    label: 'Biopartner — 5 catalogues',
+    label: 'Biopartner · 5 catalogues',
     suppliers: BIOPARTNER_CATALOGS.map(c => ({
       key: c.importKey,
       label: c.shortLabel,
@@ -192,8 +192,8 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
       fileHint: `Biopartner ${c.shortLabel} (.xlsx ou .csv)`,
       fileInstructions: (
         <>
-          <strong>{c.name}</strong> — {c.description}<br />
-          <strong>Format complexe Biopartner</strong> — voir <strong>Guide colonnes</strong> (type complexe).<br />
+          <strong>{c.name}</strong> : {c.description}<br />
+          <strong>Format complexe Biopartner</strong> : voir <strong>Guide colonnes</strong> (type complexe).<br />
           Déposer le fichier <strong>.xlsx</strong> ou <strong>.csv</strong> tel quel (liste personnelle filtrée).<br />
           Colonne <strong>TVA</strong> (col.&nbsp;Z) : 2,6&nbsp;% ou 8,1&nbsp;% sur les prix HT. <strong>PDF</strong> non importable.
         </>
@@ -268,7 +268,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
     ],
   },
   {
-    label: 'Nouveaux grossistes (format simple — point-virgule)',
+    label: 'Nouveaux grossistes (format simple, point-virgule)',
     suppliers: [
       {
         key: 'saldac',
@@ -280,7 +280,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         fileHint: 'Saldac (.xlsx ou .csv)',
         fileInstructions: (
           <>
-            <strong>Format simple</strong> — voir Guide colonnes. Colonnes : <strong>nom</strong>, <strong>prix</strong>
+            <strong>Format simple</strong> : voir Guide colonnes. Colonnes : <strong>nom</strong>, <strong>prix</strong>
             (optionnel : ref, categorie, unite). UTF-8, séparateur <strong>;</strong>.
           </>
         ),
@@ -323,7 +323,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         fileHint: 'Aromacos (.xlsx ou .csv)',
-        fileInstructions: <>Cosmétiques et huiles essentielles — gabarit simple nom + prix.</>,
+        fileInstructions: <>Cosmétiques et huiles essentielles, gabarit simple nom + prix.</>,
       },
       {
         key: 'biopass',
@@ -333,7 +333,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         fileHint: 'Bio-pass (.xlsx ou .csv)',
-        fileInstructions: <>Plateforme bio commerçants — gabarit simple nom + prix.</>,
+        fileInstructions: <>Plateforme bio commerçants, gabarit simple nom + prix.</>,
       },
       {
         key: 'kingnature',
@@ -343,7 +343,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         fileHint: 'Kingnature (.xlsx ou .csv)',
-        fileInstructions: <>Compléments naturels — gabarit simple nom + prix.</>,
+        fileInstructions: <>Compléments naturels, gabarit simple nom + prix.</>,
       },
       {
         key: 'groen_labo',
@@ -353,7 +353,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         fileHint: 'Groen Labo (.xlsx ou .csv)',
-        fileInstructions: <>Laboratoire nature — gabarit simple nom + prix.</>,
+        fileInstructions: <>Laboratoire nature, gabarit simple nom + prix.</>,
       },
       {
         key: 'phytolis',
@@ -363,7 +363,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         fileHint: 'Phytolis (.xlsx ou .csv)',
-        fileInstructions: <>Phytothérapie — gabarit simple nom + prix.</>,
+        fileInstructions: <>Phytothérapie, gabarit simple nom + prix.</>,
       },
       {
         key: 'lrk',
@@ -373,7 +373,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         fileHint: 'LRK (.xlsx ou .csv)',
-        fileInstructions: <>Formules naturelles — gabarit simple nom + prix.</>,
+        fileInstructions: <>Formules naturelles, gabarit simple nom + prix.</>,
       },
       {
         key: 'algorigin',
@@ -383,7 +383,7 @@ const SUPPLIER_GROUPS: SupplierGroup[] = [
         acceptsXlsx: true,
         acceptsCsv: true,
         fileHint: 'Algorigin (.xlsx ou .csv)',
-        fileInstructions: <>Algues et superaliments — gabarit simple nom + prix.</>,
+        fileInstructions: <>Algues et superaliments, gabarit simple nom + prix.</>,
       },
     ],
   },
@@ -491,7 +491,7 @@ export default function ImportPage({
         <Link href="/admin/guide-import" locale={locale} style={{ color: '#1565c0', fontWeight: 600 }}>
           Guide colonnes &amp; formats →
         </Link>
-        {' '}— comment le site lit chaque fichier (Biopartner, locaux, CSV).
+        {' '}Comment le site lit chaque fichier (Biopartner, locaux, CSV).
       </p>
 
       {/* Sélecteur fournisseur — groupes */}
@@ -574,7 +574,7 @@ export default function ImportPage({
       <div style={{ marginBottom: '1.25rem' }}>
         {(supplier.deadlineGroup) && (
           <p style={{ margin: '0 0 0.65rem', fontSize: '0.78rem', opacity: 0.62, lineHeight: 1.5 }}>
-            Les dates sont <strong>pré-remplies</strong> selon la règle habituelle (mercredi 18h30 / jeudi 12h00 — prochain créneau à venir).
+            Les dates sont <strong>pré-remplies</strong> selon la règle habituelle (mercredi 18h30 / jeudi 12h00, prochain créneau à venir).
             Joel peut les modifier à tout moment.
             {' '}
             <button
@@ -708,7 +708,7 @@ export default function ImportPage({
 
       {loading && (
         <InlineStatus
-          message="Import du catalogue en cours — cela peut prendre quelques secondes…"
+          message="Import du catalogue en cours. Cela peut prendre quelques secondes…"
           centered
           live="assertive"
         />
@@ -772,7 +772,7 @@ export default function ImportPage({
               </p>
               <p style={{ margin: '0.45rem 0 0', fontSize: '0.76rem', opacity: 0.58, lineHeight: 1.5 }}>
                 Pour les fiches locales, l&apos;ancienne liste du fournisseur est <strong>supprimée</strong> puis remplacée par le fichier : ce sont des nouvelles lignes en base (nouveaux identifiants).
-                Ce n&apos;est pas un « UPDATE » ligne à ligne — d&apos;où l&apos;absence de compteur « Mis à jour ». Fonctionnellement, c&apos;est bien une <strong>mise à jour du catalogue</strong> pour la semaine.
+                Ce n&apos;est pas un « UPDATE » ligne à ligne, d&apos;où l&apos;absence de compteur « Mis à jour ». Fonctionnellement, c&apos;est bien une <strong>mise à jour du catalogue</strong> pour la semaine.
               </p>
             </div>
           ) : (

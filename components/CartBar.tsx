@@ -41,7 +41,7 @@ export default function CartBar() {
         <Link
           href="/panier"
           locale={locale}
-          aria-label={`Voir le panier — ${totalItems} produit${totalItems > 1 ? 's' : ''}, CHF ${globalTotal.toFixed(2)}`}
+          aria-label={`Voir le panier : ${totalItems} produit${totalItems > 1 ? 's' : ''}, CHF ${globalTotal.toFixed(2)}`}
           style={{
             display: 'inline-flex',
             alignItems: 'center',

@@ -56,8 +56,8 @@ export async function sendOrderConfirmation({
   })
 
   const transporter = createTransporter()
-  const memberSubject = `Confirmation de commande — ${site.name} (${now})`
-  const adminSubject = `Nouvelle commande — ${displayName} — ${site.name} — (${now})`
+  const memberSubject = `Confirmation de commande · ${site.name} (${now})`
+  const adminSubject = `Nouvelle commande · ${displayName} · ${site.name} · (${now})`
 
   await transporter.sendMail({
     from: `"${site.name}" <${process.env.SMTP_USER}>`,
@@ -124,7 +124,7 @@ function buildHtml({
   const badge = isAdmin ? 'Nouvelle commande' : 'Confirmation de commande'
   const title = isAdmin ? displayName : `Merci, ${displayName} !`
   const intro = isAdmin
-    ? `Commande reçue le <strong>${date}</strong>${memberEmail ? ` — <a href="mailto:${memberEmail}" style="color:#DC7F00;text-decoration:none;">${memberEmail}</a>` : ''}.`
+    ? `Commande reçue le <strong>${date}</strong>${memberEmail ? ` · <a href="mailto:${memberEmail}" style="color:#DC7F00;text-decoration:none;">${memberEmail}</a>` : ''}.`
     : `Votre commande du <strong>${date}</strong> a bien été enregistrée.`
   const outro = isAdmin
     ? `Retrouvez et traitez cette commande dans <strong>Admin → Commandes</strong> sur le site.`
