@@ -115,14 +115,16 @@ export default function MyOrdersSection({
     (s, o) => s + orderDisplayAmount(o.status, o.total, o.order_items),
     0,
   )
-  const deliveredItemCount = useMemo(
-    () => deliveredOrders.reduce(
-      (sum, order) => sum + order.order_items.filter(i => !i.cancelled_at).length,
-      0,
+  const showPickupChecklist =
+    (tab === 'delivered' || tab === 'closed') && Boolean(memberId)
+  const pickupItemIds = useMemo(
+    () => tabOrders.flatMap(order =>
+      order.order_items.filter(i => !i.cancelled_at).map(i => i.id),
     ),
-    [deliveredOrders],
+    [tabOrders],
   )
-  const showPickupChecklist = tab === 'delivered' && Boolean(memberId)
+  const pickupItemCount = pickupItemIds.length
+  const pickupPickedCount = pickupItemIds.filter(id => pickupChecklist.isPicked(id)).length
   const pickupChecklistProps = showPickupChecklist
     ? { isPicked: pickupChecklist.isPicked, onTogglePicked: pickupChecklist.togglePicked }
     : undefined
@@ -267,12 +269,12 @@ export default function MyOrdersSection({
         </button>
       </div>
 
-      {showPickupChecklist && deliveredItemCount > 0 && pickupChecklist.ready && (
+      {showPickupChecklist && tab === 'delivered' && pickupItemCount > 0 && pickupChecklist.ready && (
         <p className={styles.pickupHint} role="status">
-          {pickupChecklist.pickedCount} sur {deliveredItemCount} produit
-          {deliveredItemCount !== 1 ? 's' : ''} marqué
-          {pickupChecklist.pickedCount !== 1 ? 's' : ''} comme récupéré
-          {pickupChecklist.pickedCount !== 1 ? 's' : ''}
+          {pickupPickedCount} sur {pickupItemCount} produit
+          {pickupItemCount !== 1 ? 's' : ''} marqué
+          {pickupPickedCount !== 1 ? 's' : ''} comme récupéré
+          {pickupPickedCount !== 1 ? 's' : ''}
           {' '}— aide-mémoire perso sur cet appareil.
         </p>
       )}

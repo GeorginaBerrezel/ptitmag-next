@@ -44,10 +44,15 @@ export default function MemberOrderDetail({
   creditBalance = 0,
   pickupChecklist,
 }: Props) {
-  const hint = order.status === 'delivered' && pickupChecklist
+  const hint = pickupChecklist && order.status === 'delivered'
     ? {
         className: lineStyles.hintBannerDelivered,
         text: 'Cochez les produits récupérés (aide-mémoire perso). Pour ajouter un produit, contactez le magasin avant la clôture.',
+      }
+    : pickupChecklist && order.status === 'closed'
+    ? {
+        className: lineStyles.hintBannerClosed,
+        text: 'Commande clôturée — montant et avoir définitifs. Cochez les produits récupérés (aide-mémoire perso).',
       }
     : STATUS_HINT[order.status]
   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
