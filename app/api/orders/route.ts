@@ -5,6 +5,8 @@ import type { CartItem } from '@/lib/cart/CartContext'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 import { applyCielMarkup, canAccessCatalog } from '@/lib/members/profile'
 import { normalizeQuantity } from '@/lib/catalog/quantity-rules'
+import { shareQuantityForOrder } from '@/lib/sharing/cart-line'
+import { SHARE_MESSAGES } from '@/lib/sharing/eligibility'
 import { roundChf } from '@/lib/members/credit'
 import { sendOrderConfirmation, type OrderEmailGroup } from '@/lib/email/sendOrderConfirmation'
 import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
@@ -85,14 +87,31 @@ export async function POST(request: NextRequest) {
   const prepared: PreparedSupplier[] = []
 
   for (const [supplierId, supplierItems] of Object.entries(bySupplier)) {
-    const normalizedItems = supplierItems.map(item => {
+    const normalizedItems: Array<CartItem & { unitPrice: number }> = []
+    for (const item of supplierItems) {
+      if (item.fromShare) {
+        const shareQty = await shareQuantityForOrder(supabase, user.id, item.productId)
+        if (!shareQty.ok) {
+          const message = shareQty.reason === 'already_ordered'
+            ? SHARE_MESSAGES.alreadyOrdered
+            : `La part partagée pour « ${item.productName} » n’est pas un carton complet. Retire-la du panier ou attends que le carton se remplisse.`
+          return NextResponse.json({ error: message }, { status: 400 })
+        }
+        const unitPrice = getEffectiveUnitPrice(
+          { ...item, quantity: shareQty.quantity, allowsPartialOrder: false },
+          { applyCielMarkup: applyCielMarkupFlag },
+        )
+        normalizedItems.push({ ...item, quantity: shareQty.quantity, unitPrice, allowsPartialOrder: false })
+        continue
+      }
+
       const quantity = normalizeQuantity(item.quantity, {
         minQuantity: item.minQuantity,
         allowsPartialOrder: item.allowsPartialOrder,
       })
       const unitPrice = getEffectiveUnitPrice({ ...item, quantity }, { applyCielMarkup: applyCielMarkupFlag })
-      return { ...item, quantity, unitPrice }
-    })
+      normalizedItems.push({ ...item, quantity, unitPrice })
+    }
 
     const grossTotal = roundChf(
       normalizedItems.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0),
@@ -155,6 +174,19 @@ export async function POST(request: NextRequest) {
         total: grossTotal,
         grossTotal,
       })
+    }
+
+    const shareProductIds = [...new Set(
+      prepared.flatMap(p => p.normalizedItems.filter(i => i.fromShare).map(i => i.productId)),
+    )]
+    for (const productId of shareProductIds) {
+      const { error: shareError } = await admin.rpc('share_mark_ordered', {
+        p_member_id: user.id,
+        p_product_id: productId,
+      })
+      if (shareError) {
+        throw new Error(`Impossible de clôturer la part partagée : ${shareError.message}`)
+      }
     }
   } catch (err) {
     if (createdOrders.length > 0) {

@@ -14,6 +14,7 @@
     "producers": "Suppliers",
     "membership": "Membership",
     "catalogue": "Catalogue",
+    "sharing": "Shares",
     "commander": "Order",
     "cart": "Cart",
     "wishlist": "My favorites",
@@ -186,5 +187,12 @@
     "login_hint": "Create a free account to access the catalogue and place an order.",
     "empty": "No ephemeral products right now. Check back soon!",
     "unit_label": "per unit"
+  },
+  "sharing": {
+    "title": "Shares",
+    "subtitle": "Your shares and cartons you can join. A full carton: add your share to the cart.",
+    "breadcrumbAria": "Breadcrumb",
+    "catalogue": "Catalogue",
+    "filterOnly": "Show shareable products only"
   }
 }

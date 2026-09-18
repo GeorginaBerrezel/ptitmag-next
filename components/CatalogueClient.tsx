@@ -18,6 +18,8 @@ import CategoryCard from './catalogue/CategoryCard'
 import HorizontalScrollStrip from './catalogue/HorizontalScrollStrip'
 import ProductList from './catalogue/ProductList'
 import CartBar from './CartBar'
+import { ShareCatalogEntry, ShareOnlyFilter } from './sharing/ShareCatalogControls'
+import { useSharePrototypeVisible } from '@/lib/sharing/SharingContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 
@@ -53,6 +55,7 @@ export default function CatalogueClient({
   extendSupplierId = null,
 }: Props) {
   const applyCielMarkup = useApplyCielMarkup()
+  const shareVisible = useSharePrototypeVisible()
 
   const [search, setSearch] = useState(initialSearch.trim())
   const [selectedType, setSelectedType] = useState<string | null>(null)
@@ -62,6 +65,7 @@ export default function CatalogueClient({
   const [activeSupplierId, setActiveSupplierId] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [catalogNow, setCatalogNow] = useState(() => Date.now())
+  const [shareOnly, setShareOnly] = useState(false)
 
   const [productCache, setProductCache] = useState<Map<string, Product[]>>(new Map())
   const loadedKeys = useRef(new Set<string>())
@@ -138,6 +142,10 @@ export default function CatalogueClient({
   }, [view, activeSupplierId, activeCategory])
 
   const isSearching = search.trim().length > 0
+
+  useEffect(() => {
+    if (view === 'suppliers' && !isSearching) setShareOnly(false)
+  }, [view, isSearching])
 
   useEffect(() => {
     if (isSearching) setSelectedType(null)
@@ -576,6 +584,8 @@ export default function CatalogueClient({
           </div>
         </div>
 
+        <ShareCatalogEntry />
+
         {extendOrderId && (
           <div style={{
             marginBottom: '1rem',
@@ -619,6 +629,10 @@ export default function CatalogueClient({
             </button>
           )}
         </div>
+
+        {shareVisible && !extendOrderId && (
+          <ShareOnlyFilter shareOnly={shareOnly} onShareOnlyChange={setShareOnly} />
+        )}
 
         {view === 'suppliers' && (
           <aside
@@ -797,6 +811,7 @@ export default function CatalogueClient({
                     nowMs={catalogNow}
                     extendOrderId={extendOrderId}
                     showSupplier
+                    shareOnly={shareOnly}
                   />
                 </SearchResultsSection>
               ) : filteredSummaries.length > 0 ? (
@@ -820,7 +835,7 @@ export default function CatalogueClient({
                 title={`Produits trouvés (${inlineSupplierResults.length})`}
                 subtitle={`Dans ${getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)}. Ajoutez au panier ou choisissez une catégorie ci-dessous.`}
               >
-                <ProductList products={inlineSupplierResults} nowMs={catalogNow} extendOrderId={extendOrderId} />
+                <ProductList products={inlineSupplierResults} nowMs={catalogNow} extendOrderId={extendOrderId} shareOnly={shareOnly} />
               </SearchResultsSection>
             )}
 
@@ -885,6 +900,7 @@ export default function CatalogueClient({
               products={displayedProducts}
               nowMs={catalogNow}
               extendOrderId={extendOrderId}
+              shareOnly={shareOnly}
             />
             </SearchResultsSection>
           ) : (
@@ -892,6 +908,7 @@ export default function CatalogueClient({
               products={displayedProducts}
               nowMs={catalogNow}
               extendOrderId={extendOrderId}
+              shareOnly={shareOnly}
             />
           )
         )}

@@ -27,6 +27,9 @@ import {
 import type { Product } from '@/lib/supabase/products'
 import CielPriceHint from '@/components/catalog/CielPriceHint'
 import WishlistButton from '@/components/WishlistButton'
+import ProductShareActions from '@/components/sharing/ProductShareActions'
+import { isShareEligible } from '@/lib/sharing/eligibility'
+import { useSharePrototypeVisible } from '@/lib/sharing/SharingContext'
 import styles from './ProductCard.module.css'
 
 function daysLeft(deadline: string, nowMs: number): number {
@@ -50,11 +53,17 @@ type Props = {
 function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier = false }: Props) {
   const { addItem, items } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
+  const sharePrototype = useSharePrototypeVisible()
   const now = nowMs ?? Date.now()
   const [extendLoading, setExtendLoading] = useState(false)
   const [extendDone, setExtendDone] = useState(false)
 
   const qtyRules = resolveQuantityRules(product)
+  const shareEligible = sharePrototype && isShareEligible({
+    minQuantity: qtyRules.minQuantity,
+    unit: product.unit,
+    unitPrice: product.unit_price,
+  })
   const [qty, setQty] = useState(() => getMinAllowedQuantity(qtyRules))
   const [added, setAdded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(() => getProductImageUrl(product))
@@ -220,13 +229,16 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
             {getSupplierDisplayName(product.supplier.name, product.supplier.type)}
           </p>
         )}
-        {(product.category || product.supplier_ref) && (
+        {(product.category || product.supplier_ref || shareEligible) && (
           <div className={styles.metaTags}>
             {product.category && (
               <span className={styles.categoryTag}>{product.category}</span>
             )}
             {product.supplier_ref && (
               <span className={styles.refTag}>Réf. {product.supplier_ref}</span>
+            )}
+            {shareEligible && (
+              <span className={styles.shareTag}>Partage possible</span>
             )}
           </div>
         )}
@@ -352,6 +364,12 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
                 ? 'Ajout à votre commande livrée de ce fournisseur (total provisoire recalculé).'
                 : quantityHintText(qtyRules, product.unit)}
             </p>
+            {!extendOrderId && (
+              <ProductShareActions
+                product={product}
+                minQuantity={qtyRules.minQuantity}
+              />
+            )}
           </>
         ) : (
           <p className={styles.unavailable}>

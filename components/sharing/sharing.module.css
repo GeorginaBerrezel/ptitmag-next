@@ -1,0 +1,522 @@
+.sharePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  padding-top: 0.45rem;
+  border-top: 1px dashed rgba(16, 24, 40, 0.12);
+}
+
+.shareQtyLabel {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.shareLine {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.shareLineText {
+  min-width: 0;
+  width: 100%;
+}
+
+.shareStatus {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.tablist {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0 0 1rem;
+  padding: 0.35rem 0 0.65rem;
+  background: #f6f8fb;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(42, 37, 32, 0.12);
+  background: #fff;
+  color: rgba(42, 37, 32, 0.7);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.tabActive {
+  background: #F5EFE6;
+  border-color: rgba(220, 127, 0, 0.45);
+  color: #dc7f00;
+}
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(42, 37, 32, 0.08);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tabActive .tabCount {
+  background: rgba(125, 98, 56, 0.12);
+}
+
+.list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.listCard {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 0.65rem 0.85rem;
+  min-width: 0;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 12px;
+}
+
+.listImage {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+}
+
+.listHead {
+  min-width: 0;
+}
+
+.listBody {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.listTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.listMeta {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.listPrice {
+  margin: 0.3rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.listPriceUnit {
+  font-weight: 400;
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+.listActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+  min-width: 0;
+}
+
+.listBtn {
+  width: auto;
+  min-width: 7.5rem;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.55rem 0.95rem;
+  border: none;
+  border-radius: 8px;
+  background: #dc7f00;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.listBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .tablist {
+    flex-wrap: nowrap;
+    gap: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(42, 37, 32, 0.1);
+  }
+
+  .tab {
+    min-height: 48px;
+    padding: 0.65rem 1.15rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    margin-bottom: -1px;
+  }
+
+  .tabActive {
+    background: transparent;
+    border-bottom-color: #dc7f00;
+    color: #1a1a2e;
+  }
+}
+
+.guide {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  background: #F5EFE6;
+  border: 1px solid rgba(125, 98, 56, 0.28);
+  border-radius: 12px;
+}
+
+.guideTitle {
+  margin: 0 0 0.45rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.guideSteps {
+  margin: 0 0 0.75rem;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.guideSteps li + li {
+  margin-top: 0.25rem;
+}
+
+.entryWrap {
+  margin: -0.5rem 0 1rem;
+}
+
+.entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(42, 37, 32, 0.12);
+  background: #fff;
+  color: #dc7f00;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.entry:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.entryCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(125, 98, 56, 0.12);
+  font-size: 0.75rem;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filterToggle input {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+
+.guideToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.guideToggle input {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+
+.guideHint {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  opacity: 0.75;
+}
+
+.guideLink {
+  margin: 0.65rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.guideLink a {
+  color: #1a1a2e;
+}
+
+.soloWarn {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #dc7f00;
+  line-height: 1.4;
+}
+
+.progressBlock {
+  width: 100%;
+}
+
+.progressTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: #ececec;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #dc7f00;
+  border-radius: 999px;
+}
+
+.progressFillReady {
+  background: #2d6a4f;
+}
+
+.progressLabel {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.people {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #f4ebe0;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #dc7f00;
+}
+
+.simLabel {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.65;
+  line-height: 1.35;
+}
+
+.simRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.simBtn {
+  min-height: 44px;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 24, 40, 0.15);
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.simBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.simBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.alert {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.85rem;
+}
+
+.notice {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  background: #edf6f0;
+  color: #1b4332;
+  font-size: 0.85rem;
+}
+
+.choiceSet {
+  margin: 0;
+  padding: 0.7rem 0.75rem 0.55rem;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid rgba(125, 98, 56, 0.22);
+  border-radius: 10px;
+  background: #F5EFE6;
+}
+
+.choiceLegend {
+  margin: 0 0 0.25rem;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.choiceHint {
+  margin: 0.2rem 0 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.choice input {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.essaiBox {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.essaiBox summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+  color: #dc7f00;
+}
+
+.essaiBox[open] summary {
+  margin-bottom: 0.25rem;
+}
+
+.empty {
+  margin: 0;
+  padding: 1.1rem 1.15rem;
+  background: #fff;
+  border: 1px dashed rgba(16, 24, 40, 0.18);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.empty p {
+  margin: 0 0 0.65rem;
+}
+
+.empty p:last-child {
+  margin-bottom: 0;
+}
+
+.emptyCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 0.35rem;
+  padding: 0.5rem 1.15rem;
+  border-radius: 8px;
+  background: #dc7f00;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.emptyCta:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
+}

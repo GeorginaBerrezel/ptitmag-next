@@ -20,6 +20,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import WishlistButton from '@/components/WishlistButton'
 import ProductDetailTrigger from '@/components/orders/ProductDetailTrigger'
+import SharingCartSection, { useYoursReadyShareCount } from '@/components/sharing/SharingCartSection'
 import styles from './panier.module.css'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -36,6 +37,7 @@ export default function PanierPage({
   const { locale } = use(params)
   const { items, updateQuantity, removeItem, clearCart, globalTotal } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
+  const readyShareCount = useYoursReadyShareCount()
   const [catalogAccess, setCatalogAccess] = useState<'loading' | 'allowed' | 'denied'>('loading')
   const [profileEmail, setProfileEmail] = useState<string | null>(null)
   const [profilePhone, setProfilePhone] = useState<string | null>(null)
@@ -154,7 +156,10 @@ export default function PanierPage({
           Ce panier est lié au compte : téléphone et ordi voient les mêmes articles.
           Si plusieurs personnes utilisent ce login, le dernier changement gagne.
         </p>
-        <p className={styles.emptyText}>Votre panier est vide.</p>
+        {readyShareCount === 0 && (
+          <p className={styles.emptyText}>Votre panier est vide.</p>
+        )}
+        <SharingCartSection />
         <Link
           href="/commandes"
           locale={locale}
@@ -211,6 +216,8 @@ export default function PanierPage({
           clearCart()
         }}
       />
+
+      <SharingCartSection />
 
       <section className={styles.recapCard} aria-label="Récapitulatif du panier">
         <h2 className={styles.recapTitle}>Récapitulatif</h2>
@@ -337,7 +344,12 @@ export default function PanierPage({
                         {applyCielMarkup && (
                           <CielPriceHint baseUnitPrice={item.unitPrice} />
                         )}
-                        {hasSurcharge && (
+                        {item.fromShare && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: '#DC7F00', fontWeight: 600 }}>
+                            Part partagée. Pour changer la quantité, va sur Partages.
+                          </span>
+                        )}
+                        {!item.fromShare && hasSurcharge && (
                           <span style={{ display: 'block', fontSize: '0.72rem', color: '#DC7F00', fontWeight: 600 }}>
                             +10% majoration (qté &lt; {item.minQuantity})
                           </span>
@@ -346,6 +358,15 @@ export default function PanierPage({
 
                       {/* Contrôles quantité */}
                       <div className={styles.lineQty}>
+                        {item.fromShare ? (
+                          <>
+                            <span className={styles.qtyDisplay}>
+                              {formatQuantityDisplay(item.quantity, qtyRules)}
+                            </span>
+                            <span style={{ fontSize: '0.78rem', opacity: 0.5, marginLeft: '0.1rem' }}>{item.unit}</span>
+                          </>
+                        ) : (
+                          <>
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.productId, decrementQuantity(item.quantity, qtyRules))}
@@ -363,6 +384,8 @@ export default function PanierPage({
                           className={styles.qtyBtn}
                         >+</button>
                         <span style={{ fontSize: '0.78rem', opacity: 0.5, marginLeft: '0.1rem' }}>{item.unit}</span>
+                          </>
+                        )}
                       </div>
 
                       {/* Sous-total ligne */}

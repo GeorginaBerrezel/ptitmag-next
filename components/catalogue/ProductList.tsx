@@ -2,6 +2,9 @@
 
 import { useState, useEffect, memo } from 'react'
 import type { Product } from '@/lib/supabase/products'
+import { resolveQuantityRules } from '@/lib/catalog/bioterroir-quantity'
+import { isShareEligible } from '@/lib/sharing/eligibility'
+import { useSharePrototypeVisible } from '@/lib/sharing/SharingContext'
 import ProductCard from '../ProductCard'
 
 const PAGE_SIZE = 40
@@ -13,22 +16,45 @@ type Props = {
   extendOrderId?: string | null
   /** Recherche globale — affiche le fournisseur sur chaque fiche produit. */
   showSupplier?: boolean
+  /** N’afficher que les lots et gros formats. */
+  shareOnly?: boolean
 }
 
-function ProductListInner({ products, nowMs: nowMsProp, extendOrderId = null, showSupplier = false }: Props) {
+function ProductListInner({
+  products,
+  nowMs: nowMsProp,
+  extendOrderId = null,
+  showSupplier = false,
+  shareOnly = false,
+}: Props) {
   const [clientNowMs] = useState(() => Date.now())
   const nowMs = nowMsProp ?? clientNowMs
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const shareVisible = useSharePrototypeVisible()
+  const canShare = shareVisible && extendOrderId == null && shareOnly
+
+  const list = canShare
+    ? products.filter(p => isShareEligible({
+      minQuantity: resolveQuantityRules(p).minQuantity,
+      unit: p.unit,
+      unitPrice: p.unit_price,
+    }))
+    : products
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [products])
+  }, [products, shareOnly])
 
-  const visible = products.slice(0, visibleCount)
-  const remaining = products.length - visibleCount
+  const visible = list.slice(0, visibleCount)
+  const remaining = list.length - visibleCount
 
   return (
     <>
+      {canShare && list.length === 0 && (
+        <p role="status" style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', opacity: 0.7 }}>
+          Aucun produit à partager ici. Change de catégorie, ou décoche le filtre.
+        </p>
+      )}
       <div style={{ display: 'grid', gap: '0.5rem' }}>
         {visible.map(product => (
           <ProductCard

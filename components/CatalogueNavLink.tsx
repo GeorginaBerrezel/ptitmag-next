@@ -18,7 +18,9 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
   const [loggedIn, setLoggedIn] = useState(false)
   const [hasCatalogAccess, setHasCatalogAccess] = useState(false)
 
-  const isActive = pathname === '/commandes' || pathname.startsWith('/commandes/')
+  const isActive = pathname === '/commandes' || (
+    pathname.startsWith('/commandes/') && !pathname.startsWith('/commandes/partage')
+  )
 
   useEffect(() => {
     const supabase = createClient()
