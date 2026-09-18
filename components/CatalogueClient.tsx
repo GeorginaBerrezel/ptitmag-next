@@ -387,6 +387,12 @@ export default function CatalogueClient({
     return cat.items.filter(p => productMatches(p, search))
   }, [activeCategory, activeCategories, activeProducts, categoryProducts, isLargeCatalog, search, isSearching])
 
+  const productListOnScreen =
+    view === 'products' ||
+    (isSearching && view === 'suppliers' && filteredSearchResults.length > 0) ||
+    (isSearching && view === 'categories' && inlineSupplierResults.length > 0)
+  const showShareFilter = shareVisible && !extendOrderId && (productListOnScreen || shareOnly)
+
   const hasFeatured = summaries.some(s => s.hasFeatured)
 
   const searchPlaceholder =
@@ -630,7 +636,7 @@ export default function CatalogueClient({
           )}
         </div>
 
-        {shareVisible && !extendOrderId && (
+        {showShareFilter && (
           <ShareOnlyFilter shareOnly={shareOnly} onShareOnlyChange={setShareOnly} />
         )}
 
