@@ -59,7 +59,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <MemberPricingProvider applyCielMarkup={cielMarkup}>
-        <CartProvider>
+        <CartProvider memberId={user?.id ?? null}>
           <WishlistProvider>
             <Suspense fallback={null}>
               <NavigationScrollManager />

@@ -150,6 +150,10 @@ export default function PanierPage({
           <span className={styles.breadcrumbCurrent} aria-current="page">Panier</span>
         </nav>
         <h1 className={styles.pageTitle}>Mon panier</h1>
+        <p className={styles.accountHint} role="note">
+          Ce panier est lié au compte : téléphone et ordi voient les mêmes articles.
+          Si plusieurs personnes utilisent ce login, le dernier changement gagne.
+        </p>
         <p className={styles.emptyText}>Votre panier est vide.</p>
         <Link
           href="/commandes"
@@ -188,6 +192,11 @@ export default function PanierPage({
           Vider le panier
         </button>
       </div>
+
+      <p className={styles.accountHint} role="note">
+        Ce panier est lié au compte : téléphone et ordi voient les mêmes articles.
+        Si plusieurs personnes utilisent ce login, le dernier changement gagne.
+      </p>
 
       <ConfirmDialog
         open={clearConfirmOpen}
