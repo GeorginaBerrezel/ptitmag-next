@@ -9,9 +9,11 @@ import Footer from '@/components/Footer';
 import NavigationScrollManager from '@/components/NavigationScrollManager';
 import { CartProvider } from '@/lib/cart/CartContext';
 import { WishlistProvider } from '@/lib/wishlist/WishlistContext';
+import { SharingProvider } from '@/lib/sharing/SharingContext';
 import { MemberPricingProvider } from '@/lib/members/MemberPricingContext';
 import { getProfile, getUser } from '@/lib/supabase/auth';
-import { applyCielMarkup } from '@/lib/members/profile';
+import { applyCielMarkup, canAccessCatalog } from '@/lib/members/profile';
+import { isShareEnabled } from '@/lib/sharing/eligibility';
 import { isAdminEmail } from '@/lib/admin/access';
 import { rootLayoutMetadata } from '@/lib/seo';
 
@@ -59,7 +61,11 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <MemberPricingProvider applyCielMarkup={cielMarkup}>
-        <CartProvider>
+        <CartProvider memberId={user?.id ?? null}>
+          <SharingProvider
+            enabled={isShareEnabled() && !!profile && canAccessCatalog(profile)}
+            viewerId={user?.id ?? null}
+          >
           <WishlistProvider>
             <Suspense fallback={null}>
               <NavigationScrollManager />
@@ -70,6 +76,7 @@ export default async function LocaleLayout({
               <Footer locale={locale} />
             </div>
           </WishlistProvider>
+          </SharingProvider>
         </CartProvider>
       </MemberPricingProvider>
     </NextIntlClientProvider>

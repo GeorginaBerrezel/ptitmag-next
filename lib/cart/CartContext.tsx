@@ -1,24 +1,17 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { getEffectiveUnitPrice } from '@/lib/catalog/pricing'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
+import { parseCartItems } from './parse-items'
+import type { CartItem } from './types'
 
-export type CartItem = {
-  productId: string
-  productName: string
-  supplierRef: string | null     // numéro article Biopartner (ex: 100040836)
-  supplierId: string
-  supplierName: string
-  supplierType: string
-  quantity: number
-  unitPrice: number              // prix TTC catalogue, sans majoration
-  unit: string
-  minQuantity: number            // UC Biopartner : quantité minimum sans majoration
-  allowsPartialOrder: boolean    // peut commander < UC avec +10 % (Biopartner)
-}
-
+export type { CartItem }
 export { getEffectiveUnitPrice }
+
+const STORAGE_KEY = 'ptitmag-cart'
+const POLL_MS = 20_000
+const SAVE_MS = 500
 
 type CartContextType = {
   items: CartItem[]
@@ -32,23 +25,111 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | null>(null)
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+function readLocal(): CartItem[] {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return []
+    return parseCartItems(JSON.parse(saved))
+  } catch {
+    return []
+  }
+}
+
+export function CartProvider({
+  children,
+  memberId = null,
+}: {
+  children: React.ReactNode
+  memberId?: string | null
+}) {
   const applyCielMarkup = useApplyCielMarkup()
   const [items, setItems] = useState<CartItem[]>([])
   const [hydrated, setHydrated] = useState(false)
+  const dirty = useRef(false)
+  const skipNextSave = useRef(false)
+  const readyForSync = useRef(false)
+  const inFlight = useRef(false)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('ptitmag-cart')
-      if (saved) setItems(JSON.parse(saved))
-    } catch {}
+    setItems(readLocal())
     setHydrated(true)
   }, [])
 
+  const pull = useCallback(async () => {
+    if (!memberId || inFlight.current) return
+    inFlight.current = true
+    try {
+      const res = await fetch('/api/cart')
+      const data = await res.json().catch(() => ({})) as { items?: unknown; exists?: boolean }
+      if (!res.ok) return
+      if (dirty.current) return
+      if (data.exists) {
+        skipNextSave.current = true
+        setItems(parseCartItems(data.items))
+      } else if (itemsRef.current.length > 0) {
+        const put = await fetch('/api/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: itemsRef.current }),
+        })
+        if (put.ok) dirty.current = false
+      }
+      readyForSync.current = true
+    } finally {
+      inFlight.current = false
+    }
+  }, [memberId])
+
   useEffect(() => {
     if (!hydrated) return
-    localStorage.setItem('ptitmag-cart', JSON.stringify(items))
-  }, [items, hydrated])
+    if (!memberId) {
+      readyForSync.current = false
+      return
+    }
+    void pull()
+  }, [hydrated, memberId, pull])
+
+  useEffect(() => {
+    if (!hydrated || !memberId) return
+
+    function onVisibility() {
+      if (document.visibilityState === 'visible') void pull()
+    }
+
+    document.addEventListener('visibilitychange', onVisibility)
+    const id = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void pull()
+    }, POLL_MS)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.clearInterval(id)
+    }
+  }, [hydrated, memberId, pull])
+
+  useEffect(() => {
+    if (!hydrated) return
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
+    if (!memberId || !readyForSync.current) return
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+      return
+    }
+    dirty.current = true
+    const t = window.setTimeout(() => {
+      void (async () => {
+        const res = await fetch('/api/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: itemsRef.current }),
+        })
+        if (res.ok) dirty.current = false
+      })()
+    }, SAVE_MS)
+    return () => window.clearTimeout(t)
+  }, [items, hydrated, memberId])
 
   function addItem(newItem: CartItem) {
     setItems(prev => {

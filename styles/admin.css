@@ -361,6 +361,11 @@
   background: #fdf2f2;
 }
 
+.admin-btn--danger-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ─── Toolbar / filtres ─── */
 .admin-toolbar {
   display: flex;

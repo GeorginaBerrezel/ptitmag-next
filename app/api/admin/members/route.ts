@@ -9,6 +9,8 @@ import {
 import { ADMIN_MEMBER_STATUSES, normalizeMemberStatus } from '@/lib/members/profile'
 import { parseCreditDelta } from '@/lib/members/credit'
 import { applyCreditDelta, listCreditEventsForMembers } from '@/lib/members/credit-ledger'
+import { DELETE_ACCOUNT_CONFIRMATION, deleteMemberAccount } from '@/lib/members/delete-account'
+import { isAdminEmail } from '@/lib/admin/access'
 
 type ProfileRow = {
   id: string
@@ -273,4 +275,64 @@ export async function PATCH(request: NextRequest) {
     credit_balance: creditResult?.balanceAfter,
     event: creditResult?.event ?? null,
   })
+}
+
+export async function DELETE(request: NextRequest) {
+  const user = await requireAdminUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+  }
+
+  const body = await request.json().catch(() => ({})) as {
+    memberId?: string
+    confirmation?: string
+  }
+  const memberId = body.memberId?.trim()
+  const confirmation = body.confirmation?.trim()
+
+  if (!memberId) {
+    return NextResponse.json({ error: 'memberId manquant.' }, { status: 400 })
+  }
+
+  if (confirmation !== DELETE_ACCOUNT_CONFIRMATION) {
+    return NextResponse.json(
+      { error: `Tape « ${DELETE_ACCOUNT_CONFIRMATION} » pour confirmer.` },
+      { status: 400 },
+    )
+  }
+
+  if (memberId === user.id) {
+    return NextResponse.json(
+      { error: 'Tu ne peux pas supprimer ton propre compte depuis l’admin.' },
+      { status: 403 },
+    )
+  }
+
+  const admin = createAdminClient()
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('id, email')
+    .eq('id', memberId)
+    .maybeSingle()
+
+  if (!profile) {
+    return NextResponse.json({ error: 'Membre introuvable.' }, { status: 404 })
+  }
+
+  const { data: authData } = await admin.auth.admin.getUserById(memberId)
+  const email = (profile.email as string | null) ?? authData.user?.email ?? null
+
+  if (isAdminEmail(email)) {
+    return NextResponse.json(
+      { error: 'Les comptes administrateurs ne peuvent pas être supprimés ici.' },
+      { status: 403 },
+    )
+  }
+
+  const result = await deleteMemberAccount(admin, memberId)
+  if (!result.ok) {
+    return NextResponse.json({ error: result.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
 }

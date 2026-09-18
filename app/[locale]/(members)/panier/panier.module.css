@@ -185,6 +185,17 @@
   margin-bottom: 1rem;
 }
 
+.accountHint {
+  margin: 0 0 1.15rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 10px;
+  background: rgba(220, 127, 0, 0.08);
+  border: 1px solid rgba(220, 127, 0, 0.22);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(26, 26, 46, 0.78);
+}
+
 .clearBtn {
   background: none;
   border: none;
@@ -482,4 +493,76 @@
 .successBtn:focus-visible {
   outline: 2px solid #1a1a2e;
   outline-offset: 2px;
+}
+
+.shareBox {
+  margin: 1rem 0 1.5rem;
+  padding: 1rem 1.15rem;
+  border: 2px solid #dc7f00;
+  border-radius: 14px;
+  background: #fff8f0;
+}
+
+.shareTitle {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.shareHint {
+  margin: 0 0 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(26, 26, 46, 0.7);
+}
+
+.shareList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.shareLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.shareMeta {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(26, 26, 46, 0.65);
+}
+
+.sharePrice {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.shareTotal {
+  margin: 0.85rem 0 0.75rem;
+  font-weight: 700;
+}
+
+.shareBtn {
+  min-height: 44px;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #dc7f00;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shareBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
+}
+
+.shareBtn:disabled {
+  opacity: 0.65;
+  cursor: default;
 }

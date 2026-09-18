@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAdminEmail } from '@/lib/admin/access'
+import { DELETE_ACCOUNT_CONFIRMATION, deleteMemberAccount } from '@/lib/members/delete-account'
 import { NextResponse, type NextRequest } from 'next/server'
-
-const CONFIRMATION = 'SUPPRIMER'
 
 /**
  * POST /api/profile/delete
@@ -28,47 +27,16 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const confirmation = (body as { confirmation?: string }).confirmation?.trim()
 
-  if (confirmation !== CONFIRMATION) {
+  if (confirmation !== DELETE_ACCOUNT_CONFIRMATION) {
     return NextResponse.json(
-      { error: `Tape « ${CONFIRMATION} » pour confirmer la suppression.` },
+      { error: `Tape « ${DELETE_ACCOUNT_CONFIRMATION} » pour confirmer la suppression.` },
       { status: 400 },
     )
   }
 
-  const admin = createAdminClient()
-
-  // Avatar(s) dans le bucket avatars/{userId}/
-  const { data: avatarFiles } = await admin.storage.from('avatars').list(user.id)
-  if (avatarFiles?.length) {
-    const paths = avatarFiles.map(f => `${user.id}/${f.name}`)
-    await admin.storage.from('avatars').remove(paths)
-  }
-
-  // Profil public (données personnelles)
-  const { error: profileError } = await admin
-    .from('profiles')
-    .delete()
-    .eq('id', user.id)
-
-  if (profileError) {
-    console.error('[profile/delete] profiles error:', profileError)
-    return NextResponse.json(
-      { error: `Impossible de supprimer le profil : ${profileError.message}` },
-      { status: 500 },
-    )
-  }
-
-  const { error: authError } = await admin.auth.admin.deleteUser(user.id)
-
-  if (authError) {
-    console.error('[profile/delete] auth error:', authError)
-    return NextResponse.json(
-      {
-        error:
-          'Impossible de supprimer le compte. Si vous avez des commandes en cours, contactez-nous à info@leptitmag.org.',
-      },
-      { status: 500 },
-    )
+  const result = await deleteMemberAccount(createAdminClient(), user.id)
+  if (!result.ok) {
+    return NextResponse.json({ error: result.message }, { status: 500 })
   }
 
   await supabase.auth.signOut()
