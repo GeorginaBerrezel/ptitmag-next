@@ -40,6 +40,7 @@ export function parseCartItems(raw: unknown): CartItem[] {
       unit: clip(r.unit, 40) || 'pièce',
       minQuantity,
       allowsPartialOrder: Boolean(r.allowsPartialOrder),
+      fromShare: Boolean(r.fromShare) || undefined,
     })
   }
   return items

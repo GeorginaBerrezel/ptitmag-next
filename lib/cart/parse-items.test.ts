@@ -14,6 +14,7 @@ const ok = {
   unit: 'kg',
   minQuantity: 1,
   allowsPartialOrder: true,
+  fromShare: true,
 }
 
 describe('parseCartItems', () => {
@@ -22,6 +23,7 @@ describe('parseCartItems', () => {
     assert.equal(items.length, 1)
     assert.equal(items[0].productName, 'Farine')
     assert.equal(items[0].quantity, 2)
+    assert.equal(items[0].fromShare, true)
   })
 
   it('ignore les id non UUID et le JSON cassé', () => {

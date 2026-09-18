@@ -7,6 +7,7 @@ import {Link, usePathname} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
 import AuthLink from '@/components/AuthLink';
 import CatalogueNavLink from '@/components/CatalogueNavLink';
+import ShareNavLink from '@/components/ShareNavLink';
 import MemberCartLink from '@/components/MemberCartLink';
 import MemberWishlistLink from '@/components/MemberWishlistLink';
 import PendingMemberBadge from '@/components/PendingMemberBadge';
@@ -131,6 +132,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
           </ul>
           <div className="header-account">
             <PendingMemberBadge locale={locale} />
+            <ShareNavLink locale={locale} />
             <MemberWishlistLink locale={locale} />
             <MemberCartLink locale={locale} />
             <AuthLink locale={locale} />
@@ -196,6 +198,7 @@ export default function Header({locale, showAdminLink = false}: {locale: 'fr' | 
               <div className="nav-mobile-account">
                 <p className="nav-mobile-heading">{t('mySpace')}</p>
                 <PendingMemberBadge locale={locale} />
+                <ShareNavLink locale={locale} onNavigate={() => closeMenu({ instant: true })} variant="mobile" />
                 <MemberWishlistLink locale={locale} variant="mobile" />
                 <MemberCartLink locale={locale} variant="mobile" />
                 <div className="nav-mobile-chip-wrap" onClick={() => closeMenu({ instant: true })}>

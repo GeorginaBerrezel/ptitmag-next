@@ -10,4 +10,6 @@ export type CartItem = {
   unit: string
   minQuantity: number            // UC Biopartner : quantité minimum sans majoration
   allowsPartialOrder: boolean    // peut commander < UC avec +10 % (Biopartner)
+  /** Part d’un carton partagé : on ne remonte pas la qté au minimum fournisseur. */
+  fromShare?: boolean
 }

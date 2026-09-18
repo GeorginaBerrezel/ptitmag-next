@@ -1,0 +1,145 @@
+.page {
+  padding-top: 1.25rem;
+  padding-bottom: 5rem;
+}
+
+.banner {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  background: #F5EFE6;
+  border: 1px solid rgba(125, 98, 56, 0.28);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.banner strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.intro {
+  margin: 0 0 1.25rem;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.productList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.progressBlock {
+  width: 100%;
+}
+
+.progressTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: #ececec;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #dc7f00;
+  border-radius: 999px;
+}
+
+.progressFillReady {
+  background: #2d6a4f;
+}
+
+.progressLabel {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.people {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #f4ebe0;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #dc7f00;
+}
+
+.simRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.simBtn {
+  min-height: 44px;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 24, 40, 0.15);
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.simBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.simBtn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.alert {
+  margin: 0 0 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.resetRow {
+  margin-top: 1.5rem;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 24, 40, 0.18);
+  background: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+  color: #1a1a2e;
+}

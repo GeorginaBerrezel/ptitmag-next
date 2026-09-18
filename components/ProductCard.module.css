@@ -339,6 +339,41 @@
   background: #DC7F00;
 }
 
+.shareBtn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.35rem;
+  background: #DC7F00;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.purchaseRow .shareBtn {
+  margin-top: 0;
+}
+
+.shareBtn:focus-visible {
+  outline: 2px solid #1a1a2e;
+  outline-offset: 2px;
+}
+
+.shareTag {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(220, 127, 0, 0.12);
+  color: #b35f00;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
 .hint {
   margin: 0;
   font-size: 0.72rem;

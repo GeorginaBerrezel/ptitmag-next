@@ -14,6 +14,7 @@
     "producers": "Fournisseurs",
     "membership": "Adhésion",
     "catalogue": "Catalogue",
+    "sharing": "Partages",
     "commander": "Commander",
     "cart": "Panier",
     "wishlist": "Mes favoris",
@@ -186,5 +187,12 @@
     "login_hint": "Créez un compte gratuit pour accéder au catalogue et passer commande.",
     "empty": "Aucun produit éphémère en ce moment. Revenez bientôt !",
     "unit_label": "l'unité"
+  },
+  "sharing": {
+    "title": "Partages",
+    "subtitle": "Tes parts et les cartons que tu peux rejoindre. Un carton complet : mets ta part dans le panier.",
+    "breadcrumbAria": "Fil d'ariane",
+    "catalogue": "Catalogue",
+    "filterOnly": "Voir seulement les produits à partager"
   }
 }
