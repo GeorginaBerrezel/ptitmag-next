@@ -14,6 +14,8 @@ import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
 import { orderGrossFromStored } from '@/lib/orders/order-totals-display'
 import { CREDIT_LEDGER_STARTED_ON, creditEventTitle, type CreditEvent } from '@/lib/members/credit-ledger'
+import { DELETE_ACCOUNT_CONFIRMATION } from '@/lib/members/delete-account'
+import { isAdminEmail } from '@/lib/admin/access'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,6 +126,9 @@ export default function AdminMembresPage({
   const [cotisationDraft, setCotisationDraft] = useState<Record<string, { amount: string; active: boolean }>>({})
   const [creditDraft, setCreditDraft] = useState<Record<string, string>>({})
   const [creditNoteDraft, setCreditNoteDraft] = useState<Record<string, string>>({})
+  const [deleteOpenId, setDeleteOpenId] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   // ── Chargement ───────────────────────────────────────────────────────────
 
@@ -320,6 +325,46 @@ export default function AdminMembresPage({
       await fetchMembers()
     }
 
+    setUpdating(null)
+  }
+
+  function openDeleteFlow(memberId: string) {
+    setDeleteOpenId(memberId)
+    setDeleteConfirm('')
+    setDeleteError(null)
+  }
+
+  function closeDeleteFlow() {
+    setDeleteOpenId(null)
+    setDeleteConfirm('')
+    setDeleteError(null)
+  }
+
+  async function deleteMember(memberId: string) {
+    if (deleteConfirm.trim() !== DELETE_ACCOUNT_CONFIRMATION) return
+
+    setUpdating(memberId)
+    setDeleteError(null)
+
+    const res = await fetch('/api/admin/members', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        memberId,
+        confirmation: deleteConfirm.trim(),
+      }),
+    })
+
+    const payload = await res.json().catch(() => ({})) as { error?: string }
+
+    if (!res.ok) {
+      setDeleteError(payload.error ?? 'La suppression a échoué.')
+      setUpdating(null)
+      return
+    }
+
+    closeDeleteFlow()
+    setMembers(prev => prev.filter(m => m.id !== memberId))
     setUpdating(null)
   }
 
@@ -855,6 +900,84 @@ export default function AdminMembresPage({
                     <p style={{ opacity: 0.45, fontSize: '0.85rem', margin: 0 }}>
                       Cet·te adhérent·e n&apos;a pas encore passé de commande.
                     </p>
+                  )}
+
+                  {isAdminEmail(member.email) ? (
+                    <p style={{
+                      margin: '1.25rem 0 0',
+                      fontSize: '0.78rem',
+                      opacity: 0.5,
+                    }}>
+                      Compte administrateur : suppression impossible ici.
+                    </p>
+                  ) : (
+                    <div style={{
+                      marginTop: '1.25rem',
+                      paddingTop: '1rem',
+                      borderTop: '1px solid rgba(192, 57, 43, 0.18)',
+                    }}>
+                      <p style={{ margin: '0 0 0.45rem', fontSize: '0.8rem', fontWeight: 600, color: '#c0392b' }}>
+                        Supprimer ce membre
+                      </p>
+                      <p style={{ margin: '0 0 0.75rem', fontSize: '0.75rem', opacity: 0.6, lineHeight: 1.45 }}>
+                        Irréversible. Les commandes restent dans l&apos;historique, sans les données personnelles.
+                        Pour confirmer, tape <strong>{DELETE_ACCOUNT_CONFIRMATION}</strong>.
+                      </p>
+                      {deleteOpenId !== member.id ? (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn--danger-outline"
+                          onClick={() => openDeleteFlow(member.id)}
+                          disabled={isUpdating}
+                        >
+                          Commencer la suppression…
+                        </button>
+                      ) : (
+                        <div>
+                          <label htmlFor={`delete-confirm-${member.id}`} className="admin-subtle" style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.78rem' }}>
+                            Tape {DELETE_ACCOUNT_CONFIRMATION}
+                          </label>
+                          <input
+                            id={`delete-confirm-${member.id}`}
+                            type="text"
+                            value={deleteConfirm}
+                            onChange={e => setDeleteConfirm(e.target.value)}
+                            placeholder={DELETE_ACCOUNT_CONFIRMATION}
+                            autoComplete="off"
+                            disabled={isUpdating}
+                            style={{ ...controlStyle, marginBottom: '0.6rem', maxWidth: 220 }}
+                            aria-label={`Confirmation : saisir ${DELETE_ACCOUNT_CONFIRMATION}`}
+                          />
+                          {deleteError && (
+                            <p role="alert" style={{ margin: '0 0 0.6rem', color: '#c0392b', fontSize: '0.8rem' }}>
+                              {deleteError}
+                            </p>
+                          )}
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn--danger-outline"
+                              onClick={() => void deleteMember(member.id)}
+                              disabled={isUpdating || deleteConfirm.trim() !== DELETE_ACCOUNT_CONFIRMATION}
+                            >
+                              {isUpdating ? 'Suppression…' : 'Supprimer définitivement'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={closeDeleteFlow}
+                              disabled={isUpdating}
+                              style={{
+                                ...controlStyle,
+                                cursor: isUpdating ? 'default' : 'pointer',
+                                minHeight: 44,
+                              }}
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </details>

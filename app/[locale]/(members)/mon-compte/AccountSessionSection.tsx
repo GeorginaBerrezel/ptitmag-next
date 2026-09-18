@@ -4,9 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { DELETE_ACCOUNT_CONFIRMATION } from '@/lib/members/delete-account'
 import styles from './account-session.module.css'
-
-const CONFIRMATION = 'SUPPRIMER'
 
 export default function AccountSessionSection({ locale }: { locale: string }) {
   const router = useRouter()
@@ -16,7 +15,7 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
   const [signOutLoading, setSignOutLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const canDelete = confirmation.trim() === CONFIRMATION
+  const canDelete = confirmation.trim() === DELETE_ACCOUNT_CONFIRMATION
 
   async function handleSignOut() {
     if (signOutLoading) return
@@ -84,7 +83,7 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
         <h2 className={styles.dangerTitle}>Supprimer mon compte</h2>
         <p className={styles.dangerHint}>
           <strong>Rien n&apos;est supprimé en un clic.</strong> Si vous continuez, une confirmation en deux
-          étapes vous sera demandée (taper « {CONFIRMATION} »). Vos commandes passées restent visibles pour
+          étapes vous sera demandée (taper « {DELETE_ACCOUNT_CONFIRMATION} »). Vos commandes passées restent visibles pour
           l&apos;association ; vos données personnelles seront effacées.
         </p>
 
@@ -100,17 +99,17 @@ export default function AccountSessionSection({ locale }: { locale: string }) {
         ) : (
           <div className={styles.confirmPanel} role="region" aria-label="Confirmation de suppression">
             <p className={styles.confirmLabel}>
-              Étape 2 : tapez <strong>{CONFIRMATION}</strong> pour confirmer.
+              Étape 2 : tapez <strong>{DELETE_ACCOUNT_CONFIRMATION}</strong> pour confirmer.
             </p>
             <input
               type="text"
               value={confirmation}
               onChange={e => setConfirmation(e.target.value)}
-              placeholder={CONFIRMATION}
+              placeholder={DELETE_ACCOUNT_CONFIRMATION}
               autoComplete="off"
               disabled={deleteLoading}
               className={styles.confirmInput}
-              aria-label={`Confirmation : saisir ${CONFIRMATION}`}
+              aria-label={`Confirmation : saisir ${DELETE_ACCOUNT_CONFIRMATION}`}
             />
             {error && (
               <p role="alert" className={styles.error}>{error}</p>
