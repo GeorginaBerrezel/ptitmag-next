@@ -7,6 +7,7 @@ import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import { orderDisplayAmount } from '@/lib/orders/order-gross'
+import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { usePickupChecklist } from '@/lib/members/usePickupChecklist'
 import styles from './my-orders.module.css'
 
@@ -320,7 +321,10 @@ export default function MyOrdersSection({
               <div className={styles.monthOrders}>
                 {monthOrders.map(order => {
                   const st = ORDER_STATUS[order.status] ?? ORDER_STATUS.draft
-                  const supplierName = order.supplier?.name ?? 'Fournisseur inconnu'
+                  const supplierName = getSupplierDisplayName(
+                    order.supplier?.name ?? 'Fournisseur inconnu',
+                    order.supplier?.type,
+                  )
                   const displayAmount = orderDisplayAmount(order.status, order.total, order.order_items)
                   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
                   return (
