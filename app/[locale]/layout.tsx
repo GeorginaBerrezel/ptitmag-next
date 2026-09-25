@@ -5,6 +5,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, getTranslations, setRequestLocale} from 'next-intl/server';
 
 import Header from '@/components/Header';
+import BackToTop from '@/components/BackToTop';
 import Footer from '@/components/Footer';
 import NavigationScrollManager from '@/components/NavigationScrollManager';
 import { CartProvider } from '@/lib/cart/CartContext';
@@ -72,9 +73,10 @@ export default async function LocaleLayout({
             </Suspense>
             <Header locale={locale} showAdminLink={showAdminLink} />
             <div id="app-scroll">
-              <main id="main">{children}</main>
+              <main id="main" tabIndex={-1}>{children}</main>
               <Footer locale={locale} />
             </div>
+            <BackToTop />
           </WishlistProvider>
           </SharingProvider>
         </CartProvider>

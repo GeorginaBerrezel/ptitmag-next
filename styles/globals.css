@@ -41,6 +41,10 @@ body {
 }
 
 /* Panneau scrollable sous le header fixe (hors de ce conteneur) */
+#main:focus {
+  outline: none;
+}
+
 #app-scroll {
   position: fixed;
   top: var(--header-height);
