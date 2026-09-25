@@ -15,7 +15,7 @@ const STATUS_HINT: Record<string, { className: string; text: string } | null> = 
   },
   delivered: {
     className: lineStyles.hintBannerDelivered,
-    text: 'Cochez les produits que vous avez récupérés pour vous organiser (aide-mémoire perso). Pour ajouter un produit, contactez le magasin avant la clôture.',
+    text: 'Cochez les produits récupérés. La coche suit le compte : le téléphone et l’ordinateur voient la même chose. Pour ajouter un produit, contactez le magasin avant la clôture.',
   },
   closed: {
     className: lineStyles.hintBannerClosed,
@@ -47,12 +47,12 @@ export default function MemberOrderDetail({
   const hint = pickupChecklist && order.status === 'delivered'
     ? {
         className: lineStyles.hintBannerDelivered,
-        text: 'Cochez les produits récupérés (aide-mémoire perso). Pour ajouter un produit, contactez le magasin avant la clôture.',
+        text: 'Cochez les produits récupérés. La coche suit le compte : le téléphone et l’ordinateur voient la même chose. Pour ajouter un produit, contactez le magasin avant la clôture.',
       }
     : pickupChecklist && order.status === 'closed'
     ? {
         className: lineStyles.hintBannerClosed,
-        text: 'Commande clôturée. Montant et avoir définitifs. Cochez les produits récupérés (aide-mémoire perso).',
+        text: 'Commande clôturée. Montant et avoir définitifs. La coche récupéré suit le compte sur le téléphone et l’ordinateur.',
       }
     : STATUS_HINT[order.status]
   const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'

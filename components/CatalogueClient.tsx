@@ -10,7 +10,13 @@ import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
 import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo, getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
-import { useChangeCategoryBackNav } from '@/lib/catalog/category-nav'
+import {
+  CATALOGUE_RESET_EVENT,
+  isCatalogueHistoryState,
+  readCatalogueNav,
+  useChangeCategoryBackNav,
+  writeCatalogueNav,
+} from '@/lib/catalog/category-nav'
 import SupplierCard from './catalogue/SupplierCard'
 import CatalogueSupplierSidebar from './catalogue/CatalogueSupplierSidebar'
 import ProducerAvatar from './ProducerAvatar'
@@ -40,6 +46,9 @@ type Props = {
   /** Compléter une commande livrée (Mon compte → catalogue). */
   extendOrderId?: string | null
   extendSupplierId?: string | null
+  /** Ouverture directe depuis l’adresse (?s= &c=), y compris au rechargement. */
+  initialSupplierId?: string | null
+  initialCategory?: string | null
 }
 
 function cacheKey(supplierId: string, featuredOnly: boolean, category?: string | null) {
@@ -53,6 +62,8 @@ export default function CatalogueClient({
   initialSearch = '',
   extendOrderId = null,
   extendSupplierId = null,
+  initialSupplierId = null,
+  initialCategory = null,
 }: Props) {
   const applyCielMarkup = useApplyCielMarkup()
   const shareVisible = useSharePrototypeVisible()
@@ -62,8 +73,8 @@ export default function CatalogueClient({
   const [selectedSearchSupplierId, setSelectedSearchSupplierId] = useState<string | null>(null)
   const [selectedSearchCategory, setSelectedSearchCategory] = useState<string | null>(null)
   const [ephemereOnly, setEphemereOnly] = useState(initialEphemere)
-  const [activeSupplierId, setActiveSupplierId] = useState<string | null>(null)
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [activeSupplierId, setActiveSupplierId] = useState<string | null>(initialSupplierId)
+  const [activeCategory, setActiveCategory] = useState<string | null>(initialCategory)
   const [catalogNow, setCatalogNow] = useState(() => Date.now())
   const [shareOnly, setShareOnly] = useState(false)
 
@@ -150,6 +161,35 @@ export default function CatalogueClient({
   useEffect(() => {
     if (isSearching) setSelectedType(null)
   }, [isSearching])
+
+  function applyCatalogueView(
+    supplierId: string | null,
+    category: string | null,
+    historyMode: 'push' | 'replace' | 'none',
+  ) {
+    setActiveSupplierId(supplierId)
+    setActiveCategory(category)
+    if (historyMode === 'none' || typeof window === 'undefined') return
+    writeCatalogueNav(supplierId, category, historyMode)
+  }
+
+  useEffect(() => {
+    function onPop() {
+      const nav = readCatalogueNav(window.location.search)
+      applyCatalogueView(nav.supplierId, nav.category, 'none')
+    }
+    function onReset() {
+      applyCatalogueView(null, null, 'replace')
+      setSearch('')
+      setShareOnly(false)
+    }
+    window.addEventListener('popstate', onPop)
+    window.addEventListener(CATALOGUE_RESET_EVENT, onReset)
+    return () => {
+      window.removeEventListener('popstate', onPop)
+      window.removeEventListener(CATALOGUE_RESET_EVENT, onReset)
+    }
+  }, [])
 
   useEffect(() => {
     setSelectedSearchSupplierId(null)
@@ -404,16 +444,14 @@ export default function CatalogueClient({
 
   function handleTypeClick(type: string) {
     setSelectedType(prev => (prev === type ? null : type))
-    setActiveSupplierId(null)
-    setActiveCategory(null)
+    applyCatalogueView(null, null, 'replace')
     setEphemereOnly(false)
   }
 
   function handleEphemereClick() {
     setEphemereOnly(v => !v)
     setSelectedType(null)
-    setActiveSupplierId(null)
-    setActiveCategory(null)
+    applyCatalogueView(null, null, 'replace')
   }
 
   function clearSearch() {
@@ -425,18 +463,16 @@ export default function CatalogueClient({
   function openSupplier(id: string) {
     const summary = baseSummaries.find(s => s.supplier.id === id) ?? null
     const large = summary ? isBiopartnerSupplierName(summary.supplier.name) : false
-    setActiveSupplierId(id)
+    const category = summary && !large && summary.categories.length === 1
+      ? summary.categories[0].name
+      : null
+    applyCatalogueView(id, category, 'push')
     setSearch('')
     setLoadError(null)
-    if (summary && !large && summary.categories.length === 1) {
-      setActiveCategory(summary.categories[0].name)
-    } else {
-      setActiveCategory(null)
-    }
   }
 
   function openCategory(name: string) {
-    setActiveCategory(name)
+    applyCatalogueView(activeSupplierId, name, 'push')
     setSearch('')
   }
 
@@ -447,13 +483,13 @@ export default function CatalogueClient({
   }, [extendOrderId, extendSupplierId])
 
   function goBack() {
-    if (activeCategory) {
-      setActiveCategory(null)
-      setSearch('')
-    } else if (activeSupplierId) {
-      setActiveSupplierId(null)
-      setSearch('')
+    setSearch('')
+    if (typeof window !== 'undefined' && isCatalogueHistoryState(window.history.state)) {
+      window.history.back()
+      return
     }
+    if (activeCategory) applyCatalogueView(activeSupplierId, null, 'replace')
+    else applyCatalogueView(null, null, 'replace')
   }
 
   function supplierStatus(summary: CatalogueSupplierSummary) {
@@ -531,7 +567,10 @@ export default function CatalogueClient({
         >
           <button
             type="button"
-            onClick={() => { setActiveSupplierId(null); setActiveCategory(null); setSearch('') }}
+            onClick={() => {
+              applyCatalogueView(null, null, 'push')
+              setSearch('')
+            }}
             className={`catalogue-breadcrumb-link${activeSupplierId ? ' catalogue-breadcrumb-link--ancestor' : ''}`}
           >
             Catalogue
@@ -541,7 +580,10 @@ export default function CatalogueClient({
               <span aria-hidden>›</span>
               <button
                 type="button"
-                onClick={() => { setActiveCategory(null); setSearch('') }}
+                onClick={() => {
+                  applyCatalogueView(activeSupplierId, null, 'push')
+                  setSearch('')
+                }}
                 className={`catalogue-breadcrumb-link${activeCategory ? ' catalogue-breadcrumb-link--ancestor' : ''}`}
               >
                 {getSupplierDisplayName(activeSummary.supplier.name, activeSummary.supplier.type)}
@@ -734,7 +776,7 @@ export default function CatalogueClient({
         {view === 'products' && changeCategoryBackNav && !isSearching && (
           <button
             type="button"
-            onClick={() => { setActiveCategory(null); setSearch('') }}
+            onClick={goBack}
             className="catalogue-change-category-btn"
           >
             ← Changer de catégorie
