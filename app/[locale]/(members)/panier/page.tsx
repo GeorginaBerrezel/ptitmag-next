@@ -8,6 +8,7 @@ import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import CielPriceHint from '@/components/catalog/CielPriceHint'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
+import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { previewCreditAtClose, roundChf } from '@/lib/members/credit'
 import {
   decrementQuantity,
@@ -280,12 +281,13 @@ export default function PanierPage({
             0,
           )
           const { supplierName, supplierType } = supplierItems[0]
+          const supplierLabel = getSupplierDisplayName(supplierName, supplierType)
 
           return (
             <div key={supplierId} className={styles.supplierSection}>
               <div className={styles.supplierHeader}>
                 <div className={styles.supplierHeaderMain}>
-                  <span className={styles.supplierName}>{supplierName}</span>
+                  <span className={styles.supplierName}>{supplierLabel}</span>
                   <span className={styles.supplierType}>
                     · {TYPE_LABELS[supplierType] ?? supplierType}
                   </span>
