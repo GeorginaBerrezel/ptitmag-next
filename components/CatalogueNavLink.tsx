@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { canAccessCatalog } from '@/lib/members/profile'
 import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { CATALOGUE_RESET_EVENT } from '@/lib/catalog/category-nav'
 
 type Props = {
   locale: 'fr' | 'en'
@@ -59,7 +60,13 @@ export default function CatalogueNavLink({ locale, onNavigate, variant = 'deskto
       href="/commandes"
       locale={locale}
       className="nav-catalogue-link"
-      onClick={onNavigate}
+      onClick={event => {
+        if (pathname === '/commandes') {
+          event.preventDefault()
+          window.dispatchEvent(new Event(CATALOGUE_RESET_EVENT))
+        }
+        onNavigate?.()
+      }}
       aria-current={isActive ? 'page' : undefined}
     >
       {t('catalogue')}

@@ -12,7 +12,7 @@ export default async function CommandesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ ephemere?: string; q?: string }>
+  searchParams: Promise<{ ephemere?: string; q?: string; s?: string; c?: string }>
 }) {
   const { locale } = await params
   const profile = await getProfile()
@@ -23,12 +23,22 @@ export default async function CommandesPage({
 
   const sp = await searchParams
   const summaries = await getCatalogueSummaries()
+  const initialSummary = sp.s
+    ? summaries.find(row => row.supplier.id === sp.s) ?? null
+    : null
+  const initialSupplierId = initialSummary?.supplier.id ?? null
+  const initialCategory =
+    initialSupplierId && sp.c && initialSummary?.categories.some(cat => cat.name === sp.c)
+      ? sp.c
+      : null
 
   return (
     <CatalogueClient
       summaries={summaries}
       initialEphemere={sp.ephemere === '1'}
       initialSearch={sp.q ?? ''}
+      initialSupplierId={initialSupplierId}
+      initialCategory={initialCategory}
     />
   )
 }
