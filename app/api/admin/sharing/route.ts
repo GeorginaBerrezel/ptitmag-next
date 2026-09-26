@@ -5,8 +5,6 @@ import { memberPublicName } from '@/lib/sharing/display-name'
 import { settleDueShares } from '@/lib/sharing/settle'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const RECENT_MS = 45 * 24 * 60 * 60 * 1000
-
 type PoolRow = {
   id: string
   product_name: string
@@ -29,7 +27,6 @@ export async function GET() {
   }
 
   const admin = createAdminClient()
-  const since = new Date(Date.now() - RECENT_MS).toISOString()
   const { data: active, error: activeError } = await admin
     .from('share_pools')
     .select('id, product_name, supplier_name, unit, share_target, status, deadline_at, updated_at')
@@ -43,14 +40,7 @@ export async function GET() {
     return NextResponse.json({ error: activeError.message }, { status: 500 })
   }
 
-  const { data: closed } = await admin
-    .from('share_pools')
-    .select('id, product_name, supplier_name, unit, share_target, status, deadline_at, updated_at')
-    .eq('status', 'closed')
-    .gte('updated_at', since)
-    .order('updated_at', { ascending: false })
-
-  const pools = [...(active ?? []), ...(closed ?? [])] as PoolRow[]
+  const pools = (active ?? []) as PoolRow[]
   if (pools.length === 0) return NextResponse.json({ cartons: [] })
 
   const ids = pools.map(pool => pool.id)
@@ -77,16 +67,11 @@ export async function GET() {
 
   const cartons = pools.map(pool => {
     const people = (contribs ?? []).filter(row => row.pool_id === pool.id)
-    const ordered = people.some(row => row.ordered_at || row.order_id)
     const label = pool.status === 'deferred'
       ? 'Reporté · prochaine ouverture'
       : pool.status === 'ready'
-        ? 'Complet · commande à la date'
-        : pool.status === 'open'
-          ? 'En attente'
-          : ordered
-            ? 'Commandé'
-            : 'Annulé'
+        ? 'Complet · commande à la limite'
+        : 'En attente'
     return {
       id: pool.id,
       productName: pool.product_name,
