@@ -1,3 +1,4 @@
+import { settleDueShares } from '@/lib/sharing/settle'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isLegacyBiopartnerSupplier } from '@/lib/import/biopartner-catalogs'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -120,6 +121,12 @@ export async function PATCH(request: NextRequest) {
     .eq('id', body.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  try {
+    await settleDueShares({ force: true })
+  } catch (err) {
+    console.error('supplier settle', err)
+  }
 
   return NextResponse.json({ success: true })
 }

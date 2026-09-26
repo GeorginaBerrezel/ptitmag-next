@@ -14,7 +14,7 @@ type SharingContextType = {
   openPools: SharePoolView[]
   readyPools: SharePoolView[]
   loading: boolean
-  startOrJoin: (product: ShareProduct, quantity: number, ifIncomplete?: ShareIfIncomplete) => Promise<ShareActionResult>
+  startOrJoin: (product: ShareProduct, quantity: number, ifIncomplete?: ShareIfIncomplete, coverMax?: number | null) => Promise<ShareActionResult>
   removeYours: (poolId: string) => Promise<ShareActionResult>
   setIfIncomplete: (poolId: string, ifIncomplete: ShareIfIncomplete) => Promise<void>
   refresh: () => Promise<void>
@@ -104,16 +104,23 @@ export function SharingProvider({
     product: ShareProduct,
     quantity: number,
     ifIncomplete: ShareIfIncomplete = 'rollover',
+    coverMax?: number | null,
   ): Promise<ShareActionResult> => {
     if (!shareOn) return { error: 'Partages désactivés.' }
+    const body: { productId: string; quantity: number; ifIncomplete: ShareIfIncomplete; coverMax?: number | null } = {
+      productId: product.id,
+      quantity,
+      ifIncomplete,
+    }
+    if (coverMax !== undefined) body.coverMax = coverMax
     const res = await fetch('/api/sharing/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: product.id, quantity, ifIncomplete }),
+      body: JSON.stringify(body),
     })
     const data = await readJson(res)
-    if (!res.ok) return { error: data.error ?? SHARE_MESSAGES.unavailable }
     if (Array.isArray(data.pools)) setPools(withTotals(data.pools))
+    if (!res.ok) return { error: data.error ?? SHARE_MESSAGES.unavailable }
     return { notice: data.notice }
   }, [shareOn])
 

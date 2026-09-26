@@ -27,6 +27,7 @@ import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
 import AdminAddProductAtClosure from '@/components/admin/AdminAddProductAtClosure'
 import AdminClosureLineEdit from '@/components/admin/AdminClosureLineEdit'
+import AdminShareCartons from '@/components/admin/AdminShareCartons'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -641,6 +642,8 @@ export default function AdminCommandesPage({
           </div>
         ))}
       </div>
+
+      {mode === 'action' && <AdminShareCartons />}
 
       {/* Bascule de mode + filtres */}
       {!filterSupplier && !loading && filtered.length > 0 && (

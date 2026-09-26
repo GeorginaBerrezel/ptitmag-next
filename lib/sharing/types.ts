@@ -31,9 +31,16 @@ export type ShareContribution = {
   memberId: string
   displayName: string
   quantity: number
+  /** Quantité demandée, avant qu’une personne ne prenne le trou. */
+  requestedQuantity?: number
+  /** Plafond total accepté. Absent si la personne ne couvre pas le manque. */
+  coverMax?: number | null
+  coverAt?: string | null
   /** true une fois la part passée en commande. */
   ordered?: boolean
 }
+
+export type SharePoolStatus = 'open' | 'ready' | 'deferred'
 
 export type SharePool = {
   id: string
@@ -41,7 +48,8 @@ export type SharePool = {
   /** Copie du produit au moment du Partager. Absente sur d’anciens essais locaux. */
   product?: ShareProduct
   ifIncomplete?: ShareIfIncomplete
-  /** Heure limite du carton (délai fournisseur, ou +7 j. au report). */
+  status?: SharePoolStatus
+  /** Heure limite du carton : la fermeture des commandes chez le fournisseur. */
   deadlineAt?: string | null
   contributions: ShareContribution[]
 }

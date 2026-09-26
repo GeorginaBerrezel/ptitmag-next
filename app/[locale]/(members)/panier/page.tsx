@@ -21,7 +21,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import WishlistButton from '@/components/WishlistButton'
 import ProductDetailTrigger from '@/components/orders/ProductDetailTrigger'
-import SharingCartSection, { useYoursReadyShareCount } from '@/components/sharing/SharingCartSection'
+import SharingCartSection from '@/components/sharing/SharingCartSection'
 import styles from './panier.module.css'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -38,7 +38,6 @@ export default function PanierPage({
   const { locale } = use(params)
   const { items, updateQuantity, removeItem, clearCart, globalTotal } = useCart()
   const applyCielMarkup = useApplyCielMarkup()
-  const readyShareCount = useYoursReadyShareCount()
   const [catalogAccess, setCatalogAccess] = useState<'loading' | 'allowed' | 'denied'>('loading')
   const [profileEmail, setProfileEmail] = useState<string | null>(null)
   const [profilePhone, setProfilePhone] = useState<string | null>(null)
@@ -157,9 +156,7 @@ export default function PanierPage({
           Ce panier est lié au compte : téléphone et ordi voient les mêmes articles.
           Si plusieurs personnes utilisent ce login, le dernier changement gagne.
         </p>
-        {readyShareCount === 0 && (
-          <p className={styles.emptyText}>Votre panier est vide.</p>
-        )}
+        <p className={styles.emptyText}>Votre panier est vide.</p>
         <SharingCartSection />
         <Link
           href="/commandes"
@@ -348,7 +345,7 @@ export default function PanierPage({
                         )}
                         {item.fromShare && (
                           <span style={{ display: 'block', fontSize: '0.72rem', color: '#DC7F00', fontWeight: 600 }}>
-                            Part partagée. Pour changer la quantité, va sur Partages.
+                            Ancienne part dans le panier. Retire-la : les partages partent seuls à la date du fournisseur.
                           </span>
                         )}
                         {!item.fromShare && hasSurcharge && (
