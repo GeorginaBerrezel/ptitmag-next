@@ -97,4 +97,7 @@ export const SHARE_MESSAGES = {
   alreadyOrdered: 'Ta part de ce carton a déjà été commandée.',
   poolOrdering: 'Quelqu’un a déjà commandé ce carton. Tu ne peux plus modifier les parts.',
   sqlMissing: 'Les partages ne sont pas encore prêts en base. Réessaie un peu plus tard.',
+  supplierClosed: 'Les commandes de ce fournisseur sont fermées. Le partage reprendra à la prochaine ouverture.',
+  coverTooSmall: 'Ce maximum est égal à ta part : tu ne couvres rien en plus. Monte-le, ou laisse la case vide.',
+  coverTooBig: 'Le maximum est le carton entier.',
 } as const

@@ -60,7 +60,7 @@ export default function ProductShareActions({ product, minQuantity }: Props) {
             </p>
           </div>
           <Link href="/commandes/partage" className={card.shareBtn} style={{ textAlign: 'center', textDecoration: 'none' }}>
-            {yours?.ordered ? 'Commandée' : yours ? 'Modifier' : 'Rejoindre'}
+            {yours ? 'Modifier' : 'Rejoindre'}
           </Link>
         </div>
       ) : (

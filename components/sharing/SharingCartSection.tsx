@@ -1,112 +1,59 @@
 'use client'
 
-import { useState } from 'react'
-import { useCart } from '@/lib/cart/CartContext'
-import { getEffectiveUnitPrice } from '@/lib/cart/CartContext'
-import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
+import { Link } from '@/i18n/navigation'
+import { formatSupplierOrderDeadline } from '@/lib/catalog/supplier-orders'
 import { formatShareQty } from '@/lib/sharing/from-product'
 import { useSharePrototypeVisible, useSharing } from '@/lib/sharing/SharingContext'
 import styles from '@/app/[locale]/(members)/panier/panier.module.css'
 
-export function useYoursReadyShareCount(): number {
+export function useYoursShareCount(): number {
   const shareVisible = useSharePrototypeVisible()
-  const { readyPools, viewerId } = useSharing()
+  const { pools, viewerId } = useSharing()
   if (!shareVisible || !viewerId) return 0
-  return readyPools.filter(p => p.contributions.some(c => c.memberId === viewerId && !c.ordered)).length
+  return pools.filter(pool => pool.contributions.some(row => row.memberId === viewerId && !row.ordered)).length
 }
 
-export default function SharingCartSection() {
-  const applyCielMarkup = useApplyCielMarkup()
-  const shareVisible = useSharePrototypeVisible()
-  const { readyPools, viewerId } = useSharing()
-  const { items, addItem } = useCart()
-  const [addedId, setAddedId] = useState<string | null>(null)
+/** @deprecated préférer useYoursShareCount */
+export const useYoursReadyShareCount = useYoursShareCount
 
+export default function SharingCartSection() {
+  const shareVisible = useSharePrototypeVisible()
+  const { pools, viewerId } = useSharing()
   if (!shareVisible || !viewerId) return null
 
-  const yours = readyPools.filter(p => p.contributions.some(c => c.memberId === viewerId && !c.ordered))
+  const yours = pools.filter(pool => pool.contributions.some(row => row.memberId === viewerId && !row.ordered))
   if (yours.length === 0) return null
-
-  const lines = yours.map(pool => {
-    const mine = pool.contributions.find(c => c.memberId === viewerId)!
-    const unitPrice = getEffectiveUnitPrice(
-      {
-        unitPrice: pool.product.unitPrice,
-        minQuantity: pool.product.minQuantity,
-        allowsPartialOrder: false,
-        quantity: mine.quantity,
-      },
-      { applyCielMarkup },
-    )
-    const others = pool.contributions
-      .filter(c => c.memberId !== viewerId)
-      .map(c => c.displayName)
-    return {
-      poolId: pool.id,
-      name: pool.product.name,
-      unit: pool.product.unit,
-      quantity: mine.quantity,
-      unitPrice,
-      total: unitPrice * mine.quantity,
-      withLabel: others.length === 0 ? 'Toi, pour l’instant' : `Avec ${others.join(', ')}`,
-      product: pool.product,
-      inCart: items.some(i => i.productId === pool.product.id),
-    }
-  })
-  const shareTotal = lines.reduce((s, l) => s + l.total, 0)
-
-  function putInCart(line: (typeof lines)[number]) {
-    const p = line.product
-    if (!p.supplierId) return
-    addItem({
-      productId: p.id,
-      productName: p.name,
-      supplierRef: p.supplierRef ?? null,
-      supplierId: p.supplierId,
-      supplierName: p.supplierName,
-      supplierType: p.supplierType ?? 'autre',
-      quantity: line.quantity,
-      unitPrice: p.unitPrice,
-      unit: p.unit,
-      minQuantity: p.minQuantity,
-      allowsPartialOrder: false,
-      fromShare: true,
-    })
-    setAddedId(line.poolId)
-  }
 
   return (
     <section className={styles.shareBox} aria-labelledby="share-cart-title">
       <h2 id="share-cart-title" className={styles.shareTitle}>Produits partagés</h2>
       <p className={styles.shareHint}>
-        Carton complet. Mets ta part dans le panier pour la commander. Un carton incomplet n’y va pas.
+        Ces parts ne sont pas dans le panier. Elles partent seules à la date du fournisseur.
+        Tu peux encore les retirer dans Partages.
       </p>
       <ul className={styles.shareList}>
-        {lines.map(line => (
-          <li key={line.poolId} className={styles.shareLine}>
-            <div>
-              <strong>{line.name}</strong>
-              <p className={styles.shareMeta}>
-                Ta part : {formatShareQty(line.quantity, line.unit)} · CHF {line.unitPrice.toFixed(2)} / {line.unit}
-              </p>
-              <p className={styles.shareMeta}>{line.withLabel}</p>
-              {line.product.supplierId && (
-                <button
-                  type="button"
-                  className={styles.shareBtn}
-                  style={{ marginTop: '0.45rem' }}
-                  onClick={() => putInCart(line)}
-                  disabled={line.inCart || addedId === line.poolId}
-                >
-                  {line.inCart || addedId === line.poolId ? 'Déjà dans le panier' : 'Mettre ma part dans le panier'}
-                </button>
-              )}
-            </div>
-            <span className={styles.sharePrice}>CHF {line.total.toFixed(2)}</span>
-          </li>
-        ))}
+        {yours.map(pool => {
+          const mine = pool.contributions.find(row => row.memberId === viewerId)!
+          const when = pool.status === 'deferred'
+            ? 'gardée jusqu’à la prochaine ouverture'
+            : pool.deadlineAt
+              ? `part le ${formatSupplierOrderDeadline(pool.deadlineAt)}`
+              : 'part à la date du fournisseur'
+          return (
+            <li key={pool.id} className={styles.shareLine}>
+              <div>
+                <strong>{pool.product.name}</strong>
+                <p className={styles.shareMeta}>
+                  Ta part : {formatShareQty(mine.quantity, pool.product.unit)} · {when}
+                </p>
+              </div>
+            </li>
+          )
+        })}
       </ul>
-      <p className={styles.shareTotal}>Ton total partagé : CHF {shareTotal.toFixed(2)}</p>
+      <Link href="/commandes/partage" className={styles.shareBtn} style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none', marginTop: '0.75rem' }}>
+        Voir les partages
+      </Link>
     </section>
   )
 }

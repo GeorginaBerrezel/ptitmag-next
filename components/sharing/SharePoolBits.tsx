@@ -1,7 +1,6 @@
 'use client'
 
-import { Link } from '@/i18n/navigation'
-import { formatShareNumber, formatShareProgress } from '@/lib/sharing/from-product'
+import { formatShareProgress, formatShareQty } from '@/lib/sharing/from-product'
 import { shareTargetOf } from '@/lib/sharing/pool-math'
 import { useSharing } from '@/lib/sharing/SharingContext'
 import type { ShareActionResult, SharePoolView } from '@/lib/sharing/types'
@@ -33,8 +32,7 @@ export function ShareProgress({ pool }: { pool: SharePoolView }) {
           <li key={c.memberId} className={styles.chip}>
             {c.memberId === viewerId ? 'Toi' : c.displayName}
             {' · '}
-            {formatShareNumber(c.quantity)}
-            {c.ordered ? ' · commandée' : ''}
+            {formatShareQty(c.quantity, product.unit)}
           </li>
         ))}
       </ul>
@@ -72,10 +70,8 @@ export function ShareSimulateRow({
           Retirer ma part
         </button>
       )}
-      {pool.isFull && yours && (
-        <Link href="/panier" className={styles.simBtn} style={{ textAlign: 'center', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-          Voir le panier
-        </Link>
+      {pool.isFull && yours && !locked && (
+        <p className={styles.progressLabel}>Tu peux encore retirer ta part avant la date. Ensuite la commande part seule.</p>
       )}
     </div>
   )

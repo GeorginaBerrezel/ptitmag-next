@@ -14,6 +14,9 @@ import {
 } from './pool-math'
 import { MOCK_SHARE_PRODUCTS, shareableMockProducts } from './mock-catalog'
 import { isShareDeadlinePassed, rollShareDeadline } from './lifecycle'
+import { normalizeCoverMax, pickCover } from './cover'
+import { describeShare } from './describe'
+import { planShareSettle } from './settle-plan'
 
 describe('isShareEligible', () => {
   it('refuse un produit déjà en part maison (miel, yaourt, bouteille seule)', () => {
@@ -106,5 +109,107 @@ describe('rollShareDeadline', () => {
     assert.equal(rollShareDeadline(from, now), from)
     assert.equal(isShareDeadlinePassed(from, now), false)
     assert.equal(isShareDeadlinePassed('2026-09-10T12:00:00.000Z', now), true)
+  })
+})
+
+describe('pickCover', () => {
+  const anna = { memberId: 'anna', quantity: 1, coverMax: 2, coverAt: '2026-09-01T10:00:00.000Z' }
+  const ben = { memberId: 'ben', quantity: 2, coverMax: 6, coverAt: '2026-09-01T11:00:00.000Z' }
+
+  it('donne tout le trou à la première personne dont le maximum suffit', () => {
+    const pick = pickCover([anna, ben], 6)
+    assert.deepEqual(pick, { memberId: 'ben', nextQuantity: 5 })
+  })
+
+  it('ne coupe pas le reste si personne ne peut finir seul', () => {
+    assert.equal(pickCover([
+      { ...anna, coverMax: 2 },
+      { ...ben, quantity: 1, coverMax: 2 },
+    ], 6), null)
+  })
+
+  it('prend la personne qui a coché en premier quand les deux peuvent finir', () => {
+    const pick = pickCover([
+      { ...ben, coverAt: '2026-09-01T12:00:00.000Z' },
+      { ...anna, coverMax: 6, coverAt: '2026-09-01T09:00:00.000Z' },
+    ], 6)
+    assert.equal(pick?.memberId, 'anna')
+  })
+})
+
+describe('normalizeCoverMax', () => {
+  it('refuse un maximum égal à la part', () => {
+    assert.deepEqual(normalizeCoverMax(1, 1, 6, 1), { ok: false, error: 'too_small' })
+  })
+
+  it('refuse un maximum plus grand que le carton', () => {
+    assert.deepEqual(normalizeCoverMax(7, 1, 6, 1), { ok: false, error: 'too_big' })
+  })
+})
+
+describe('planShareSettle', () => {
+  const base = {
+    now: new Date('2026-09-18T18:00:00.000Z'),
+    status: 'open' as const,
+    deadlineAt: '2026-09-18T16:00:00.000Z',
+    target: 6,
+    productActive: true,
+    supplierActive: true,
+    supplierOrdersOpen: false,
+    supplierDeadlineAt: '2026-09-18T16:00:00.000Z',
+  }
+
+  it('commande quand le carton est plein à la date', () => {
+    const plan = planShareSettle({
+      ...base,
+      contributions: [
+        { memberId: 'a', quantity: 4, coverMax: null, coverAt: null, ordered: false },
+        { memberId: 'b', quantity: 2, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.equal(plan.type, 'order')
+  })
+
+  it('reporte un carton incomplet vers la prochaine ouverture', () => {
+    const plan = planShareSettle({
+      ...base,
+      contributions: [
+        { memberId: 'a', quantity: 1, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.equal(plan.type, 'defer')
+  })
+
+  it('rouvre un carton reporté quand le fournisseur a une nouvelle date', () => {
+    const plan = planShareSettle({
+      ...base,
+      status: 'deferred',
+      supplierOrdersOpen: true,
+      supplierDeadlineAt: '2026-09-25T16:00:00.000Z',
+      contributions: [
+        { memberId: 'a', quantity: 1, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, { type: 'reopen', deadlineAt: '2026-09-25T16:00:00.000Z', full: false })
+  })
+})
+
+describe('describeShare', () => {
+  it('dit que le carton complet part seul puis disparaît', () => {
+    const text = describeShare({
+      isFull: true,
+      deferred: false,
+      remaining: 0,
+      target: 6,
+      unit: 'kg',
+      deadlineLabel: 'jeu. 18 sept. 18:00',
+      unitPrice: 3,
+      viewerId: 'a',
+      contributions: [
+        { memberId: 'a', displayName: 'Anna', quantity: 2, coverMax: null, coverAt: null },
+      ],
+    })
+    assert.match(text.headline, /La commande part seule/)
+    assert.match(text.detail ?? '', /disparaît/)
   })
 })
