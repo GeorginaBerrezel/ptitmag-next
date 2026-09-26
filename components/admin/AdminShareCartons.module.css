@@ -6,9 +6,30 @@
   margin-bottom: 1.25rem;
 }
 
-.title {
-  margin: 0 0 0.35rem;
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.summary::-webkit-details-marker {
+  margin-right: 0.35rem;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: #f5efe6;
+  font-size: 0.78rem;
 }
 
 .lead {

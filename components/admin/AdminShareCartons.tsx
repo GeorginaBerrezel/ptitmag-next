@@ -35,10 +35,13 @@ export default function AdminShareCartons() {
   if (!cartons || cartons.length === 0) return null
 
   return (
-    <section className={styles.box} aria-labelledby="admin-share-title">
-      <h2 id="admin-share-title" className={styles.title}>Cartons partagés</h2>
+    <details className={styles.box}>
+      <summary className={styles.summary}>
+        Cartons partagés
+        <span className={styles.count}>{cartons.length}</span>
+      </summary>
       <p className={styles.lead}>
-        Un carton = une commande chez le fournisseur. Les parts ci-dessous sont les personnes qui le partagent.
+        Seulement les partages encore en cours. Un carton = une commande chez le fournisseur.
       </p>
       <ul className={styles.list}>
         {cartons.map(carton => (
@@ -49,12 +52,12 @@ export default function AdminShareCartons() {
             </p>
             <p className={styles.meta}>
               {carton.label}
-              {carton.deadlineAt ? ` · ${formatSupplierOrderDeadline(carton.deadlineAt)}` : ''}
+              {carton.deadlineAt ? ` · limite ${formatSupplierOrderDeadline(carton.deadlineAt)}` : ''}
             </p>
             <p className={styles.people}>{carton.members.join(' · ')}</p>
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   )
 }
