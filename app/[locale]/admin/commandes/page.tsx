@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, use, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   collectExportRows,
   collectOrderFinancialSummaries,
@@ -10,7 +10,15 @@ import {
 } from '@/lib/admin/order-export'
 import { buildOrdersExcelBuffer } from '@/lib/admin/order-export-xlsx'
 import { ARCHIVE_AFTER_MONTHS } from '@/lib/admin/order-archive'
-import { getMemberDisplayName, groupOrdersByMember, sumOrderTotals } from '@/lib/admin/member-display'
+import {
+  formatMonthHeading,
+  formatMonthSpan,
+  getMemberDisplayName,
+  groupOrdersByMember,
+  isInClosureWeek,
+  latestClosureWeekStart,
+  sumOrderTotals,
+} from '@/lib/admin/member-display'
 import { computeMemberCloseCredits } from '@/lib/orders/compute-member-close-credits'
 import { CLOSURE_ADD_LINE_LABEL } from '@/lib/orders/closure-add-label'
 import { filterLatestClosedBatch } from '@/lib/admin/member-order-notifications'
@@ -27,6 +35,7 @@ import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 import AdminOrderTotals from '@/components/admin/AdminOrderTotals'
 import AdminAddProductAtClosure from '@/components/admin/AdminAddProductAtClosure'
 import AdminClosureLineEdit from '@/components/admin/AdminClosureLineEdit'
+import AdminShareCartons from '@/components/admin/AdminShareCartons'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,6 +120,7 @@ export default function AdminCommandesPage({
   const [filterStatus, setFilterStatus]     = useState('')
   const [filterSupplier, setFilterSupplier] = useState('')
   const [filterDate, setFilterDate]         = useState('')
+  const [showOlderClosed, setShowOlderClosed] = useState(false)
   const [updating, setUpdating]       = useState<string | null>(null)
   const [exporting, setExporting]     = useState(false)
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
@@ -178,22 +188,37 @@ export default function AdminCommandesPage({
     return true
   })
 
+  const latestClosedWeek = useMemo(
+    () => (mode === 'closed' ? latestClosureWeekStart(filtered) : null),
+    [mode, filtered],
+  )
+
+  const listedOrders = useMemo(() => {
+    if (mode !== 'closed' || showOlderClosed || !latestClosedWeek) return filtered
+    return filtered.filter(order => isInClosureWeek(order, latestClosedWeek))
+  }, [filtered, mode, showOlderClosed, latestClosedWeek])
+
+  const olderClosedCount = mode === 'closed' && latestClosedWeek
+    ? filtered.filter(order => !isInClosureWeek(order, latestClosedWeek)).length
+    : 0
+
   const groupedOrders = useMemo(
     () =>
       groupOrdersByMember(
-        filtered,
+        listedOrders,
         getMemberName,
         order => order.member?.email ?? null,
+        mode === 'closed' || mode === 'history' ? 'recent' : 'supplier',
       ),
-    [filtered],
+    [listedOrders, mode],
   )
 
   const hasFilters = filterStatus || filterSupplier || filterDate
 
   const aggregatedSummary = useMemo(() => {
-    if (!filterSupplier || filtered.length === 0) return null
-    return computeAggregatedSummary(filtered as OrderExportInput[], getMemberName, formatDate)
-  }, [filterSupplier, filtered])
+    if (!filterSupplier || listedOrders.length === 0) return null
+    return computeAggregatedSummary(listedOrders as OrderExportInput[], getMemberName, formatDate)
+  }, [filterSupplier, listedOrders])
 
   const aggregatedTotal = useMemo(
     () => aggregatedSummary?.reduce((s, l) => s + l.totalAmount, 0) ?? 0,
@@ -207,6 +232,7 @@ export default function AdminCommandesPage({
     setFilterStatus('')
     setFilterSupplier('')
     setFilterDate('')
+    setShowOlderClosed(false)
   }
 
   // ── Statistiques ─────────────────────────────────────────────────────────
@@ -469,13 +495,13 @@ export default function AdminCommandesPage({
   }
 
   async function exportExcel() {
-    const rows = collectExportRows(filtered as OrderExportInput[], getMemberName, formatDate)
+    const rows = collectExportRows(listedOrders as OrderExportInput[], getMemberName, formatDate)
     if (rows.length === 0) return
 
     setExporting(true)
     try {
       const financialSummaries = collectOrderFinancialSummaries(
-        filtered as OrderExportInput[],
+        listedOrders as OrderExportInput[],
         getMemberName,
         formatDate,
       )
@@ -587,7 +613,7 @@ export default function AdminCommandesPage({
             {mode === 'toClose' &&
               'Livrées : ajuster qté ou prix si besoin, puis « Clôturer tout ». L\'avoir est déduit une seule fois sur le total membre.'}
             {mode === 'closed' &&
-              'Commandes finalisées. Montant et avoir définitifs. Si l\'email a échoué : « Renvoyer email » sur la fiche. « Historique » pour les filtres avancés.'}
+              'Dernière semaine de clôture, la plus récente en haut. « Voir les plus anciennes » pour le reste. Si l\'email a échoué : « Renvoyer email ».'}
             {mode === 'history' &&
               'Historique complet. Filtre par statut (dont Clôturées) pour retrouver une commande.'}
           </p>
@@ -595,10 +621,10 @@ export default function AdminCommandesPage({
         <button
           type="button"
           onClick={exportExcel}
-          disabled={filtered.length === 0 || loading || exporting}
+          disabled={listedOrders.length === 0 || loading || exporting}
           className="admin-btn admin-btn--primary"
         >
-          {exporting ? 'Export…' : `↓ Exporter Excel${filtered.length > 0 ? ` (${filtered.length})` : ''}`}
+          {exporting ? 'Export…' : `↓ Exporter Excel${listedOrders.length > 0 ? ` (${listedOrders.length})` : ''}`}
         </button>
       </div>
 
@@ -641,6 +667,8 @@ export default function AdminCommandesPage({
           </div>
         ))}
       </div>
+
+      {mode === 'action' && <AdminShareCartons />}
 
       {/* Bascule de mode + filtres */}
       {!filterSupplier && !loading && filtered.length > 0 && (
@@ -813,7 +841,7 @@ export default function AdminCommandesPage({
         )}
 
         <span className="admin-subtle" style={{ marginLeft: 'auto', fontSize: '0.83rem', whiteSpace: 'nowrap' }}>
-          {loading ? 'Chargement…' : `${filtered.length} commande${filtered.length !== 1 ? 's' : ''}`}
+          {loading ? 'Chargement…' : `${listedOrders.length} commande${listedOrders.length !== 1 ? 's' : ''}`}
         </span>
       </div>
 
@@ -880,18 +908,32 @@ export default function AdminCommandesPage({
           )}
           {mode === 'closed' && (
             <>
-              <strong>✉ Renvoyer email</strong> : si l&apos;envoi a échoué à la clôture, le membre n&apos;a pas reçu
-              le récap (commandes déjà clôturées, totaux inchangés).
+              {showOlderClosed
+                ? <>Toutes les clôturées, la plus récente en haut. </>
+                : <>Liste limitée à la <strong>dernière semaine</strong>. </>}
+              <strong>✉ Renvoyer email</strong> renvoie le dernier récap, sans changer les totaux.
             </>
           )}
         </p>
       )}
 
-      {!loading && !error && filterSupplier && filtered.length > 0 && aggregatedSummary && (
+      {!loading && !error && mode === 'closed' && olderClosedCount > 0 && (
+        <button
+          type="button"
+          className="admin-btn admin-closed-older"
+          onClick={() => setShowOlderClosed(value => !value)}
+        >
+          {showOlderClosed
+            ? 'Dernière semaine seulement'
+            : `Voir les plus anciennes (${olderClosedCount})`}
+        </button>
+      )}
+
+      {!loading && !error && filterSupplier && listedOrders.length > 0 && aggregatedSummary && (
         <AggregatedSummaryPanel
           supplierName={filterSupplier}
           lines={aggregatedSummary}
-          orderCount={filtered.length}
+          orderCount={listedOrders.length}
           totalAmount={aggregatedTotal}
           canRemove={canRemoveFromRecap}
           removingKey={removingAggregateKey}
@@ -899,7 +941,7 @@ export default function AdminCommandesPage({
         />
       )}
 
-      {!loading && !error && filterSupplier && filtered.length > 0 && (
+      {!loading && !error && filterSupplier && listedOrders.length > 0 && (
         <p className="admin-order-groups__hint">
           <strong>Détail par membre</strong> : commandes <em>{filterSupplier}</em> uniquement
           (le tableau vert ci-dessus additionne les quantités pour passer commande chez ce fournisseur).
@@ -907,7 +949,7 @@ export default function AdminCommandesPage({
       )}
 
       {/* Liste des commandes — accordéon par membre */}
-      {!loading && !error && filtered.length > 0 && (
+      {!loading && !error && listedOrders.length > 0 && (
         <div className="admin-order-groups">
           {groupedOrders.map(group => {
             const groupTotal = sumOrderTotals(group.orders)
@@ -937,6 +979,12 @@ export default function AdminCommandesPage({
                     .map(o => ({ id: o.id, closed_at: o.closed_at, created_at: o.created_at })),
                 ).map(o => o.id)
               : []
+            const compactHeader = mode === 'closed' || mode === 'history'
+            const monthSpan = compactHeader ? formatMonthSpan(group.orders.map(order => order.created_at)) : ''
+            const supplierChips = compactHeader
+              ? [...new Set(group.orders.map(order => order.supplier?.name ?? 'Fournisseur inconnu'))]
+                .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }))
+              : []
 
             return (
               <details
@@ -955,7 +1003,9 @@ export default function AdminCommandesPage({
                     <span className="admin-order-group__meta">
                       {closePreview
                         ? `${orderLabel} · CHF ${closePreview.totalGross.toFixed(2)} produits · − CHF ${closePreview.totalCreditApplied.toFixed(2)} avoir · CHF ${closePreview.totalPayable.toFixed(2)} à payer`
-                        : `${orderLabel} · CHF ${groupTotal.toFixed(2)}`}
+                        : compactHeader
+                          ? `${orderLabel} · ${monthSpan} · CHF ${groupTotal.toFixed(2)}`
+                          : `${orderLabel} · CHF ${groupTotal.toFixed(2)}`}
                     </span>
                     {closePreview && creditBalance > 0 && (
                       <span className="admin-order-group__credit-hint">
@@ -963,11 +1013,17 @@ export default function AdminCommandesPage({
                       </span>
                     )}
                     <ul className="admin-order-group__chips" aria-label="Fournisseurs">
-                      {group.orders.map(order => (
-                        <li key={order.id} className="admin-order-group__chip" title={order.supplier?.name ?? undefined}>
-                          {order.supplier?.name ?? 'Fournisseur inconnu'}
-                        </li>
-                      ))}
+                      {compactHeader
+                        ? supplierChips.map(name => (
+                          <li key={name} className="admin-order-group__chip" title={name}>
+                            {name}
+                          </li>
+                        ))
+                        : group.orders.map(order => (
+                          <li key={order.id} className="admin-order-group__chip" title={order.supplier?.name ?? undefined}>
+                            {order.supplier?.name ?? 'Fournisseur inconnu'}
+                          </li>
+                        ))}
                     </ul>
                     {(deliveredCount > 0 && (mode === 'toClose' || (mode === 'history' && filterStatus === 'delivered'))) && (
                       <div className="admin-order-group__actions">
@@ -1043,14 +1099,21 @@ export default function AdminCommandesPage({
                     onClose={() => setAddingProductMemberId(null)}
                   />
                 )}
-                {group.orders.map(order => {
+                {group.orders.map((order, orderIndex) => {
             const st         = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.confirmed
             const memberName = getMemberName(order)
             const isUpdating = updating === order.id
+            const monthHeading = compactHeader ? formatMonthHeading(order.created_at) : ''
+            const previousHeading = orderIndex > 0 && compactHeader
+              ? formatMonthHeading(group.orders[orderIndex - 1].created_at)
+              : ''
+            const showMonth = compactHeader && monthHeading !== previousHeading
+            const hideStatusBadge = mode === 'closed' && order.status === 'closed'
 
             return (
+              <Fragment key={order.id}>
+              {showMonth && <p className="admin-order-group__month">{monthHeading}</p>}
               <details
-                key={order.id}
                 className={accordionStyles.card}
                 style={{
                   opacity: isUpdating ? 0.65 : 1,
@@ -1091,16 +1154,18 @@ export default function AdminCommandesPage({
                         Archivée
                       </span>
                     )}
-                    <span style={{
-                      background: st.bg, color: st.color,
-                      border: `1px solid ${st.border}22`,
-                      borderRadius: 999, padding: '0.18rem 0.65rem',
-                      fontSize: '0.78rem', fontWeight: 600,
-                      maxWidth: '100%',
-                      textAlign: 'center',
-                    }}>
-                      {st.label}
-                    </span>
+                    {!hideStatusBadge && (
+                      <span style={{
+                        background: st.bg, color: st.color,
+                        border: `1px solid ${st.border}22`,
+                        borderRadius: 999, padding: '0.18rem 0.65rem',
+                        fontSize: '0.78rem', fontWeight: 600,
+                        maxWidth: '100%',
+                        textAlign: 'center',
+                      }}>
+                        {st.label}
+                      </span>
+                    )}
                     <AdminOrderTotals
                       items={order.order_items}
                       total={order.total}
@@ -1330,6 +1395,7 @@ export default function AdminCommandesPage({
                   </div>
                 </div>
               </details>
+              </Fragment>
             )
                 })}
                 </div>

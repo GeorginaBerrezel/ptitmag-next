@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { PRODUCT_IMAGE_PLACEHOLDER, shouldBypassNextImageOptimizer } from '@/lib/catalog/product-image'
 import { formatShareNumber, formatShareQty } from '@/lib/sharing/from-product'
 import { SHARE_MESSAGES } from '@/lib/sharing/eligibility'
-import { shareStepOf, shareTargetOf, wouldTakeWholeCarton } from '@/lib/sharing/pool-math'
+import { defaultCoverMax } from '@/lib/sharing/cover'
+import { describeShare } from '@/lib/sharing/describe'
 import { formatSupplierOrderDeadline } from '@/lib/catalog/supplier-orders'
 import { useSharing } from '@/lib/sharing/SharingContext'
-import type { ShareIfIncomplete, SharePoolView } from '@/lib/sharing/types'
+import { shareStepOf, shareTargetOf, wouldTakeWholeCarton } from '@/lib/sharing/pool-math'
+import type { SharePoolView } from '@/lib/sharing/types'
 import { ShareProgress, ShareSimulateRow } from './SharePoolBits'
 import card from '@/components/ProductCard.module.css'
 import shareStyles from './sharing.module.css'
@@ -78,7 +80,7 @@ export function WaitingSharePools() {
           <p className={shareStyles.empty}>
             {tab === 'open'
               ? 'Rien en attente. Un carton plein se trouve dans Complets.'
-              : 'Aucun carton complet. Il reste dans En attente tant qu’il manque des parts.'}
+              : 'Aucun carton complet. Une fois la commande partie, le carton quitte cette page.'}
           </p>
         ) : (
           <div className={shareStyles.list}>
@@ -106,7 +108,7 @@ function ShareListCard({
   onError: (msg: string | null) => void
   onNotice: (msg: string | null) => void
 }) {
-  const { startOrJoin, setIfIncomplete, viewerId } = useSharing()
+  const { startOrJoin, viewerId } = useSharing()
   const product = pool.product
   const target = shareTargetOf(product)
   const step = shareStepOf(product)
@@ -114,8 +116,19 @@ function ShareListCard({
   const locked = pool.contributions.some(c => c.ordered)
   const maxQty = Math.max(step, pool.remaining + (yours?.quantity ?? 0))
   const [qty, setQty] = useState(yours?.quantity ?? step)
-  const policy: ShareIfIncomplete = pool.ifIncomplete ?? 'rollover'
+  const [coverOn, setCoverOn] = useState(Boolean(yours?.coverMax && yours.coverMax > (yours?.quantity ?? 0)))
+  const [coverMax, setCoverMax] = useState(
+    yours?.coverMax && yours.coverMax > (yours?.quantity ?? 0)
+      ? yours.coverMax
+      : defaultCoverMax(yours?.quantity ?? step, pool.remaining, target, step),
+  )
   const showShareForm = (!pool.isFull || Boolean(yours)) && !locked
+
+  useEffect(() => {
+    const active = Boolean(yours?.coverMax && yours.coverMax > (yours?.quantity ?? 0))
+    setCoverOn(active)
+    if (active && yours?.coverMax) setCoverMax(yours.coverMax)
+  }, [yours?.coverMax, yours?.quantity])
 
   function clamp(n: number) {
     const rounded = Math.round(n / step) * step
@@ -128,7 +141,7 @@ function ShareListCard({
       onError(SHARE_MESSAGES.wholeCarton)
       return
     }
-    const result = await startOrJoin(product, qty)
+    const result = await startOrJoin(product, qty, 'rollover', coverOn ? coverMax : null)
     onError(result.error ?? null)
     onNotice(result.notice ?? null)
   }
@@ -177,6 +190,7 @@ function ShareListCard({
 
       <div className={shareStyles.listBody}>
       <ShareProgress pool={pool} />
+      <ShareOutlook pool={pool} viewerId={viewerId} />
 
       {showShareForm && (
         <div className={shareStyles.listActions}>
@@ -214,38 +228,79 @@ function ShareListCard({
         </div>
       )}
 
-      {yours && !locked && (
-        <div
-          className={shareStyles.choiceSet}
-          role="group"
-          aria-labelledby={`share-end-label-${pool.id}`}
-        >
-          <p id={`share-end-label-${pool.id}`} className={shareStyles.choiceLegend}>
-            Si le carton n’est pas complet{pool.deadlineAt ? ` le ${formatSupplierOrderDeadline(pool.deadlineAt)}` : ' à l’heure limite'}
-          </p>
+      {showShareForm && (
+        <div className={shareStyles.choiceSet}>
           <label className={shareStyles.choice}>
             <input
-              type="radio"
-              name={`share-end-${pool.id}`}
-              checked={policy === 'rollover'}
-              onChange={() => void setIfIncomplete(pool.id, 'rollover')}
+              type="checkbox"
+              checked={coverOn}
+              onChange={e => {
+                const on = e.target.checked
+                setCoverOn(on)
+                if (on) setCoverMax(current => Math.max(current, defaultCoverMax(qty, pool.remaining, target, step)))
+              }}
             />
-            Reporter à la semaine suivante
+            S’il manque des parts à la date, je peux en prendre en plus
           </label>
-          <label className={shareStyles.choice}>
-            <input
-              type="radio"
-              name={`share-end-${pool.id}`}
-              checked={policy === 'cancel'}
-              onChange={() => void setIfIncomplete(pool.id, 'cancel')}
-            />
-            Annuler, personne ne commande
-          </label>
+          {coverOn && (
+            <div className={shareStyles.listActions}>
+              <p className={shareStyles.choiceHint}>Jusqu’à {formatShareQty(coverMax, product.unit)} au total. Tu n’as pas à revenir sur le site.</p>
+              <div className={card.qtyRow} role="group" aria-label={`Maximum : ${formatShareQty(coverMax, product.unit)}`}>
+                <button
+                  type="button"
+                  className={card.qtyBtn}
+                  aria-label="Diminuer le maximum"
+                  disabled={coverMax <= qty + step - 1e-9}
+                  onClick={() => setCoverMax(q => Math.max(qty + step, Number((q - step).toFixed(3))))}
+                >
+                  −
+                </button>
+                <span className={card.qtyValue}>{formatShareNumber(coverMax)}</span>
+                <button
+                  type="button"
+                  className={card.qtyBtn}
+                  aria-label="Augmenter le maximum"
+                  disabled={coverMax >= target - 1e-9}
+                  onClick={() => setCoverMax(q => Math.min(target, Number((q + step).toFixed(3))))}
+                >
+                  +
+                </button>
+                <span className={card.qtyUnit}>{product.unit}</span>
+              </div>
+            </div>
+          )}
+          <p className={shareStyles.choiceHint}>Enregistre pour garder ce choix. La commande part seule à la date.</p>
         </div>
       )}
 
       <ShareSimulateRow pool={pool} onError={onError} onNotice={onNotice} />
       </div>
     </article>
+  )
+}
+
+function ShareOutlook({ pool, viewerId }: { pool: SharePoolView; viewerId: string | null }) {
+  const text = describeShare({
+    isFull: pool.isFull,
+    deferred: pool.status === 'deferred',
+    remaining: pool.remaining,
+    target: shareTargetOf(pool.product),
+    unit: pool.product.unit,
+    deadlineLabel: pool.deadlineAt ? formatSupplierOrderDeadline(pool.deadlineAt) : null,
+    unitPrice: pool.product.unitPrice,
+    viewerId,
+    contributions: pool.contributions.map(row => ({
+      memberId: row.memberId,
+      displayName: row.displayName,
+      quantity: row.quantity,
+      coverMax: row.coverMax ?? null,
+      coverAt: row.coverAt ?? null,
+    })),
+  })
+  return (
+    <div className={shareStyles.choiceHint}>
+      <p className={shareStyles.progressLabel}>{text.headline}</p>
+      {text.detail && <p className={shareStyles.choiceHint}>{text.detail}</p>}
+    </div>
   )
 }

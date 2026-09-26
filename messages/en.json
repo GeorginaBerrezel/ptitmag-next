@@ -191,7 +191,7 @@
   },
   "sharing": {
     "title": "Shares",
-    "subtitle": "Your shares and cartons you can join. A full carton: add your share to the cart.",
+    "subtitle": "Joining a share means you are ordering. The order goes out on the supplier deadline. You can leave before that. An ordered carton leaves this page.",
     "breadcrumbAria": "Breadcrumb",
     "catalogue": "Catalogue",
     "filterOnly": "Show shareable products only"

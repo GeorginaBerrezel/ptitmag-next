@@ -1,3 +1,4 @@
+import { settleDueShares } from '@/lib/sharing/settle'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdminUser } from '@/lib/admin/auth'
@@ -23,6 +24,11 @@ export async function GET(request: NextRequest) {
   }
 
   const includeArchived = request.nextUrl.searchParams.get('includeArchived') === '1'
+  try {
+    await settleDueShares({ force: true })
+  } catch (err) {
+    console.error('admin orders settle', err)
+  }
   const admin = createAdminClient()
 
   // ── Étape 1 : toutes les commandes (pagination : PostgREST limite à 1000 lignes par défaut)

@@ -47,6 +47,13 @@ export async function POST(request: NextRequest) {
     [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') ||
     null
 
+  if (items.some(item => item.fromShare)) {
+    return NextResponse.json(
+      { error: 'Une part partagée est encore dans le panier. Retire-la : elle part seule à la date du fournisseur.' },
+      { status: 400 },
+    )
+  }
+
   const bySupplier = items.reduce<Record<string, CartItem[]>>((acc, item) => {
     if (!acc[item.supplierId]) acc[item.supplierId] = []
     acc[item.supplierId].push(item)

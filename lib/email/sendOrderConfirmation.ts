@@ -6,6 +6,8 @@ export type OrderEmailItem = {
   quantity: number
   unit: string
   unitPrice: number
+  /** Précision sous le nom, par ex. une part élargie. */
+  detail?: string
 }
 
 export type OrderEmailGroup = {
@@ -136,7 +138,7 @@ function buildHtml({
         .map(
           (item) => `
           <tr>
-            <td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;">${item.productName}</td>
+            <td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;">${item.productName}${item.detail ? `<br><span style="color:#666;font-size:12px;">${item.detail}</span>` : ''}</td>
             <td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;text-align:center;">${item.quantity} ${item.unit}</td>
             <td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;text-align:right;">CHF ${item.unitPrice.toFixed(2)}</td>
             <td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:600;">CHF ${(item.quantity * item.unitPrice).toFixed(2)}</td>
