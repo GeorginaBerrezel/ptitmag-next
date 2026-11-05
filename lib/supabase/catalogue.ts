@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Product, Supplier } from '@/lib/supabase/products'
-import { productMatches } from '@/lib/catalog/search'
+import { productMatches, sortBySearchRelevance } from '@/lib/catalog/search'
 import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { supplierOrdersOpenAt } from '@/lib/catalog/supplier-orders'
 
@@ -163,10 +163,12 @@ export async function searchCatalogueProducts(
 
   const supabase = await createClient()
   const limit = options.limit ?? SEARCH_LIMIT
-  const results: Product[] = []
+  const matches: Product[] = []
   let from = 0
 
-  while (results.length < limit) {
+  // Tout le catalogue : s’arrêter aux premiers noms classerait
+  // « Amande … pâtes » avant « Pâtes », et pourrait masquer ces derniers.
+  while (true) {
     let qb = supabase
       .from('products')
       .select(FULL_SELECT)
@@ -184,17 +186,14 @@ export async function searchCatalogueProducts(
     const chunk = (data ?? []) as unknown as Product[]
     for (const p of chunk) {
       if (options.supplierType && p.supplier?.type !== options.supplierType) continue
-      if (productMatches(p, q)) {
-        results.push(p)
-        if (results.length >= limit) break
-      }
+      if (productMatches(p, q)) matches.push(p)
     }
 
     if (chunk.length < PAGE) break
     from += PAGE
   }
 
-  return results
+  return sortBySearchRelevance(matches, q).slice(0, limit)
 }
 
 /** Fiche produit par id (actif ou masqué — utile panier / commandes passées). */

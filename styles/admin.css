@@ -793,8 +793,10 @@
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
-  color: rgba(16, 24, 40, 0.45);
+  color: #3d4a5c;
   padding: 0.15rem 0.35rem;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .admin-add-product__search {
@@ -802,7 +804,8 @@
   padding: 0.55rem 0.75rem;
   border: 1px solid #cfd8e6;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  min-height: 44px;
   margin-bottom: 0.5rem;
 }
 
@@ -847,6 +850,8 @@
   flex-shrink: 0;
   padding: 0.35rem 0.65rem;
   font-size: 0.8rem;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .admin-add-product__status,

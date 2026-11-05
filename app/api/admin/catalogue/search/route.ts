@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminUser } from '@/lib/admin/auth'
-import { productMatches } from '@/lib/catalog/search'
+import { productMatches, sortBySearchRelevance } from '@/lib/catalog/search'
 import type { Product } from '@/lib/supabase/products'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -25,10 +25,10 @@ export async function GET(request: NextRequest) {
   if (!q) return NextResponse.json({ products: [] })
 
   const admin = createAdminClient()
-  const results: Product[] = []
+  const matches: Product[] = []
   let from = 0
 
-  while (results.length < SEARCH_LIMIT) {
+  while (true) {
     const { data, error } = await admin
       .from('products')
       .select(SELECT)
@@ -44,15 +44,14 @@ export async function GET(request: NextRequest) {
     const chunk = (data ?? []) as unknown as Product[]
     for (const p of chunk) {
       if (p.supplier?.active === false) continue
-      if (productMatches(p, q)) {
-        results.push(p)
-        if (results.length >= SEARCH_LIMIT) break
-      }
+      if (productMatches(p, q)) matches.push(p)
     }
 
     if (chunk.length < PAGE) break
     from += PAGE
   }
 
-  return NextResponse.json({ products: results })
+  return NextResponse.json({
+    products: sortBySearchRelevance(matches, q).slice(0, SEARCH_LIMIT),
+  })
 }
