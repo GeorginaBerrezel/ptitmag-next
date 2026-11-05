@@ -66,6 +66,7 @@ export default async function LocaleLayout({
           <SharingProvider
             enabled={isShareEnabled() && !!profile && canAccessCatalog(profile)}
             viewerId={user?.id ?? null}
+            viewerIsAdmin={showAdminLink}
           >
           <WishlistProvider>
             <Suspense fallback={null}>

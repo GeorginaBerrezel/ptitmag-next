@@ -192,6 +192,116 @@ describe('planShareSettle', () => {
     })
     assert.deepEqual(plan, { type: 'reopen', deadlineAt: '2026-09-25T16:00:00.000Z', full: false })
   })
+
+  it('commande et élargit la part qui finit le trou', () => {
+    const plan = planShareSettle({
+      ...base,
+      contributions: [
+        { memberId: 'a', quantity: 4, coverMax: 6, coverAt: '2026-09-01T10:00:00.000Z', ordered: false },
+        { memberId: 'b', quantity: 1, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, {
+      type: 'order',
+      quantities: [
+        { memberId: 'a', quantity: 5 },
+        { memberId: 'b', quantity: 1 },
+      ],
+    })
+  })
+
+  it('annule si le produit n’est plus au catalogue, même plein', () => {
+    const plan = planShareSettle({
+      ...base,
+      productActive: false,
+      contributions: [
+        { memberId: 'a', quantity: 6, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, { type: 'cancel', reason: 'product' })
+  })
+
+  it('annule si le fournisseur n’est plus actif', () => {
+    const plan = planShareSettle({
+      ...base,
+      supplierActive: false,
+      contributions: [
+        { memberId: 'a', quantity: 1, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, { type: 'cancel', reason: 'supplier' })
+  })
+
+  it('attend tant que la date n’est pas passée', () => {
+    const plan = planShareSettle({
+      ...base,
+      now: new Date('2026-09-18T10:00:00.000Z'),
+      contributions: [
+        { memberId: 'a', quantity: 6, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, { type: 'wait' })
+  })
+
+  it('aligne la date du carton sur celle du fournisseur, sans commander', () => {
+    const plan = planShareSettle({
+      ...base,
+      now: new Date('2026-09-18T10:00:00.000Z'),
+      supplierOrdersOpen: true,
+      supplierDeadlineAt: '2026-09-20T16:00:00.000Z',
+      contributions: [
+        { memberId: 'a', quantity: 6, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, { type: 'sync-deadline', deadlineAt: '2026-09-20T16:00:00.000Z' })
+  })
+
+  it('laisse un carton reporté en attente si le fournisseur est toujours fermé', () => {
+    const plan = planShareSettle({
+      ...base,
+      status: 'deferred',
+      contributions: [
+        { memberId: 'a', quantity: 1, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, { type: 'wait' })
+  })
+
+  it('rouvre un carton reporté déjà plein', () => {
+    const plan = planShareSettle({
+      ...base,
+      status: 'deferred',
+      supplierOrdersOpen: true,
+      supplierDeadlineAt: '2026-09-25T16:00:00.000Z',
+      contributions: [
+        { memberId: 'a', quantity: 6, coverMax: null, coverAt: null, ordered: false },
+      ],
+    })
+    assert.deepEqual(plan, { type: 'reopen', deadlineAt: '2026-09-25T16:00:00.000Z', full: true })
+  })
+
+  it('n’élargit pas une part quand une autre est déjà commandée', () => {
+    const waiting = planShareSettle({
+      ...base,
+      contributions: [
+        { memberId: 'a', quantity: 4, coverMax: null, coverAt: null, ordered: true },
+        { memberId: 'b', quantity: 1, coverMax: 6, coverAt: '2026-09-01T10:00:00.000Z', ordered: false },
+      ],
+    })
+    assert.deepEqual(waiting, { type: 'wait' })
+
+    const ordering = planShareSettle({
+      ...base,
+      contributions: [
+        { memberId: 'a', quantity: 4, coverMax: null, coverAt: null, ordered: true },
+        { memberId: 'b', quantity: 2, coverMax: 6, coverAt: '2026-09-01T10:00:00.000Z', ordered: false },
+      ],
+    })
+    assert.deepEqual(ordering, {
+      type: 'order',
+      quantities: [{ memberId: 'b', quantity: 2 }],
+    })
+  })
 })
 
 describe('describeShare', () => {

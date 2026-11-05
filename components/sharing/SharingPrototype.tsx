@@ -14,6 +14,7 @@ import { shareStepOf, shareTargetOf, wouldTakeWholeCarton } from '@/lib/sharing/
 import type { SharePoolView } from '@/lib/sharing/types'
 import { ShareProgress, ShareSimulateRow } from './SharePoolBits'
 import ProductArticleInfo from '@/components/catalog/ProductArticleInfo'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import card from '@/components/ProductCard.module.css'
 import shareStyles from './sharing.module.css'
 
@@ -109,12 +110,15 @@ function ShareListCard({
   onError: (msg: string | null) => void
   onNotice: (msg: string | null) => void
 }) {
-  const { startOrJoin, viewerId } = useSharing()
+  const { startOrJoin, refresh, viewerId, viewerIsAdmin } = useSharing()
   const product = pool.product
   const target = shareTargetOf(product)
   const step = shareStepOf(product)
   const yours = pool.contributions.find(c => c.memberId === viewerId)
   const locked = pool.contributions.some(c => c.ordered)
+  const ordersClosed = pool.status === 'deferred'
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const maxQty = Math.max(step, pool.remaining + (yours?.quantity ?? 0))
   const [qty, setQty] = useState(yours?.quantity ?? step)
   const [imageFailed, setImageFailed] = useState(false)
@@ -124,7 +128,7 @@ function ShareListCard({
       ? yours.coverMax
       : defaultCoverMax(yours?.quantity ?? step, pool.remaining, target, step),
   )
-  const showShareForm = (!pool.isFull || Boolean(yours)) && !locked
+  const showShareForm = !ordersClosed && (!pool.isFull || Boolean(yours)) && !locked
 
   useEffect(() => {
     const active = Boolean(yours?.coverMax && yours.coverMax > (yours?.quantity ?? 0))
@@ -146,6 +150,37 @@ function ShareListCard({
     const result = await startOrJoin(product, qty, 'rollover', coverOn ? coverMax : null)
     onError(result.error ?? null)
     onNotice(result.notice ?? null)
+  }
+
+  async function confirmCancel() {
+    if (cancelling) return
+    setCancelling(true)
+    onError(null)
+    try {
+      const res = await fetch('/api/admin/sharing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ poolId: pool.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        onError(typeof data.error === 'string' ? data.error : 'Annulation impossible.')
+        return
+      }
+      setCancelOpen(false)
+      onNotice('Partage annulé. Les personnes reçoivent un mail : rien à payer.')
+      await refresh()
+    } catch {
+      onError('Annulation impossible.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  async function openNextCarton() {
+    const result = await startOrJoin(product, step, 'rollover', null)
+    onError(result.error ?? null)
+    onNotice(result.error ? null : 'Le carton suivant est dans En attente.')
   }
 
   const imageUrl = product.imageUrl || PRODUCT_IMAGE_PLACEHOLDER
@@ -173,9 +208,10 @@ function ShareListCard({
         <p className={shareStyles.listMeta}>
           {product.supplierName}
           {' · '}
+          {(pool.cartonCount ?? 1) > 1 ? `Carton ${pool.cartonNumber ?? 1} · ` : ''}
           {pool.isFull ? 'Complet' : 'En attente'}
           {' · '}
-          carton {formatShareQty(target, product.unit)}
+          {formatShareQty(target, product.unit)}
           {pool.deadlineAt ? ` · limite ${formatSupplierOrderDeadline(pool.deadlineAt)}` : ''}
         </p>
         <ProductArticleInfo
@@ -240,6 +276,29 @@ function ShareListCard({
           </button>
         </div>
       )}
+
+      {pool.isFull && !locked && !ordersClosed && (
+        <button type="button" className={shareStyles.listBtn} onClick={() => void openNextCarton()}>
+          Ouvrir le carton suivant
+        </button>
+      )}
+
+      {viewerIsAdmin && !locked && (
+        <button type="button" className={shareStyles.adminCancel} onClick={() => setCancelOpen(true)}>
+          Annuler ce partage
+        </button>
+      )}
+      <ConfirmDialog
+        open={cancelOpen}
+        title="Annuler ce partage ?"
+        description={`${product.name} ne sera pas commandé. Les personnes reçoivent un mail : annulé, rien à payer.`}
+        cancelLabel="Garder le partage"
+        confirmLabel={cancelling ? 'Annulation…' : 'Annuler le partage'}
+        onClose={() => {
+          if (!cancelling) setCancelOpen(false)
+        }}
+        onConfirm={() => void confirmCancel()}
+      />
 
       {showShareForm && (
         <div className={shareStyles.choiceSet}>

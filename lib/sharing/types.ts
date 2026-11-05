@@ -59,4 +59,8 @@ export type SharePoolView = SharePool & {
   filled: number
   remaining: number
   isFull: boolean
+  /** 1 = premier carton de ce produit encore visible. */
+  cartonNumber?: number
+  /** Combien de cartons de ce produit sont encore visibles. */
+  cartonCount?: number
 }

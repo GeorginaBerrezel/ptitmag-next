@@ -77,7 +77,7 @@ export default function MemberOrderDetail({
           return (
             <div
               key={item.id}
-              className={`${lineStyles.orderLine}${pickupChecklist ? ` ${lineStyles.orderLineWithPickup}` : ''}${picked ? ` ${lineStyles.orderLinePicked}` : ''}`}
+              className={`${lineStyles.orderLine}${pickupChecklist ? ` ${lineStyles.orderLineWithPickup}` : ''}`}
             >
               {pickupChecklist && (
                 <label className={lineStyles.pickupCheck}>

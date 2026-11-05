@@ -1,5 +1,22 @@
 export const APP_SCROLL_ID = 'app-scroll'
 
+/** Position actuelle. Sert à ne pas remonter la page après une action. */
+export function readAppScrollTop(): number {
+  if (typeof document === 'undefined') return 0
+  return document.getElementById(APP_SCROLL_ID)?.scrollTop ?? 0
+}
+
+/** Remet la page là où elle était, y compris après le prochain affichage. */
+export function restoreAppScrollTop(top: number) {
+  if (typeof document === 'undefined') return
+  const root = document.getElementById(APP_SCROLL_ID)
+  if (!root) return
+  root.scrollTop = top
+  requestAnimationFrame(() => {
+    root.scrollTop = top
+  })
+}
+
 function getScrollRoot(): HTMLElement | null {
   if (typeof document === 'undefined') return null
   return document.getElementById(APP_SCROLL_ID)

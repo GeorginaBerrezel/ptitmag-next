@@ -6,6 +6,7 @@ import { memberPublicName } from './display-name'
 import { isShareEnabled, SHARE_MESSAGES } from './eligibility'
 import { productToShare } from './from-product'
 import { isPoolFull, poolFilled, poolRemaining } from './pool-math'
+import { assignCartonNumbers } from './cartons'
 import { settleDueShares } from './settle'
 import type { ShareIfIncomplete, SharePoolView, ShareProduct } from './types'
 import type { User } from '@supabase/supabase-js'
@@ -90,6 +91,7 @@ type PoolRow = {
   status: 'open' | 'ready' | 'deferred' | 'settling' | 'closed'
   deadline_at: string | null
   notice: string | null
+  created_at?: string
 }
 
 function productFromRow(row: PoolRow): ShareProduct {
@@ -127,10 +129,10 @@ export async function listSharePools(supabase: SupabaseClient): Promise<SharePoo
   const { data: pools, error } = await supabase
     .from('share_pools')
     .select(
-      'id, product_id, product_name, supplier_id, supplier_name, supplier_type, supplier_ref, unit, unit_price, min_quantity, allows_partial_order, share_target, share_step, image_url, if_incomplete, status, deadline_at, notice',
+      'id, product_id, product_name, supplier_id, supplier_name, supplier_type, supplier_ref, unit, unit_price, min_quantity, allows_partial_order, share_target, share_step, image_url, if_incomplete, status, deadline_at, notice, created_at',
     )
     .in('status', ['open', 'ready', 'deferred'])
-    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: true })
 
   if (error) {
     if (error.code === '42P01' || /share_pools|notice|deferred/i.test(error.message)) {
@@ -197,6 +199,16 @@ async function mapSharePools(supabase: SupabaseClient, rows: PoolRow[]): Promise
     }
   }
 
+  const cartonNumbers = assignCartonNumbers(rows.map(row => ({
+    id: row.id,
+    productId: row.product_id,
+    createdAt: row.created_at ?? row.id,
+  })))
+  const cartonCounts = new Map<string, number>()
+  for (const row of rows) {
+    cartonCounts.set(row.product_id, (cartonCounts.get(row.product_id) ?? 0) + 1)
+  }
+
   return rows.map(row => {
     const contributions = contribs
       .filter(c => c.pool_id === row.id)
@@ -232,6 +244,8 @@ async function mapSharePools(supabase: SupabaseClient, rows: PoolRow[]): Promise
       filled,
       remaining: poolRemaining(target, filled),
       isFull: isPoolFull(target, filled) || status === 'ready',
+      cartonNumber: cartonNumbers.get(row.id) ?? 1,
+      cartonCount: cartonCounts.get(row.product_id) ?? 1,
     }
   })
 }

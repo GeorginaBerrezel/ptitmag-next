@@ -157,17 +157,23 @@ export function parseLocalSheet(rows: unknown[][], category: string): ParsedProd
   if (!header) return []
 
   const { headerIdx, produitCol } = header
+  let currentCategory = category
 
   for (const row of rows.slice(headerIdx + 1)) {
     if (!Array.isArray(row)) continue
     const name = trimCell(row[produitCol])
     if (!name) continue
     if (name.toLowerCase() === 'produit') continue
+    if (isTotalRow(name)) continue
 
     const shifted = produitCol === 0 ? row : row.slice(produitCol)
     const got = extractPriceUnit(shifted)
-    if (!got) continue
-    if (isTotalRow(got.unit) || isTotalRow(name)) continue
+    if (!got) {
+      const section = name.replace(/\(.*?\)/g, '').trim()
+      if (section && !isTotalRow(section)) currentCategory = section
+      continue
+    }
+    if (isTotalRow(got.unit)) continue
 
     let supplierRef: string | undefined
     if (produitCol > 0) {
@@ -177,7 +183,7 @@ export function parseLocalSheet(rows: unknown[][], category: string): ParsedProd
 
     products.push({
       name,
-      category,
+      category: currentCategory,
       unit: got.unit || 'pièce',
       unitPrice: got.price,
       supplierRef,
