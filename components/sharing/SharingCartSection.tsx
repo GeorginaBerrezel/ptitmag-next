@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { formatSupplierOrderDeadline } from '@/lib/catalog/supplier-orders'
 import { formatShareQty } from '@/lib/sharing/from-product'
 import { useSharePrototypeVisible, useSharing } from '@/lib/sharing/SharingContext'
+import ProductArticleInfo from '@/components/catalog/ProductArticleInfo'
 import styles from '@/app/[locale]/(members)/panier/panier.module.css'
 
 export function useYoursShareCount(): number {
@@ -46,6 +47,11 @@ export default function SharingCartSection() {
                 <p className={styles.shareMeta}>
                   Ta part : {formatShareQty(mine.quantity, pool.product.unit)} · {when}
                 </p>
+                <ProductArticleInfo
+                  productName={pool.product.name}
+                  supplierRef={pool.product.supplierRef}
+                  supplierName={pool.product.supplierName}
+                />
               </div>
             </li>
           )

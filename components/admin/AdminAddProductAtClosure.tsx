@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type SearchProduct = {
   id: string
@@ -32,6 +32,8 @@ export default function AdminAddProductAtClosure({
   const [loading, setLoading] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [addedName, setAddedName] = useState<string | null>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   const search = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -77,9 +79,11 @@ export default function AdminAddProductAtClosure({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Ajout impossible.')
-      onAdded()
+      setAddedName(product.name)
       setQuery('')
       setProducts([])
+      onAdded()
+      searchRef.current?.focus({ preventScroll: true })
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -104,9 +108,19 @@ export default function AdminAddProductAtClosure({
         className="admin-add-product__search"
         placeholder="Rechercher un produit (ex. fraise, bière…)"
         value={query}
-        onChange={e => setQuery(e.target.value)}
+        onChange={e => {
+          setQuery(e.target.value)
+          if (e.target.value) setAddedName(null)
+        }}
         autoFocus
+        ref={searchRef}
       />
+
+      {addedName && (
+        <p className="admin-add-product__status" role="status">
+          {addedName} ajouté. Tu peux en chercher un autre.
+        </p>
+      )}
 
       {loading && <p className="admin-add-product__status">Recherche…</p>}
       {error && <p className="admin-add-product__error">{error}</p>}
@@ -122,7 +136,7 @@ export default function AdminAddProductAtClosure({
                   <span className="admin-add-product__name">{p.name}</span>
                   <span className="admin-add-product__meta">
                     {p.supplier?.name ?? '—'} · {price} / {p.unit}
-                    {p.supplier_ref ? ` · réf. ${p.supplier_ref}` : ''}
+                    {p.supplier_ref ? ` · N° article ${p.supplier_ref}` : ''}
                   </span>
                 </div>
                 <button

@@ -7,12 +7,13 @@ import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { formatSupplierOrderDeadline, supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
-import { getBiopartnerProductInfoUrl } from '@/lib/catalog/biopartner-product-url'
 import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
+import ProductArticleInfo from '@/components/catalog/ProductArticleInfo'
 import {
   getProductImageUrl,
   getProductImagePresentation,
   PRODUCT_IMAGE_PLACEHOLDER,
+  isProductImagePlaceholder,
   showProductImage,
   shouldBypassNextImageOptimizer,
 } from '@/lib/catalog/product-image'
@@ -80,13 +81,13 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
     : { isOpen: false, label: 'Commandes fermées' }
   const days = supplierDeadlineDaysLeft(product.supplier, now)
   const inCart = items.some(i => i.productId === product.id)
-  const biopartnerInfoUrl = getBiopartnerProductInfoUrl(product)
 
   const supportsProductImage = showProductImage(product)
   const imageUrl = supportsProductImage
     ? (imageSrc ?? PRODUCT_IMAGE_PLACEHOLDER)
     : null
   const hasImage = supportsProductImage && imageUrl != null
+  const imageIsPlaceholder = !imageUrl || isProductImagePlaceholder(imageUrl)
   const imagePresentation = getProductImagePresentation(product, imageUrl)
 
   const minAllowed = getMinAllowedQuantity(qtyRules)
@@ -182,23 +183,27 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
     <div className={cardClass}>
 
       {hasImage && imageUrl && (
-        <div className={styles.image}>
-          <Image
-            src={imageUrl}
-            alt=""
-            fill
-            unoptimized={shouldBypassNextImageOptimizer(imageUrl)}
-            sizes="(max-width: 767px) 96px, 104px"
-            style={{
-              objectFit: imagePresentation.objectFit,
-              objectPosition: imagePresentation.objectPosition,
-            }}
-            onError={() => {
-              if (imageUrl !== PRODUCT_IMAGE_PLACEHOLDER) {
-                setImageSrc(PRODUCT_IMAGE_PLACEHOLDER)
-              }
-            }}
-          />
+        <div className={`${styles.image}${imageIsPlaceholder ? ` ${styles.imageEmpty}` : ''}`}>
+          {imageIsPlaceholder ? (
+            <span className={styles.imageMark} aria-hidden="true" />
+          ) : (
+            <Image
+              src={imageUrl}
+              alt=""
+              fill
+              unoptimized={shouldBypassNextImageOptimizer(imageUrl)}
+              sizes="(max-width: 767px) 96px, 140px"
+              style={{
+                objectFit: imagePresentation.objectFit,
+                objectPosition: imagePresentation.objectPosition,
+              }}
+              onError={() => {
+                if (imageUrl !== PRODUCT_IMAGE_PLACEHOLDER) {
+                  setImageSrc(PRODUCT_IMAGE_PLACEHOLDER)
+                }
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -229,31 +234,21 @@ function ProductCardInner({ product, nowMs, extendOrderId = null, showSupplier =
             {getSupplierDisplayName(product.supplier.name, product.supplier.type)}
           </p>
         )}
-        {(product.category || product.supplier_ref || shareEligible) && (
+        {(product.category || shareEligible) && (
           <div className={styles.metaTags}>
             {product.category && (
               <span className={styles.categoryTag}>{product.category}</span>
-            )}
-            {product.supplier_ref && (
-              <span className={styles.refTag}>Réf. {product.supplier_ref}</span>
             )}
             {shareEligible && (
               <span className={styles.shareTag}>Partage possible</span>
             )}
           </div>
         )}
-        {biopartnerInfoUrl && (
-          <a
-            href={biopartnerInfoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.biopartnerInfoLink}
-            aria-label={`Allergènes et fiche produit Biopartner pour ${product.name}`}
-          >
-            Allergènes et fiche Biopartner
-            <span className={styles.externalIcon} aria-hidden>↗</span>
-          </a>
-        )}
+        <ProductArticleInfo
+          productName={product.name}
+          supplierRef={product.supplier_ref}
+          supplierName={product.supplier?.name}
+        />
         {deadlineLabel && (
           <span className={[
             styles.deadlineTag,

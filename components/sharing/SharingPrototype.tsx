@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
-import { PRODUCT_IMAGE_PLACEHOLDER, shouldBypassNextImageOptimizer } from '@/lib/catalog/product-image'
+import { PRODUCT_IMAGE_PLACEHOLDER, isProductImagePlaceholder, shouldBypassNextImageOptimizer } from '@/lib/catalog/product-image'
 import { formatShareNumber, formatShareQty } from '@/lib/sharing/from-product'
 import { SHARE_MESSAGES } from '@/lib/sharing/eligibility'
 import { defaultCoverMax } from '@/lib/sharing/cover'
@@ -13,6 +13,7 @@ import { useSharing } from '@/lib/sharing/SharingContext'
 import { shareStepOf, shareTargetOf, wouldTakeWholeCarton } from '@/lib/sharing/pool-math'
 import type { SharePoolView } from '@/lib/sharing/types'
 import { ShareProgress, ShareSimulateRow } from './SharePoolBits'
+import ProductArticleInfo from '@/components/catalog/ProductArticleInfo'
 import card from '@/components/ProductCard.module.css'
 import shareStyles from './sharing.module.css'
 
@@ -116,6 +117,7 @@ function ShareListCard({
   const locked = pool.contributions.some(c => c.ordered)
   const maxQty = Math.max(step, pool.remaining + (yours?.quantity ?? 0))
   const [qty, setQty] = useState(yours?.quantity ?? step)
+  const [imageFailed, setImageFailed] = useState(false)
   const [coverOn, setCoverOn] = useState(Boolean(yours?.coverMax && yours.coverMax > (yours?.quantity ?? 0)))
   const [coverMax, setCoverMax] = useState(
     yours?.coverMax && yours.coverMax > (yours?.quantity ?? 0)
@@ -147,18 +149,24 @@ function ShareListCard({
   }
 
   const imageUrl = product.imageUrl || PRODUCT_IMAGE_PLACEHOLDER
+  const imageIsPlaceholder = imageFailed || isProductImagePlaceholder(imageUrl)
 
   return (
     <article id={pool.id} className={shareStyles.listCard}>
-      <div className={shareStyles.listImage}>
-        <Image
-          src={imageUrl}
-          alt=""
-          fill
-          unoptimized={shouldBypassNextImageOptimizer(imageUrl)}
-          sizes="76px"
-          style={{ objectFit: 'contain', objectPosition: 'center' }}
-        />
+      <div className={`${shareStyles.listImage}${imageIsPlaceholder ? ` ${shareStyles.listImageEmpty}` : ''}`}>
+        {imageIsPlaceholder ? (
+          <span className={shareStyles.listImageMark} aria-hidden="true" />
+        ) : (
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            unoptimized={shouldBypassNextImageOptimizer(imageUrl)}
+            sizes="(max-width: 767px) 76px, 120px"
+            style={{ objectFit: 'contain', objectPosition: 'center' }}
+            onError={() => setImageFailed(true)}
+          />
+        )}
       </div>
       <div className={shareStyles.listHead}>
         <h2 className={shareStyles.listTitle}>{product.name}</h2>
@@ -170,6 +178,11 @@ function ShareListCard({
           carton {formatShareQty(target, product.unit)}
           {pool.deadlineAt ? ` · limite ${formatSupplierOrderDeadline(pool.deadlineAt)}` : ''}
         </p>
+        <ProductArticleInfo
+          productName={product.name}
+          supplierRef={product.supplierRef}
+          supplierName={product.supplierName}
+        />
         <p className={shareStyles.listPrice}>
           {showShareForm ? (
             <>

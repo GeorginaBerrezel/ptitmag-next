@@ -7,6 +7,7 @@ import CatalogueAccessPending from '@/components/CatalogueAccessPending'
 import { useCart, getEffectiveUnitPrice } from '@/lib/cart/CartContext'
 import { useApplyCielMarkup } from '@/lib/members/MemberPricingContext'
 import CielPriceHint from '@/components/catalog/CielPriceHint'
+import ProductArticleInfo from '@/components/catalog/ProductArticleInfo'
 import { hasUcSurcharge } from '@/lib/catalog/pricing'
 import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { previewCreditAtClose, roundChf } from '@/lib/members/credit'
@@ -335,11 +336,11 @@ export default function PanierPage({
                             compact
                           />
                         </div>
-                        {item.supplierRef && (
-                          <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
-                            Réf. {item.supplierRef}
-                          </span>
-                        )}
+                        <ProductArticleInfo
+                          productName={item.productName}
+                          supplierRef={item.supplierRef}
+                          supplierName={item.supplierName}
+                        />
                         {applyCielMarkup && (
                           <CielPriceHint baseUnitPrice={item.unitPrice} />
                         )}
@@ -389,10 +390,10 @@ export default function PanierPage({
 
                       {/* Sous-total ligne */}
                       <div className={styles.lineTotal}>
-                        <span style={{ fontWeight: 600, minWidth: 80, display: 'block' }}>
+                        <span className={styles.linePrice}>
                           CHF {lineTotal.toFixed(2)}
                         </span>
-                        <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>
+                        <span className={styles.lineUnitPrice}>
                           {effectivePrice.toFixed(2)}/{item.unit}
                         </span>
                       </div>
