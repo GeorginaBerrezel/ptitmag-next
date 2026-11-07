@@ -29,8 +29,17 @@ export default function ProductShareActions({ product, minQuantity }: Props) {
 
   const target = shareTargetOf(share)
   const step = shareStepOf(share)
-  const pool = sharing.pools.find(p => p.productId === product.id)
+  const sameProduct = sharing.pools.filter(p => p.productId === product.id)
+  const ordersClosed = sameProduct.some(p => p.status === 'deferred')
+  const pool = ordersClosed ? undefined : sameProduct.find(p => !p.isFull)
+  const fullCount = sameProduct.filter(p => p.isFull).length
   const yours = pool?.contributions.find(c => c.memberId === sharing.viewerId)
+
+  async function openNextCarton() {
+    if (!sharing || !share) return
+    const result = await sharing.startOrJoin(share, step, 'rollover')
+    setError(result.error ?? null)
+  }
 
   async function handleShare() {
     if (!sharing || !share) return
@@ -62,6 +71,17 @@ export default function ProductShareActions({ product, minQuantity }: Props) {
           <Link href="/commandes/partage" className={card.shareBtn} style={{ textAlign: 'center', textDecoration: 'none' }}>
             {yours ? 'Modifier' : 'Rejoindre'}
           </Link>
+        </div>
+      ) : ordersClosed ? (
+        <p className={shareStyles.shareStatus}>Commandes fermées. Les parts sont gardées.</p>
+      ) : fullCount > 0 ? (
+        <div className={shareStyles.shareLine}>
+          <p className={shareStyles.shareStatus}>
+            {fullCount > 1 ? `${fullCount} cartons complets` : 'Carton complet'}
+          </p>
+          <button type="button" className={card.shareBtn} onClick={() => void openNextCarton()}>
+            Carton suivant
+          </button>
         </div>
       ) : (
         <button type="button" className={card.shareBtn} onClick={handleShare}>

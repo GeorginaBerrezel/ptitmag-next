@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import MemberOrderDetail from '@/components/orders/MemberOrderDetail'
@@ -8,6 +8,7 @@ import AccordionChevron from '@/components/ui/AccordionChevron'
 import { InlineStatus } from '@/components/ui/InlineStatus'
 import { orderDisplayAmount } from '@/lib/orders/order-gross'
 import { getSupplierDisplayName } from '@/lib/catalog/supplier-info'
+import { groupOrdersForDisplay } from '@/lib/members/order-display'
 import { usePickupChecklist } from '@/lib/members/usePickupChecklist'
 import styles from './my-orders.module.css'
 
@@ -82,6 +83,8 @@ export default function MyOrdersSection({
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [exporting, setExporting] = useState(false)
   const pickupChecklist = usePickupChecklist(memberId)
+  const [frozenComplete, setFrozenComplete] = useState<Record<string, boolean>>({})
+  const capturedKey = useRef('')
 
   const confirmedOrders = useMemo(
     () => orders.filter(o => o.status === 'confirmed' || o.status === 'draft'),
@@ -129,6 +132,24 @@ export default function MyOrdersSection({
   const pickupChecklistProps = showPickupChecklist
     ? { isPicked: pickupChecklist.isPicked, onTogglePicked: pickupChecklist.togglePicked }
     : undefined
+
+  const orderIdsKey = tabOrders.map(order => order.id).join(',')
+  useEffect(() => {
+    if (showPickupChecklist && !pickupChecklist.ready) return
+    const key = `${tab}:${orderIdsKey}`
+    if (capturedKey.current === key) return
+    capturedKey.current = key
+    const next: Record<string, boolean> = {}
+    for (const order of tabOrders) {
+      const active = order.order_items.filter(item => !item.cancelled_at)
+      next[order.id] = showPickupChecklist
+        && active.length > 0
+        && active.every(item => pickupChecklist.isPicked(item.id))
+    }
+    setFrozenComplete(next)
+    // La coche ne relance pas le tri : on fige l’ordre à l’ouverture de l’onglet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, orderIdsKey, pickupChecklist.ready, showPickupChecklist])
 
   function switchTab(next: TabId) {
     setTab(next)
@@ -276,7 +297,7 @@ export default function MyOrdersSection({
           {pickupItemCount !== 1 ? 's' : ''} marqué
           {pickupPickedCount !== 1 ? 's' : ''} comme récupéré
           {pickupPickedCount !== 1 ? 's' : ''}
-          {' '}(aide-mémoire perso sur cet appareil).
+          . La coche suit le compte, sur le téléphone et l’ordinateur.
         </p>
       )}
 
@@ -319,16 +340,79 @@ export default function MyOrdersSection({
               </summary>
 
               <div className={styles.monthOrders}>
-                {monthOrders.map(order => {
-                  const st = ORDER_STATUS[order.status] ?? ORDER_STATUS.draft
-                  const supplierName = getSupplierDisplayName(
-                    order.supplier?.name ?? 'Fournisseur inconnu',
-                    order.supplier?.type,
-                  )
-                  const displayAmount = orderDisplayAmount(order.status, order.total, order.order_items)
-                  const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
-                  return (
-                    <details key={order.id} className={styles.order}>
+                {groupOrdersForDisplay(monthOrders.map(order => {
+                  const complete = Boolean(frozenComplete[order.id])
+                  return {
+                    id: order.id,
+                    createdAt: order.created_at,
+                    supplierName: getSupplierDisplayName(
+                      order.supplier?.name ?? 'Fournisseur inconnu',
+                      order.supplier?.type,
+                    ),
+                    complete,
+                  }
+                })).map(group => (
+                  <div key={group.key} className={styles.supplierWeek}>
+                    {group.title && <h3 className={styles.weekHead}>{group.title}</h3>}
+                    {group.orderIds.map(orderId => {
+                      const order = monthOrders.find(item => item.id === orderId)
+                      if (!order) return null
+                      const active = order.order_items.filter(item => !item.cancelled_at)
+                      const allPicked = showPickupChecklist
+                        && active.length > 0
+                        && active.every(item => pickupChecklist.isPicked(item.id))
+                      return (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      creditBalance={creditBalance}
+                      pickupChecklist={pickupChecklistProps}
+                      allPicked={allPicked}
+                    />
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </details>
+          ))}
+
+          {visibleCount < tabOrders.length && (
+            <button
+              type="button"
+              className={styles.loadMore}
+              onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+            >
+              Voir plus ({tabOrders.length - visibleCount} restante{tabOrders.length - visibleCount !== 1 ? 's' : ''})
+            </button>
+          )}
+        </>
+      )}
+      </div>
+    </div>
+  )
+}
+
+function OrderCard({
+  order,
+  creditBalance,
+  pickupChecklist,
+  allPicked,
+}: {
+  order: OrderWithItems
+  creditBalance: number
+  pickupChecklist?: { isPicked: (orderItemId: string) => boolean; onTogglePicked: (orderItemId: string) => void }
+  allPicked: boolean
+}) {
+  const st = ORDER_STATUS[order.status] ?? ORDER_STATUS.draft
+  const supplierName = getSupplierDisplayName(
+    order.supplier?.name ?? 'Fournisseur inconnu',
+    order.supplier?.type,
+  )
+  const displayAmount = orderDisplayAmount(order.status, order.total, order.order_items)
+  const isProvisional = order.status !== 'closed' && order.status !== 'cancelled'
+  return (
+                    <details className={`${styles.order}${allPicked ? ` ${styles.orderComplete}` : ''}`}>
                       <summary
                         className={styles.orderSummary}
                         aria-label={`Commande ${supplierName}, afficher le détail`}
@@ -338,6 +422,7 @@ export default function MyOrdersSection({
                           <span className={styles.supplierType}>
                             {SUPPLIER_TYPE[order.supplier?.type ?? ''] ?? ''}
                           </span>
+                          {allPicked && <span className={styles.pickedBadge}>Tout récupéré</span>}
                           {order.created_via_complement &&
                             !order.order_items.some(i => !i.cancelled_at && i.added_at_closure) && (
                             <div className={styles.badgeRow}>
@@ -368,27 +453,8 @@ export default function MyOrdersSection({
                       <MemberOrderDetail
                         order={order}
                         creditBalance={creditBalance}
-                        pickupChecklist={pickupChecklistProps}
+                        pickupChecklist={pickupChecklist}
                       />
                     </details>
-                  )
-                })}
-              </div>
-            </details>
-          ))}
-
-          {visibleCount < tabOrders.length && (
-            <button
-              type="button"
-              className={styles.loadMore}
-              onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
-            >
-              Voir plus ({tabOrders.length - visibleCount} restante{tabOrders.length - visibleCount !== 1 ? 's' : ''})
-            </button>
-          )}
-        </>
-      )}
-      </div>
-    </div>
   )
 }

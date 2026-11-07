@@ -28,6 +28,8 @@ import {
 } from '@/lib/orders/lifecycle'
 import { orderCreditApplied, orderGrossTotal } from '@/lib/orders/order-totals-display'
 import lineStyles from '@/components/orders/order-lines.module.css'
+import ProductArticleInfo from '@/components/catalog/ProductArticleInfo'
+import { APP_SCROLL_ID } from '@/lib/scroll'
 import AccordionChevron from '@/components/ui/AccordionChevron'
 import accordionStyles from '@/components/ui/accordion.module.css'
 import { InlineStatus } from '@/components/ui/InlineStatus'
@@ -138,20 +140,27 @@ export default function AdminCommandesPage({
 
   // ── Chargement des commandes ─────────────────────────────────────────────
 
-  const fetchOrders = useCallback(async (includeArchived = showArchived) => {
-    setLoading(true)
-    setError(null)
+  const fetchOrders = useCallback(async (
+    includeArchived = showArchived,
+    opts?: { silent?: boolean },
+  ) => {
+    if (!opts?.silent) {
+      setLoading(true)
+      setError(null)
+    }
     const qs = includeArchived ? '?includeArchived=1' : ''
     const res = await fetch(`/api/admin/orders${qs}`)
     if (!res.ok) {
-      setError('Impossible de charger les commandes. Vérifie ta connexion.')
-      setLoading(false)
+      if (!opts?.silent) {
+        setError('Impossible de charger les commandes. Vérifie ta connexion.')
+        setLoading(false)
+      }
       return
     }
     const data = await res.json()
     setOrders(data.orders ?? [])
     setArchivableCount(data.archivableCount ?? 0)
-    setLoading(false)
+    if (!opts?.silent) setLoading(false)
   }, [showArchived])
 
   useEffect(() => { fetchOrders(showArchived) }, [fetchOrders, showArchived])
@@ -989,6 +998,7 @@ export default function AdminCommandesPage({
             return (
               <details
                 key={group.memberId}
+                id={`admin-member-${group.memberId}`}
                 className={`${accordionStyles.card} admin-order-group`}
               >
                 <summary
@@ -1095,7 +1105,22 @@ export default function AdminCommandesPage({
                     memberId={group.memberId}
                     contextOrderId={deliveredInGroup[0].id}
                     memberName={group.memberName}
-                    onAdded={() => void fetchOrders(showArchived)}
+                    onAdded={() => {
+                      const root = document.getElementById(APP_SCROLL_ID)
+                      const top = root?.scrollTop ?? 0
+                      const memberId = group.memberId
+                      void fetchOrders(showArchived, { silent: true }).finally(() => {
+                        const restore = () => {
+                          const details = document.getElementById(`admin-member-${memberId}`)
+                          if (details instanceof HTMLDetailsElement) details.open = true
+                          if (root) root.scrollTop = top
+                        }
+                        requestAnimationFrame(() => {
+                          restore()
+                          requestAnimationFrame(restore)
+                        })
+                      })
+                    }}
                     onClose={() => setAddingProductMemberId(null)}
                   />
                 )}
@@ -1223,11 +1248,11 @@ export default function AdminCommandesPage({
                             {item.added_at_closure && (
                               <span className={lineStyles.closureAddBadge}>{CLOSURE_ADD_LINE_LABEL}</span>
                             )}
-                            {item.product?.supplier_ref && (
-                              <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.45, fontFamily: 'monospace' }}>
-                                Réf. {item.product.supplier_ref}
-                              </span>
-                            )}
+                            <ProductArticleInfo
+                              productName={item.product?.name ?? 'Produit'}
+                              supplierRef={item.product?.supplier_ref}
+                              supplierName={order.supplier?.name}
+                            />
                           </div>
 
                           {canEditClosureLine ? (

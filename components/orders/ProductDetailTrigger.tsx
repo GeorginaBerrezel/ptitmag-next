@@ -249,7 +249,7 @@ export default function ProductDetailTrigger({ preview, label, variant = 'row', 
                 )}
                 {supplierRef && (
                   <div className={styles.metaRow}>
-                    <span className={styles.metaLabel}>Référence</span>
+                    <span className={styles.metaLabel}>N° article</span>
                     <span className={styles.metaValue}>{supplierRef}</span>
                   </div>
                 )}
@@ -287,8 +287,10 @@ export default function ProductDetailTrigger({ preview, label, variant = 'row', 
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles.externalLink}
+                    aria-label={`Fiche produit complète de ${displayName}, nouvel onglet`}
                   >
-                    Allergènes et fiche Biopartner ↗
+                    Fiche produit complète
+                    <span aria-hidden="true">↗</span>
                   </a>
                   <p className={styles.externalHint}>
                     Si le lien ne s&apos;ouvre pas, le produit n&apos;est peut-être plus sur le site Biopartner. Contactez le magasin.

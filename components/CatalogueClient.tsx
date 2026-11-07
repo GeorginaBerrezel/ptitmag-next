@@ -7,7 +7,7 @@ import type { CatalogueSupplierSummary } from '@/lib/supabase/catalogue'
 import { productOrderableAt } from '@/lib/catalog/orderable'
 import { groupProductsByCategory } from '@/lib/catalog/group-by-category'
 import { supplierOrderStatusLabel } from '@/lib/catalog/supplier-orders'
-import { categoryMatches, productMatches, supplierMatches } from '@/lib/catalog/search'
+import { categoryMatches, productMatches, sortBySearchRelevance, supplierMatches } from '@/lib/catalog/search'
 import { getSupplierDisplayInfo, getSupplierDisplayName } from '@/lib/catalog/supplier-info'
 import { isBiopartnerSupplierName } from '@/lib/import/biopartner-catalogs'
 import {
@@ -378,7 +378,7 @@ export default function CatalogueClient({
   const supplierProductResults = useMemo(() => {
     if (view !== 'categories' || !activeSummary || !isSearching) return []
     if (activeProducts) {
-      return activeProducts.filter(p => productMatches(p, search))
+      return sortBySearchRelevance(activeProducts.filter(p => productMatches(p, search)), search)
     }
     return []
   }, [view, activeSummary, activeProducts, search, isSearching])
@@ -418,13 +418,13 @@ export default function CatalogueClient({
     if (isLargeCatalog) {
       const items = categoryProducts ?? []
       if (!isSearching) return items
-      return items.filter(p => productMatches(p, search))
+      return sortBySearchRelevance(items.filter(p => productMatches(p, search)), search)
     }
 
     const cat = activeCategories.find(c => c.name === activeCategory)
     if (!cat || !activeProducts) return []
     if (!isSearching) return cat.items
-    return cat.items.filter(p => productMatches(p, search))
+    return sortBySearchRelevance(cat.items.filter(p => productMatches(p, search)), search)
   }, [activeCategory, activeCategories, activeProducts, categoryProducts, isLargeCatalog, search, isSearching])
 
   const productListOnScreen =

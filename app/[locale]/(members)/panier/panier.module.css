@@ -117,6 +117,17 @@
   min-width: 0;
 }
 
+.linePrice {
+  display: block;
+  font-weight: 600;
+}
+
+.lineUnitPrice {
+  display: block;
+  font-size: 0.75rem;
+  color: #3d4a5c;
+}
+
 .removeBtn {
   background: none;
   border: none;
@@ -392,7 +403,8 @@
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
       'info remove'
-      'qty total';
+      'qty qty'
+      'total total';
     gap: 0.65rem 0.5rem;
     padding: 0.85rem 0.75rem;
   }
@@ -410,9 +422,10 @@
 
   .lineTotal {
     grid-area: total;
-    justify-self: end;
-    align-self: center;
-    max-width: 42%;
+    justify-self: stretch;
+    align-self: start;
+    max-width: none;
+    text-align: right;
   }
 
   .removeBtn {

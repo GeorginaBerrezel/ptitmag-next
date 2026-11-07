@@ -145,11 +145,16 @@
   background: #eef2f7;
 }
 
+.externalLink:focus-visible {
+  outline: 2px solid #dc7f00;
+  outline-offset: 2px;
+}
+
 .externalHint {
   margin: -0.35rem 0 0;
   font-size: 0.75rem;
   line-height: 1.45;
-  color: rgba(16, 24, 40, 0.5);
+  color: #3d4a5c;
 }
 
 .catalogueLink {

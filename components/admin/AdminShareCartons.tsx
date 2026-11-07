@@ -41,7 +41,7 @@ export default function AdminShareCartons() {
         <span className={styles.count}>{cartons.length}</span>
       </summary>
       <p className={styles.lead}>
-        Seulement les partages encore en cours. Un carton = une commande chez le fournisseur.
+        Seulement les partages encore en cours. Pour en annuler un, ouvre la page Partages : le bouton est réservé à l’admin.
       </p>
       <ul className={styles.list}>
         {cartons.map(carton => (

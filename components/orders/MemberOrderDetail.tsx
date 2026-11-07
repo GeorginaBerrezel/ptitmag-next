@@ -1,6 +1,7 @@
 'use client'
 
 import WishlistButton from '@/components/WishlistButton'
+import ProductArticleInfo from '@/components/catalog/ProductArticleInfo'
 import ProductDetailTrigger from '@/components/orders/ProductDetailTrigger'
 import type { OrderWithItems } from '@/lib/supabase/auth'
 import { previewCreditAtClose } from '@/lib/members/credit'
@@ -76,7 +77,7 @@ export default function MemberOrderDetail({
           return (
             <div
               key={item.id}
-              className={`${lineStyles.orderLine}${pickupChecklist ? ` ${lineStyles.orderLineWithPickup}` : ''}${picked ? ` ${lineStyles.orderLinePicked}` : ''}`}
+              className={`${lineStyles.orderLine}${pickupChecklist ? ` ${lineStyles.orderLineWithPickup}` : ''}`}
             >
               {pickupChecklist && (
                 <label className={lineStyles.pickupCheck}>
@@ -102,11 +103,17 @@ export default function MemberOrderDetail({
                       supplierName: order.supplier?.name,
                       supplierId: order.supplier?.id,
                       supplierType: order.supplier?.type,
+                      supplierRef: item.product.supplier_ref,
                     }}
                   />
                 ) : (
                   <span className={lineStyles.lineName}>—</span>
                 )}
+                <ProductArticleInfo
+                  productName={item.product?.name ?? 'Produit'}
+                  supplierRef={item.product?.supplier_ref}
+                  supplierName={order.supplier?.name}
+                />
                 {item.added_at_closure && (
                   <span className={lineStyles.closureAddBadge}>{CLOSURE_ADD_LINE_LABEL}</span>
                 )}

@@ -157,10 +157,10 @@
   padding: 0.8rem 1rem;
   cursor: pointer;
   list-style: none;
-  background: #e2e5e9;
+  background: #fff;
   font-weight: 700;
   font-size: 0.88rem;
-  border-left: 4px solid #1a1a2e;
+  border-left: 3px solid #486B47;
   user-select: none;
 }
 
@@ -169,7 +169,7 @@
 }
 
 .monthSummary:hover {
-  background: #d8dce1;
+  background: #f7f6f3;
 }
 
 .monthSummary:focus {
@@ -188,7 +188,7 @@
 .monthMeta {
   font-size: 0.76rem;
   font-weight: 600;
-  opacity: 0.55;
+  color: #3d4a5c;
   text-align: right;
   flex-shrink: 0;
 }
@@ -215,7 +215,7 @@
   flex-direction: column;
   gap: 0.55rem;
   padding: 0.65rem;
-  background: #eceef1;
+  background: #f7f6f3;
 }
 
 /* ── Niveau 2 : une commande = une carte isolée ── */
@@ -232,6 +232,11 @@
 .order[open] {
   border-color: rgba(220, 127, 0, 0.45);
   box-shadow: 0 4px 14px rgba(16, 24, 40, 0.1);
+}
+
+.orderComplete,
+.orderComplete[open] {
+  border: 2px solid #2e7d32;
 }
 
 .orderSummary {
@@ -264,7 +269,7 @@
 }
 
 .order[open] > .orderSummary {
-  background: #eef0f3;
+  background: #f7f6f3;
   border-bottom: 1px solid rgba(16, 24, 40, 0.08);
 }
 
@@ -419,7 +424,6 @@
     text-align: left;
     padding-left: calc(44px + 0.5rem);
     line-height: 1.4;
-    opacity: 0.65;
   }
 
   .orderSummary {
@@ -463,4 +467,30 @@
     font-size: 0.78rem;
     line-height: 1.4;
   }
+}
+
+.supplierWeek {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.weekHead {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3d4a5c;
+}
+
+.pickedBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  margin-top: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #e8f5e9;
+  color: #14532d;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
