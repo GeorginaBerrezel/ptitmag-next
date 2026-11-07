@@ -9,6 +9,12 @@ const SUBJECT: Record<NoticeKind, string> = {
   cancelled: 'Partage annulé',
 }
 
+const DIGEST_SUBJECT: Record<NoticeKind, string> = {
+  deferred: 'Partages reportés',
+  reopened: 'Partages ouverts',
+  cancelled: 'Partages annulés',
+}
+
 export async function sendShareNotice(params: {
   kind: NoticeKind
   productName: string
@@ -38,6 +44,37 @@ export async function sendShareNotice(params: {
     to: adminEmail,
     subject: `${subject} · ${who}`,
     html: layout('Bonjour,', `${params.body}<p style="margin:16px 0 0;">Personnes dans le partage : ${who}.</p>`),
+  })
+}
+
+/** Un mail pour l’admin, même sujet qu’un récap adhérent. */
+export async function sendShareAdminDigest(params: {
+  kind: NoticeKind
+  bodyHtml: string
+}): Promise<void> {
+  const email = (process.env.ADMIN_EMAIL ?? site.email).trim()
+  if (!email) return
+  await sendShareDigest({
+    kind: params.kind,
+    to: { email, name: '' },
+    bodyHtml: params.bodyHtml,
+  })
+}
+
+/** Un mail par personne, qui liste plusieurs partages. Pas de copie admin. */
+export async function sendShareDigest(params: {
+  kind: NoticeKind
+  to: { email: string; name: string }
+  bodyHtml: string
+}): Promise<void> {
+  if (!isSmtpConfigured() || !params.to.email) return
+  const transporter = createTransporter()
+  const hello = params.to.name ? `Bonjour ${params.to.name},` : 'Bonjour,'
+  await transporter.sendMail({
+    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    to: params.to.email,
+    subject: `${DIGEST_SUBJECT[params.kind]} · ${site.name}`,
+    html: layout(hello, params.bodyHtml),
   })
 }
 

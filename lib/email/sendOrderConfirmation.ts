@@ -28,6 +28,9 @@ type Params = {
   creditUsed?: number
   /** @deprecated conservé pour compatibilité — avoir appliqué à la commande via creditUsed. */
   creditPending?: boolean
+  /** Partages clôturés : un récap, sans copie à l’admin (il reçoit un seul mail groupé). */
+  purpose?: 'order' | 'share'
+  notifyAdmin?: boolean
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -43,6 +46,8 @@ export async function sendOrderConfirmation({
   globalTotal,
   creditUsed,
   creditPending,
+  purpose = 'order',
+  notifyAdmin = true,
 }: Params): Promise<void> {
   if (!isSmtpConfigured()) {
     console.warn('[email] Variables SMTP absentes — email de confirmation non envoyé.')
@@ -58,7 +63,10 @@ export async function sendOrderConfirmation({
   })
 
   const transporter = createTransporter()
-  const memberSubject = `Confirmation de commande · ${site.name} (${now})`
+  const share = purpose === 'share'
+  const memberSubject = share
+    ? `Partages commandés · ${site.name} (${now})`
+    : `Confirmation de commande · ${site.name} (${now})`
   const adminSubject = `Nouvelle commande · ${displayName} · ${site.name} · (${now})`
 
   await transporter.sendMail({
@@ -73,8 +81,11 @@ export async function sendOrderConfirmation({
       creditPending,
       date: now,
       audience: 'member',
+      share,
     }),
   })
+
+  if (!notifyAdmin) return
 
   // Notification Joel : mail séparé (le BCC vers la même adresse que SMTP_USER n'est
   // souvent pas délivré par Infomaniak).
@@ -112,6 +123,7 @@ function buildHtml({
   creditPending,
   date,
   audience,
+  share = false,
 }: {
   displayName: string
   memberEmail?: string
@@ -121,17 +133,20 @@ function buildHtml({
   creditPending?: boolean
   date: string
   audience: 'member' | 'admin'
+  share?: boolean
 }): string {
   const isAdmin = audience === 'admin'
-  const badge = isAdmin ? 'Nouvelle commande' : 'Confirmation de commande'
+  const badge = isAdmin ? 'Nouvelle commande' : share ? 'Partages commandés' : 'Confirmation de commande'
   const title = isAdmin ? displayName : `Merci, ${displayName} !`
   const intro = isAdmin
     ? `Commande reçue le <strong>${date}</strong>${memberEmail ? ` · <a href="mailto:${memberEmail}" style="color:#DC7F00;text-decoration:none;">${memberEmail}</a>` : ''}.`
-    : `Votre commande du <strong>${date}</strong> a bien été enregistrée.`
+    : share
+      ? `Vos parts partagées du <strong>${date}</strong> ont été commandées. Une commande par fournisseur.`
+      : `Votre commande du <strong>${date}</strong> a bien été enregistrée.`
   const outro = isAdmin
     ? `Retrouvez et traitez cette commande dans <strong>Admin → Commandes</strong> sur le site.`
     : `L'équipe du p'tit mag vous contactera pour confirmer les détails et organiser la récupération de votre commande.`
-  const pageTitle = isAdmin ? 'Nouvelle commande' : 'Confirmation de commande'
+  const pageTitle = isAdmin ? 'Nouvelle commande' : share ? 'Partages commandés' : 'Confirmation de commande'
   const orderRows = orders
     .map((group) => {
       const itemRows = group.items
@@ -257,4 +272,41 @@ function buildHtml({
   </table>
 </body>
 </html>`
+}
+
+export type ShareAdminDigestLine = {
+  memberName: string
+  productName: string
+  quantityLabel: string
+  total: number
+}
+
+/** Un seul mail pour Joël : les partages commandés, groupés par fournisseur. */
+export async function sendShareOrdersAdminDigest(
+  groups: Array<{ supplierName: string; lines: ShareAdminDigestLine[] }>,
+): Promise<void> {
+  if (!isSmtpConfigured() || groups.length === 0) return
+  const to = (process.env.ADMIN_EMAIL ?? site.email).trim()
+  if (!to) return
+
+  const when = new Date().toLocaleDateString('fr-CH', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+  const sections = groups.map(group => {
+    const rows = group.lines.map(line =>
+      `<li style="margin:0 0 6px;">${line.memberName} · ${line.productName} · ${line.quantityLabel} · CHF ${line.total.toFixed(2)}</li>`,
+    ).join('')
+    return `<h2 style="margin:20px 0 8px;font-size:16px;color:#1a1a2e;">${group.supplierName}</h2><ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.5;color:#333;">${rows}</ul>`
+  }).join('')
+
+  await createTransporter().sendMail({
+    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    to,
+    subject: `Partages commandés · ${site.name} (${when})`,
+    html: `<p style="font-size:15px;">Bonjour,</p>
+      <p style="font-size:14px;line-height:1.5;">Les parts partagées du <strong>${when}</strong> ont été commandées. Une commande par personne et par fournisseur.</p>
+      ${sections}`,
+  })
 }

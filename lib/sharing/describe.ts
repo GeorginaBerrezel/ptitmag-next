@@ -34,8 +34,8 @@ export function describeShare(input: DescribeShareInput): { headline: string; de
 
   if (input.deferred) {
     return {
-      headline: 'Les commandes de ce fournisseur sont fermées. Vos parts sont gardées jusqu’à la prochaine ouverture.',
-      detail: 'Aucun montant n’est dû pour l’instant. Tu peux encore modifier ta part.',
+      headline: 'Les commandes de ce fournisseur sont fermées. Les parts sont gardées jusqu’à la prochaine ouverture.',
+      detail: 'Aucun montant n’est dû. On ne peut plus rejoindre ni modifier. Tu peux encore retirer ta part.',
     }
   }
 

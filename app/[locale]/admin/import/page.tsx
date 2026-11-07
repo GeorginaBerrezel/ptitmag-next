@@ -588,6 +588,11 @@ export default function ImportPage({
           Comment procéder
         </p>
         {supplier.fileInstructions}
+        {supplier.endpoint === '/api/admin/import-local-supplier' && (
+          <p style={{ margin: '0.45rem 0 0' }}>
+            Une ligne sans prix, par exemple « Fromages », devient une catégorie. Sans ces lignes, les produits restent dans la catégorie habituelle du fournisseur.
+          </p>
+        )}
       </div>
 
       {/* Dates limites — pas pour Biopartner (délai géré dans Fournisseurs, Phase 2) */}

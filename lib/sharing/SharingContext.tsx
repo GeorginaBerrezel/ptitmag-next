@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { readAppScrollTop, restoreAppScrollTop } from '@/lib/scroll'
 import { isShareEnabled, SHARE_MESSAGES } from './eligibility'
 import { isPoolFull, poolFilled, poolRemaining, shareTargetOf } from './pool-math'
 import type { ShareActionResult, ShareIfIncomplete, SharePoolView, ShareProduct } from './types'
@@ -10,6 +11,7 @@ const POLL_MS = 20_000
 type SharingContextType = {
   enabled: boolean
   viewerId: string | null
+  viewerIsAdmin: boolean
   pools: SharePoolView[]
   openPools: SharePoolView[]
   readyPools: SharePoolView[]
@@ -47,17 +49,25 @@ export function SharingProvider({
   children,
   enabled = false,
   viewerId = null,
+  viewerIsAdmin = false,
 }: {
   children: ReactNode
   enabled?: boolean
   viewerId?: string | null
-  /** @deprecated plus utilisé */
   viewerIsAdmin?: boolean
 }) {
   const [pools, setPools] = useState<SharePoolView[]>([])
   const [loading, setLoading] = useState(false)
   const shareOn = enabled && isShareEnabled()
   const inFlight = useRef(false)
+  const scrollLock = useRef<number | null>(null)
+
+  useLayoutEffect(() => {
+    if (scrollLock.current == null) return
+    const top = scrollLock.current
+    scrollLock.current = null
+    restoreAppScrollTop(top)
+  }, [pools])
 
   const refresh = useCallback(async (opts?: { silent?: boolean }) => {
     if (!shareOn) {
@@ -119,7 +129,10 @@ export function SharingProvider({
       body: JSON.stringify(body),
     })
     const data = await readJson(res)
-    if (Array.isArray(data.pools)) setPools(withTotals(data.pools))
+    if (Array.isArray(data.pools)) {
+      scrollLock.current = readAppScrollTop()
+      setPools(withTotals(data.pools))
+    }
     if (!res.ok) return { error: data.error ?? SHARE_MESSAGES.unavailable }
     return { notice: data.notice }
   }, [shareOn])
@@ -153,6 +166,7 @@ export function SharingProvider({
       value={{
         enabled: shareOn,
         viewerId,
+        viewerIsAdmin,
         pools: views,
         openPools: views.filter(p => !p.isFull),
         readyPools: views.filter(p => p.isFull),
