@@ -2,7 +2,7 @@ import { getSiteOrigin } from '@/lib/auth/urls'
 import { formatCotisation } from '@/lib/members/profile'
 import { getStatusGuide, type MemberStatusKey } from '@/lib/members/status-guide'
 import { site } from '@/lib/site'
-import { createTransporter, isSmtpConfigured } from './mailer'
+import { associationFrom, createTransporter, isSmtpConfigured } from './mailer'
 
 type ActiveStatus = 'ciel' | 'terre'
 
@@ -150,7 +150,7 @@ export async function sendMemberStatusNotification({
   const transporter = createTransporter()
 
   await transporter.sendMail({
-    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    from: associationFrom(),
     to: memberEmail,
     subject,
     html,

@@ -1,4 +1,4 @@
-import { createTransporter, isSmtpConfigured } from './mailer'
+import { associationFrom, createTransporter, isSmtpConfigured } from './mailer'
 import { site } from '@/lib/site'
 import { formatOpeningHoursHtml } from '@/lib/site/opening-hours'
 
@@ -176,7 +176,7 @@ export async function sendDeliveryNotification({
   const transporter = createTransporter()
 
   await transporter.sendMail({
-    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    from: associationFrom(),
     to: memberEmail,
     subject,
     html,

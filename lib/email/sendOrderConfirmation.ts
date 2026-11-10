@@ -1,4 +1,4 @@
-import { createTransporter, isSmtpConfigured } from './mailer'
+import { associationFrom, createTransporter, isSmtpConfigured } from './mailer'
 import { site } from '@/lib/site'
 
 export type OrderEmailItem = {
@@ -70,7 +70,7 @@ export async function sendOrderConfirmation({
   const adminSubject = `Nouvelle commande · ${displayName} · ${site.name} · (${now})`
 
   await transporter.sendMail({
-    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    from: associationFrom(),
     to: memberEmail,
     subject: memberSubject,
     html: buildHtml({
@@ -93,7 +93,7 @@ export async function sendOrderConfirmation({
   const memberCopyTo = memberEmail.trim().toLowerCase()
   if (adminCopyTo && adminCopyTo !== memberCopyTo) {
     await transporter.sendMail({
-      from: `"${site.name}" <${process.env.SMTP_USER}>`,
+      from: associationFrom(),
       to: adminEmail,
       subject: adminSubject,
       html: buildHtml({
@@ -302,7 +302,7 @@ export async function sendShareOrdersAdminDigest(
   }).join('')
 
   await createTransporter().sendMail({
-    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    from: associationFrom(),
     to,
     subject: `Partages commandés · ${site.name} (${when})`,
     html: `<p style="font-size:15px;">Bonjour,</p>

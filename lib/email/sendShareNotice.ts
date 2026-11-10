@@ -1,4 +1,4 @@
-import { createTransporter, isSmtpConfigured } from './mailer'
+import { associationFrom, createTransporter, isSmtpConfigured } from './mailer'
 import { site } from '@/lib/site'
 
 type NoticeKind = 'deferred' | 'reopened' | 'cancelled'
@@ -25,7 +25,7 @@ export async function sendShareNotice(params: {
   if (!isSmtpConfigured() || params.members.length === 0) return
 
   const transporter = createTransporter()
-  const from = `"${site.name}" <${process.env.SMTP_USER}>`
+  const from = associationFrom()
   const subject = `${SUBJECT[params.kind]} · ${params.productName}`
   const adminEmail = process.env.ADMIN_EMAIL ?? site.email
 
@@ -71,7 +71,7 @@ export async function sendShareDigest(params: {
   const transporter = createTransporter()
   const hello = params.to.name ? `Bonjour ${params.to.name},` : 'Bonjour,'
   await transporter.sendMail({
-    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    from: associationFrom(),
     to: params.to.email,
     subject: `${DIGEST_SUBJECT[params.kind]} · ${site.name}`,
     html: layout(hello, params.bodyHtml),
