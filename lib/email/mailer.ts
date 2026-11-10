@@ -1,11 +1,17 @@
-import nodemailer from 'nodemailer'
+import nodemailer, { type SendMailOptions } from 'nodemailer'
+import { site } from '@/lib/site'
+
+/** Adresse visible : la boîte du P'tit Mag, pas le compte technique qui envoie. */
+export function associationFrom(): string {
+  return `"${site.name}" <${site.email}>`
+}
 
 /**
  * Crée un transporteur Nodemailer à partir des variables d'environnement SMTP.
  * Lève une erreur si les variables obligatoires sont absentes.
  */
 export function createTransporter() {
-  return nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT ?? 587),
     secure: process.env.SMTP_SECURE === 'true',
@@ -17,6 +23,16 @@ export function createTransporter() {
     greetingTimeout: 15_000,
     socketTimeout: 25_000,
   })
+  return {
+    sendMail(options: SendMailOptions) {
+      const prepared: SendMailOptions = {
+        ...options,
+        from: associationFrom(),
+        replyTo: site.email,
+      }
+      return transporter.sendMail(prepared)
+    },
+  }
 }
 
 /** Renvoie true si les variables SMTP minimales sont définies. */

@@ -1,4 +1,4 @@
-import { createTransporter, isSmtpConfigured } from './mailer'
+import { associationFrom, createTransporter, isSmtpConfigured } from './mailer'
 import { site } from '@/lib/site'
 
 export type CancelledOrderLine = {
@@ -35,7 +35,7 @@ export async function sendOrderCancelledByAdmin(params: Params): Promise<void> {
   const transporter = createTransporter()
 
   await transporter.sendMail({
-    from: `"${site.name}" <${process.env.SMTP_USER}>`,
+    from: associationFrom(),
     to: params.memberEmail,
     subject: memberSubject,
     html,
@@ -45,7 +45,7 @@ export async function sendOrderCancelledByAdmin(params: Params): Promise<void> {
   const memberCopyTo = params.memberEmail.trim().toLowerCase()
   if (adminCopyTo && adminCopyTo !== memberCopyTo) {
     await transporter.sendMail({
-      from: `"${site.name}" <${process.env.SMTP_USER}>`,
+      from: associationFrom(),
       to: adminEmail,
       subject: adminSubject,
       html,
